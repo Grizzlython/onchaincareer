@@ -216,12 +216,8 @@ export class ProjectInfoState {
     this.project_image_uris = data.project_image_uris;
     this.project_link = data.project_link;
     this.project_skills = data.project_skills;
-    this.project_start_date = data.project_start_date
-      ? new Date(+data.project_start_date)
-      : data.project_start_date;
-    this.project_end_date = data.project_end_date
-      ? new Date(+data.project_end_date)
-      : data.project_end_date;
+    this.project_start_date = data.project_start_date;
+    this.project_end_date = data.project_end_date;
     this.project_status = data.project_status;
     this.project_number = data.project_number;
   }
@@ -464,12 +460,12 @@ export class EducationInfoState {
     borsh.str("start_date"),
     borsh.str("end_date"),
     borsh.str("grade"),
-    borsh.vec(borsh.str(), "activities"),
-    borsh.vec(borsh.str(), "subjects"),
+    borsh.str("activities"),
+    borsh.str("subjects"),
     borsh.str("description"),
     borsh.bool("is_college"),
     borsh.bool("is_studying"),
-    borsh.vec(borsh.str(), "certificate_uris"),
+    borsh.str("certificate_uris"),
     borsh.str("education_number"),
   ]);
 
@@ -496,12 +492,12 @@ export class EducationInfoState {
       borsh.str("start_date"),
       borsh.str("end_date"),
       borsh.str("grade"),
-      borsh.vec(borsh.str(), "activities"),
-      borsh.vec(borsh.str(), "subjects"),
+      borsh.str("activities"),
+      borsh.str("subjects"),
       borsh.str("description"),
       borsh.bool("is_college"),
       borsh.bool("is_studying"),
-      borsh.vec(borsh.str(), "certificate_uris"),
+      borsh.str("certificate_uris"),
       borsh.str("education_number"),
     ]);
 
@@ -522,12 +518,12 @@ export class EducationInfoState {
       borsh.str("start_date"),
       borsh.str("end_date"),
       borsh.str("grade"),
-      borsh.vec(borsh.str(), "activities"),
-      borsh.vec(borsh.str(), "subjects"),
+      borsh.str("activities"),
+      borsh.str("subjects"),
       borsh.str("description"),
       borsh.bool("is_college"),
       borsh.bool("is_studying"),
-      borsh.vec(borsh.str(), "certificate_uris"),
+      borsh.str("certificate_uris"),
       borsh.str("education_number"),
     ]);
 

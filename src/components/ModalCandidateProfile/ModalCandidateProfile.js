@@ -7,8 +7,6 @@ import { Select } from "../Core";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { update_applicant_info } from "../../utils/web3/web3_functions";
 
 const currentEmploymentStatus = [
   { value: "employed", label: "Employed" },
@@ -74,60 +72,42 @@ const ModalCandidateProfile = (props) => {
 
   const router = useRouter();
 
-  const { publicKey, signTransaction, connected } = useWallet();
-  const { connection } = useConnection();
-
   const handleAddCandidate = async (e) => {
     e.preventDefault();
-    const applicantInfo = {
-      username: publicKey.toString(),
-      name: name,
-      address: location,
-      image_uri: "https://dummy.org/",
+    const payload = {
+      username: gContext.user?.username,
+      name,
+      location,
+      skills,
+      designation,
       bio: about,
-      skills: skills.split(","),
-      designation: designation,
-      current_employment_status: currentEmploymentStatus,
-      can_join_in: canJoinIn,
-      user_type: "applicant",
-      is_company_profile_complete: false,
-      is_overview_complete: true,
-      is_projects_complete: false,
-      is_contact_info_complete: false,
-      is_education_complete: false,
-      is_work_experience_complete: false,
+      currentEmploymentStatus: currentEmploymentStatusState.value,
+      canJoinIn: canJoinInState.value,
     };
 
-    const addUserOverview = await update_applicant_info(
-      publicKey,
-      applicantInfo,
-      connection,
-      signTransaction
-    );
-
-    gCne;
-
-    if (addUserOverview) {
-      toast.success("User Overview Added Successfully");
-      router.push("/candidate-view");
+    if (gContext.candidateProfile?.length > 0) {
+      gContext.updateCandidateProfile(gContext.user?.username, payload);
+      await gContext.toggleCandidateProfileModal();
     } else {
-      toast.error("User Overview Not Added");
+      await gContext.addCandidateProfile(payload);
+      router.push("/");
+      await gContext.toggleCandidateProfileModal();
     }
   };
 
-  // useEffect(() => {
-  //   if (gContext.candidateProfile.length > 0) {
-  //     setName(gContext.candidateProfile[0].name);
-  //     setDesignation(gContext.candidateProfile[0].designation);
-  //     setLocation(gContext.candidateProfile[0].location);
-  //     setSkills(gContext.candidateProfile[0].skills);
-  //     setAbout(gContext.candidateProfile[0].bio);
-  //     setCurrentEmploymentStatusState(
-  //       gContext.candidateProfile[0].currentEmploymentStatus
-  //     );
-  //     setCanJoinInState(gContext.candidateProfile[0].canJoinIn);
-  //   }
-  // }, [gContext.candidateProfile]);
+  useEffect(() => {
+    if (gContext.candidateProfile.length > 0) {
+      setName(gContext.candidateProfile[0].name);
+      setDesignation(gContext.candidateProfile[0].designation);
+      setLocation(gContext.candidateProfile[0].location);
+      setSkills(gContext.candidateProfile[0].skills);
+      setAbout(gContext.candidateProfile[0].bio);
+      setCurrentEmploymentStatusState(
+        gContext.candidateProfile[0].currentEmploymentStatus
+      );
+      setCanJoinInState(gContext.candidateProfile[0].canJoinIn);
+    }
+  }, [gContext.candidateProfile]);
 
   return (
     <ModalStyled

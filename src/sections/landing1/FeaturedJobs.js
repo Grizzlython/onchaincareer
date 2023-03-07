@@ -9,16 +9,14 @@ import imgF6 from "../../assets/image/l1/png/feature-brand-6.png";
 
 import GlobalContext from "../../context/GlobalContext";
 import { toast } from "react-toastify";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
 const FeaturedJobs = () => {
   const gContext = useContext(GlobalContext);
 
-  const { publicKey } = useWallet();
-  const { connection } = useConnection();
-
   useEffect(() => {
-    gContext.getJobListings(publicKey, connection);
+    gContext.getJobListings({
+      limit: 6,
+    });
   }, []);
 
   const applyForJob = (jobListingId, companyName) => {
@@ -85,7 +83,7 @@ const FeaturedJobs = () => {
                       <Link href="/#">
                         <a>
                           <img
-                            src={jobListing.logo || imgF1.src}
+                            src={jobListing.logo}
                             alt=""
                             style={{
                               width: "75px",
@@ -97,13 +95,13 @@ const FeaturedJobs = () => {
                     </div>
                     <Link href={`/company/${jobListing.companyName}`}>
                       <a className="font-size-3 d-block mb-0 text-gray">
-                        {"jobListing.companyName.toUpperCase()"}
+                        {jobListing.companyName.toUpperCase()}
                       </a>
                     </Link>
                     <h2 className="mt-n4">
                       {/* <Link href="/#"> */}
                       <a className="font-size-7 text-black-2 font-weight-bold mb-4">
-                        {jobListing.parsedInfo.job_title}
+                        {jobListing.title}
                       </a>
                       {/* </Link> */}
                     </h2>
@@ -112,9 +110,9 @@ const FeaturedJobs = () => {
                         {/* <Link href="/#"> */}
                         <a className="bg-regent-opacity-15 text-denim font-size-3 rounded-3">
                           <i className="icon icon-pin-3 mr-2 font-weight-bold"></i>{" "}
-                          {jobListing.parsedInfo.job_location_type === "remote"
+                          {jobListing.jobLocationType === "remote"
                             ? "Remote"
-                            : `${jobListing.parsedInfo.city}, ${jobListing.parsedInfo.country}`}
+                            : `${jobListing.city}, ${jobListing.country}`}
                         </a>
                         {/* </Link> */}
                       </li>
@@ -122,7 +120,7 @@ const FeaturedJobs = () => {
                         {/* <Link href="/#"> */}
                         <a className="bg-regent-opacity-15 text-orange font-size-3 rounded-3">
                           <i className="fa fa-briefcase mr-2 font-weight-bold"></i>{" "}
-                          {jobListing.parsedInfo.job_type}
+                          {jobListing.jobType}
                         </a>
                         {/* </Link> */}
                       </li>
@@ -130,20 +128,16 @@ const FeaturedJobs = () => {
                         {/* <Link href="/#"> */}
                         <a className="bg-regent-opacity-15 text-eastern font-size-3 rounded-3">
                           <i className="fa fa-rupee-sign mr-2 font-weight-bold"></i>{" "}
-                          {Number(jobListing.parsedInfo.min_salary) +
-                            " -" +
-                            Number(jobListing.parsedInfo.max_salary)}
+                          {jobListing.salaryRange}
                         </a>
                         {/* </Link> */}
                       </li>
                     </ul>
                     <p className="mb-7 font-size-4 text-gray">
-                      {jobListing.parsedInfo.short_description}
+                      {jobListing.shortDescription}
                     </p>
                     <div className="card-btn-group">
-                      <Link
-                        href={`/job-details/${jobListing.pubkey.toString()}`}
-                      >
+                      <Link href={`/job-details/${jobListing.id}`}>
                         <a className="btn btn-green text-uppercase btn-medium rounded-3">
                           View Job
                         </a>

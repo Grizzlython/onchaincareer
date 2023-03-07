@@ -7,8 +7,6 @@ import { Select } from "../Core";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { getContactInfoByUserAccount } from "../../utils/web3/web3_functions";
 
 const currentEmploymentStatus = [
   { value: "employed", label: "Employed" },
@@ -50,9 +48,6 @@ const ModalCandidateSocials = (props) => {
     gContext.toggleCandidateSocialsModal();
   };
 
-  const { publicKey, connected, signTransaction } = useWallet();
-  const { connection } = useConnection();
-
   const handleAddCandidateSocials = async () => {
     const payload = {
       username: gContext.user?.username,
@@ -67,29 +62,7 @@ const ModalCandidateSocials = (props) => {
       website,
     };
 
-    const contactInfo = {
-      email: email, //64
-      phone: phone, //16
-      resume_uri: resume, //128
-      github: github, //128
-      linkedin: linkedin, //128
-      twitter: twitter, //128
-      dribble: dribble, //128
-      behance: behance, //128
-      twitch: "twitch link", //128
-      solgames: "solgames link", //128
-      facebook: "facebook link", //128
-      instagram: "instagram link", //128
-      website: website, //128
-    };
-
-    await gContext.addCandidateSocials(
-      publicKey,
-      contactInfo,
-      connection,
-      signTransaction
-    );
-
+    await gContext.addCandidateSocials(payload);
     handleClose();
   };
   return (
