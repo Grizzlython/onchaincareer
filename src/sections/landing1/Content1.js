@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React from "react";
 import imgC from "../../assets/image/l1/jpg/content-1-img1.jpg";
 import imgL1 from "../../assets/image/l1/png/smal-logo1.png";
@@ -106,6 +107,14 @@ const Content = () => {
                   </li>
                 </ul>
                 {/* <!-- content-1 list-group end --> */}
+                <Link href={"/search-jobs"}>
+                  <a
+                    className="btn btn-green btn-h-60 text-white w-180 rounded-5 text-uppercase"
+                    // onClick={handleCTA}
+                  >
+                    View all jobs
+                  </a>
+                </Link>
               </div>
               {/* <!-- content-1 end --> */}
             </div>

@@ -9,6 +9,10 @@ import imgP2 from "../assets/image/table-one-profile-image-2.png";
 import imgP3 from "../assets/image/table-one-profile-image-3.png";
 import imgP4 from "../assets/image/table-one-profile-image-4.png";
 import imgP5 from "../assets/image/table-one-profile-image-5.png";
+import moment from "moment";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
+import { toast } from "react-toastify";
 
 const defaultJobs = [
   { value: "pd", label: "Product Designer" },
@@ -18,8 +22,20 @@ const defaultJobs = [
   { value: "cw", label: "Content Writer" },
 ];
 
-export default function DashboardApplicants () {
+export default function DashboardApplicants() {
+  const router = useRouter();
   const gContext = useContext(GlobalContext);
+
+  useEffect(() => {
+    if (
+      !gContext.user ||
+      gContext.user?.isProfileComplete === false ||
+      !gContext.user?.userType === "recruiter"
+    ) {
+      router.push("/");
+      toast("⚠️ Not allowed to view this page");
+    }
+  }, []);
 
   return (
     <>
@@ -36,7 +52,10 @@ export default function DashboardApplicants () {
             <div className="mb-14">
               <div className="row mb-11 align-items-center">
                 <div className="col-lg-6 mb-lg-0 mb-4">
-                  <h3 className="font-size-6 mb-0">Applicants List (12)</h3>
+                  <h3 className="font-size-6 mb-0">
+                    Applicants List ({gContext.userAppliedJobsByCompany?.length}
+                    )
+                  </h3>
                 </div>
                 <div className="col-lg-6">
                   <div className="d-flex flex-wrap align-items-center justify-content-lg-end">
@@ -89,286 +108,63 @@ export default function DashboardApplicants () {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border border-color-2">
-                        <th scope="row" className="pl-6 border-0 py-7 pr-0">
-                          <Link href="/candidate-profile">
-                            <a className="media min-width-px-235 align-items-center">
-                              <div className="circle-36 mr-6">
-                                <img src={imgP1.src} alt="" className="w-100" />
-                              </div>
-                              <h4 className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                                Nicolas Bradley
-                              </h4>
-                            </a>
-                          </Link>
-                        </th>
-                        <td className="table-y-middle py-7 min-width-px-235 pr-0">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            Senior Project Manager
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-170 pr-0">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            12 July, 2020
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-170 pr-0">
-                          <div className="">
-                            <a
-                              href="/#"
-                              className="font-size-3 font-weight-bold text-black-2 text-uppercase"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                gContext.toggleApplicationModal();
-                              }}
-                            >
-                              View Application
-                            </a>
-                          </div>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-110 pr-0">
-                          <div className="">
-                            <Link href="/contact">
-                              <a className="font-size-3 font-weight-bold text-green text-uppercase">
-                                Contact
+                      {gContext.userAppliedJobsByCompany?.map((item, index) => (
+                        <tr className="border border-color-2" key={index}>
+                          <th scope="row" className="pl-6 border-0 py-7 pr-0">
+                            <Link href={`/candidate/${item?.username}`}>
+                              <a className="media min-width-px-235 align-items-center">
+                                <div className="circle-36 mr-6">
+                                  <img
+                                    src={imgP1.src}
+                                    alt=""
+                                    className="w-100"
+                                  />
+                                </div>
+                                <h4 className="font-size-4 mb-0 font-weight-semibold text-black-2">
+                                  {item?.name}
+                                </h4>
                               </a>
                             </Link>
-                          </div>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-100 pr-0">
-                          <div className="">
-                            <Link href="/#">
-                              <a className="font-size-3 font-weight-bold text-red-2 text-uppercase">
-                                Reject
-                              </a>
-                            </Link>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="border border-color-2">
-                        <th scope="row" className="pl-6 border-0 py-7 pr-0">
-                          <Link href="/candidate-profile">
-                            <a className="media min-width-px-235 align-items-center">
-                              <div className="circle-36 mr-6">
-                                <img src={imgP2.src} alt="" className="w-100" />
-                              </div>
-                              <h4 className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                                Elizabeth Gomez
-                              </h4>
-                            </a>
-                          </Link>
-                        </th>
-                        <td className="table-y-middle py-7 min-width-px-235 pr-0">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            Senior Project Manager
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-170 pr-0">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            14 July, 2020
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-170 pr-0">
-                          <div className="">
-                            <a
-                              href="/#"
-                              className="font-size-3 font-weight-bold text-black-2 text-uppercase"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                gContext.toggleApplicationModal();
-                              }}
-                            >
-                              View Application
-                            </a>
-                          </div>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-110 pr-0">
-                          <div className="">
-                            <Link href="/contact">
-                              <a className="font-size-3 font-weight-bold text-green text-uppercase">
-                                Contact
-                              </a>
-                            </Link>
-                          </div>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-100 pr-0">
-                          <div className="">
-                            <Link href="/#">
-                              <a className="font-size-3 font-weight-bold text-red-2 text-uppercase">
-                                Reject
-                              </a>
-                            </Link>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="border border-color-2">
-                        <th scope="row" className="pl-6 border-0 py-7 pr-0">
-                          <Link href="/candidate-profile">
-                            <a className="media min-width-px-235 align-items-center">
-                              <div className="circle-36 mr-6">
-                                <img src={imgP3.src} alt="" className="w-100" />
-                              </div>
-                              <h4 className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                                Joe Wade
-                              </h4>
-                            </a>
-                          </Link>
-                        </th>
-                        <td className="table-y-middle py-7 min-width-px-235 pr-0">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            Head of Marketing
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-170 pr-0">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            14 July, 2020
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-170 pr-0">
-                          <div className="">
-                            <a
-                              href="/#"
-                              className="font-size-3 font-weight-bold text-black-2 text-uppercase"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                gContext.toggleApplicationModal();
-                              }}
-                            >
-                              View Application
-                            </a>
-                          </div>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-110 pr-0">
-                          <div className="">
-                            <Link href="/contact">
-                              <a className="font-size-3 font-weight-bold text-green text-uppercase">
-                                Contact
-                              </a>
-                            </Link>
-                          </div>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-100 pr-0">
-                          <div className="">
-                            <Link href="/#">
-                              <a className="font-size-3 font-weight-bold text-red-2 text-uppercase">
-                                Reject
-                              </a>
-                            </Link>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="border border-color-2">
-                        <th scope="row" className="pl-6 border-0 py-7 pr-0">
-                          <Link href="/candidate-profile">
-                            <a className="media min-width-px-235 align-items-center">
-                              <div className="circle-36 mr-6">
-                                <img src={imgP4.src} alt="" className="w-100" />
-                              </div>
-                              <h4 className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                                Roger Hawkins
-                              </h4>
-                            </a>
-                          </Link>
-                        </th>
-                        <td className="table-y-middle py-7 min-width-px-235 pr-0">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            UI Designer
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-170 pr-0">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            16 July, 2020
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-170 pr-0">
-                          <div className="">
-                            <a
-                              href="/#"
-                              className="font-size-3 font-weight-bold text-black-2 text-uppercase"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                gContext.toggleApplicationModal();
-                              }}
-                            >
-                              View Application
-                            </a>
-                          </div>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-110 pr-0">
-                          <div className="">
-                            <Link href="/contact">
-                              <a className="font-size-3 font-weight-bold text-green text-uppercase">
-                                Contact
-                              </a>
-                            </Link>
-                          </div>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-100 pr-0">
-                          <div className="">
-                            <Link href="/#">
-                              <a className="font-size-3 font-weight-bold text-red-2 text-uppercase">
-                                Reject
-                              </a>
-                            </Link>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="border border-color-2">
-                        <th scope="row" className="pl-6 border-0 py-7 pr-0">
-                          <Link href="/candidate-profile">
-                            <a className="media min-width-px-235 align-items-center">
-                              <div className="circle-36 mr-6">
-                                <img src={imgP5.src} alt="" className="w-100" />
-                              </div>
-                              <h4 className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                                Marie Green
-                              </h4>
-                            </a>
-                          </Link>
-                        </th>
-                        <td className="table-y-middle py-7 min-width-px-235 pr-0">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            Senior Project Manager
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-170 pr-0">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            21 July, 2020
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-170 pr-0">
-                          <div className="">
-                            <a
-                              href="/#"
-                              className="font-size-3 font-weight-bold text-black-2 text-uppercase"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                gContext.toggleApplicationModal();
-                              }}
-                            >
-                              View Application
-                            </a>
-                          </div>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-110 pr-0">
-                          <div className="">
-                            <Link href="/contact">
-                              <a className="font-size-3 font-weight-bold text-green text-uppercase">
-                                Contact
-                              </a>
-                            </Link>
-                          </div>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-100 pr-0">
-                          <div className="">
-                            <Link href="/#">
-                              <a className="font-size-3 font-weight-bold text-red-2 text-uppercase">
-                                Reject
-                              </a>
-                            </Link>
-                          </div>
-                        </td>
-                      </tr>
+                          </th>
+                          <td className="table-y-middle py-7 min-width-px-235 pr-0">
+                            <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                              {item?.title}
+                            </h3>
+                          </td>
+                          <td className="table-y-middle py-7 min-width-px-170 pr-0">
+                            <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                              {moment(item?.appliedOn).format("DD MMM YYYY")}
+                            </h3>
+                          </td>
+                          <td className="table-y-middle py-7 min-width-px-170 pr-0">
+                            <div className="">
+                              <Link href={`/candidate/${item?.username}`}>
+                                <a className="font-size-3 font-weight-bold text-black-2 text-uppercase">
+                                  View Application
+                                </a>
+                              </Link>
+                            </div>
+                          </td>
+                          <td className="table-y-middle py-7 min-width-px-110 pr-0">
+                            <div className="">
+                              <Link href="/contact">
+                                <a className="font-size-3 font-weight-bold text-green text-uppercase">
+                                  Contact
+                                </a>
+                              </Link>
+                            </div>
+                          </td>
+                          <td className="table-y-middle py-7 min-width-px-100 pr-0">
+                            <div className="">
+                              <Link href="/#">
+                                <a className="font-size-3 font-weight-bold text-red-2 text-uppercase">
+                                  Reject
+                                </a>
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -440,4 +236,4 @@ export default function DashboardApplicants () {
       </PageWrapper>
     </>
   );
-};
+}

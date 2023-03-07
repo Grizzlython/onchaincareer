@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import styled from "styled-components";
 import { Modal } from "react-bootstrap";
 import GlobalContext from "../../context/GlobalContext";
+import { Select } from "../Core";
 
 const ModalStyled = styled(Modal)`
   /* &.modal {
@@ -9,9 +10,21 @@ const ModalStyled = styled(Modal)`
   } */
 `;
 
+const options = [
+  { value: "recruiter", label: "Recruiter - Coming to hire" },
+  { value: "candidate", label: "Candidate - Coming to get hired" },
+];
+
 const ModalSignUp = (props) => {
   const [showPassFirst, setShowPassFirst] = useState(true);
   const [showPassSecond, setShowPassSecond] = useState(true);
+
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [userType, setUserType] = useState("");
+
+  console.log(userType, "userType");
 
   const gContext = useContext(GlobalContext);
   const handleClose = () => {
@@ -22,8 +35,37 @@ const ModalSignUp = (props) => {
     setShowPassFirst(!showPassFirst);
   };
 
+  const reset = () => {
+    setEmail("");
+    setUsername("");
+    setPassword("");
+    setUserType("");
+  };
+
   const togglePasswordSecond = () => {
     setShowPassSecond(!showPassSecond);
+  };
+
+  const handleSubmit = async (e) => {
+    try {
+      e.preventDefault();
+      const payload = {
+        email,
+        username,
+        password,
+        userType: userType.value,
+        isProfileComplete: false,
+      };
+
+      await gContext.signUpUser(payload);
+      handleClose();
+      userType.value === "recruiter"
+        ? gContext.toggleCompanyProfileModal()
+        : gContext.toggleCandidateProfileModal();
+      reset();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -74,44 +116,6 @@ const ModalSignUp = (props) => {
             </div>
             <div className="col-lg-7 col-md-6">
               <div className="bg-white-2 h-100 px-11 pt-11 pb-7">
-                <div className="row">
-                  <div className="col-4 col-xs-12">
-                    <a
-                      href="/#"
-                      className="font-size-4 font-weight-semibold position-relative text-white bg-allports h-px-48 flex-all-center w-100 px-6 rounded-5 mb-4"
-                    >
-                      <i className="fab fa-linkedin pos-xs-abs-cl font-size-7 ml-xs-4"></i>{" "}
-                      <span className="d-none d-xs-block">
-                        Import from LinkedIn
-                      </span>
-                    </a>
-                  </div>
-                  <div className="col-4 col-xs-12">
-                    <a
-                      href="/#"
-                      className="font-size-4 font-weight-semibold position-relative text-white bg-poppy h-px-48 flex-all-center w-100 px-6 rounded-5 mb-4"
-                    >
-                      <i className="fab fa-google pos-xs-abs-cl font-size-7 ml-xs-4"></i>{" "}
-                      <span className="d-none d-xs-block">
-                        Import from Google
-                      </span>
-                    </a>
-                  </div>
-                  <div className="col-4 col-xs-12">
-                    <a
-                      href="/#"
-                      className="font-size-4 font-weight-semibold position-relative text-white bg-marino h-px-48 flex-all-center w-100 px-6 rounded-5 mb-4"
-                    >
-                      <i className="fab fa-facebook-square pos-xs-abs-cl font-size-7 ml-xs-4"></i>{" "}
-                      <span className="d-none d-xs-block">
-                        Import from Facebook
-                      </span>
-                    </a>
-                  </div>
-                </div>
-                <div className="or-devider">
-                  <span className="font-size-3 line-height-reset">Or</span>
-                </div>
                 <form action="/">
                   <div className="form-group">
                     <label
@@ -125,32 +129,26 @@ const ModalSignUp = (props) => {
                       className="form-control"
                       placeholder="example@gmail.com"
                       id="email2"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   <div className="form-group">
                     <label
-                      htmlFor="password"
+                      htmlFor="username"
                       className="font-size-4 text-black-2 font-weight-semibold line-height-reset"
                     >
-                      Password
+                      Username
                     </label>
                     <div className="position-relative">
                       <input
-                        type={showPassFirst ? "password" : "text"}
+                        type="text"
                         className="form-control"
-                        id="password"
-                        placeholder="Enter password"
+                        id="username"
+                        placeholder="Enter username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                       />
-                      <a
-                        href="/#"
-                        className="show-password pos-abs-cr fas mr-6 text-black-2"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          togglePasswordFirst();
-                        }}
-                      >
-                        <span className="d-none">none</span>
-                      </a>
                     </div>
                   </div>
                   <div className="form-group">
@@ -166,6 +164,8 @@ const ModalSignUp = (props) => {
                         className="form-control"
                         id="password2"
                         placeholder="Enter password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                       />
                       <a
                         href="/#"
@@ -177,6 +177,23 @@ const ModalSignUp = (props) => {
                       >
                         <span className="d-none">none</span>
                       </a>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label
+                      htmlFor="recruiter"
+                      className="font-size-4 text-black-2 font-weight-semibold line-height-reset"
+                    >
+                      How do you intend to use Web3Jobs?
+                    </label>
+                    <div className="position-relative">
+                      <Select
+                        options={options}
+                        className="pl-0 h-100 arrow-3 arrow-3-black min-width-px-273  text-black-2 d-flex align-items-center w-100"
+                        border={true}
+                        value={userType}
+                        onChange={setUserType}
+                      />
                     </div>
                   </div>
                   <div className="form-group d-flex flex-wrap justify-content-between mb-1">
@@ -205,7 +222,10 @@ const ModalSignUp = (props) => {
                     </a>
                   </div>
                   <div className="form-group mb-8">
-                    <button className="btn btn-primary btn-medium w-100 rounded-5 text-uppercase">
+                    <button
+                      className="btn btn-primary btn-medium w-100 rounded-5 text-uppercase"
+                      onClick={handleSubmit}
+                    >
                       Sign Up{" "}
                     </button>
                   </div>

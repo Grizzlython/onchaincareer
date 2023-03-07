@@ -10,7 +10,8 @@ import imgB3 from "../assets/image/l1/png/feature-brand-5.png";
 import imgB4 from "../assets/image/l3/png/github-mark.png";
 import imgB5 from "../assets/image/l3/png/universal.png";
 
-export default function CompanyProfle(){
+export default function CompanyProfle() {
+  //TODO: get company profile from backend
   return (
     <>
       <PageWrapper headerConfig={{ button: "profile" }}>
@@ -421,4 +422,4 @@ export default function CompanyProfle(){
       </PageWrapper>
     </>
   );
-};
+}

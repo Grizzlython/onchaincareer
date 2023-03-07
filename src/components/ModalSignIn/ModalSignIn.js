@@ -11,6 +11,10 @@ const ModalStyled = styled(Modal)`
 
 const ModalSignIn = (props) => {
   const [showPass, setShowPass] = useState(true);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   const gContext = useContext(GlobalContext);
 
   const handleClose = () => {
@@ -19,6 +23,27 @@ const ModalSignIn = (props) => {
 
   const togglePassword = () => {
     setShowPass(!showPass);
+  };
+
+  const reset = () => {
+    setEmail("");
+    setPassword("");
+  };
+
+  const login = async (e) => {
+    try {
+      e.preventDefault();
+      const payload = {
+        email,
+        password,
+      };
+
+      await gContext.loginUser(payload);
+      handleClose();
+      reset();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -69,44 +94,6 @@ const ModalSignIn = (props) => {
             </div>
             <div className="col-lg-7 col-md-6">
               <div className="bg-white-2 h-100 px-11 pt-11 pb-7">
-                <div className="row">
-                  <div className="col-4 col-xs-12">
-                    <a
-                      href="/#"
-                      className="font-size-4 font-weight-semibold position-relative text-white bg-allports h-px-48 flex-all-center w-100 px-6 rounded-5 mb-4"
-                    >
-                      <i className="fab fa-linkedin pos-xs-abs-cl font-size-7 ml-xs-4"></i>{" "}
-                      <span className="d-none d-xs-block">
-                        Log in with LinkedIn
-                      </span>
-                    </a>
-                  </div>
-                  <div className="col-4 col-xs-12">
-                    <a
-                      href="/#"
-                      className="font-size-4 font-weight-semibold position-relative text-white bg-poppy h-px-48 flex-all-center w-100 px-6 rounded-5 mb-4"
-                    >
-                      <i className="fab fa-google pos-xs-abs-cl font-size-7 ml-xs-4"></i>{" "}
-                      <span className="d-none d-xs-block">
-                        Log in with Google
-                      </span>
-                    </a>
-                  </div>
-                  <div className="col-4 col-xs-12">
-                    <a
-                      href="/#"
-                      className="font-size-4 font-weight-semibold position-relative text-white bg-marino h-px-48 flex-all-center w-100 px-6 rounded-5 mb-4"
-                    >
-                      <i className="fab fa-facebook-square pos-xs-abs-cl font-size-7 ml-xs-4"></i>{" "}
-                      <span className="d-none d-xs-block">
-                        Log in with Facebook
-                      </span>
-                    </a>
-                  </div>
-                </div>
-                <div className="or-devider">
-                  <span className="font-size-3 line-height-reset ">Or</span>
-                </div>
                 <form action="/">
                   <div className="form-group">
                     <label
@@ -120,6 +107,8 @@ const ModalSignIn = (props) => {
                       className="form-control"
                       placeholder="example@gmail.com"
                       id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   <div className="form-group">
@@ -135,6 +124,8 @@ const ModalSignIn = (props) => {
                         className="form-control"
                         id="password"
                         placeholder="Enter password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                       />
                       <a
                         href="/#"
@@ -171,13 +162,20 @@ const ModalSignIn = (props) => {
                     </a>
                   </div>
                   <div className="form-group mb-8">
-                    <button className="btn btn-primary btn-medium w-100 rounded-5 text-uppercase">
+                    <button
+                      className="btn btn-primary btn-medium w-100 rounded-5 text-uppercase"
+                      onClick={login}
+                    >
                       Log in{" "}
                     </button>
                   </div>
                   <p className="font-size-4 text-center heading-default-color">
                     Don’t have an account?{" "}
-                    <a href="/#" className="text-primary">
+                    <a
+                      href="/#"
+                      className="text-primary"
+                      onClick={() => gContext.toggleSignUpModal()}
+                    >
                       Create a free account
                     </a>
                   </p>

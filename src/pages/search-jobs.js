@@ -3,6 +3,11 @@ import PageWrapper from "../components/PageWrapper";
 import { Select } from "../components/Core";
 
 import SearchTab from "../sections/search/SearchTab";
+import { useRouter } from "next/router";
+import { useState } from "react";
+import ErrorPage from "./404";
+import { useEffect } from "react";
+import { countries } from "../staticData";
 
 const defaultCountries = [
   { value: "sp", label: "Singapore" },
@@ -12,12 +17,18 @@ const defaultCountries = [
   { value: "pk", label: "Pakistan" },
 ];
 
-const defaultJobTypes = [
-  { value: "ft", label: "Full Time" },
-  { value: "pt", label: "Part Time" },
-  { value: "remote", label: "Remote" },
-  { value: "contract", label: "Contract" },
+const defaultCategories = [
+  { value: "all", label: "All Categories" },
+  { value: "marketing", label: "Marketing" },
+  { value: "development", label: "Development" },
+  { value: "design", label: "Design" },
+  { value: "business_development", label: "Business Development" },
+  { value: "customer_service", label: "Customer service" },
+  { value: "sales_&_communication", label: "Sales & Communication" },
+  { value: "project_management", label: "Project Management" },
+  { value: "human_resource", label: "Human Resource" },
 ];
+
 const defaultSalaryRange = [
   { value: "5k", label: "< 5k" },
   { value: "5k10k", label: "5k - 10k" },
@@ -38,7 +49,54 @@ const defaultPostedTimes = [
   { value: "Oct", label: "October" },
 ];
 
-export default function SearchListTwo () {
+const defaultJobTypes = [
+  { value: "Full-Time", label: "Full Time" },
+  { value: "Part-Time", label: "Part Time" },
+  { value: "Freelancer", label: "Freelancer" },
+  { value: "Internship", label: "Internship" },
+];
+
+const companyTypes = [
+  { value: "all", label: "All Companies" },
+  { value: "Service-based", label: "Service-based" },
+  { value: "Product-based", label: "Product-based" },
+];
+
+const sortTypes = [
+  { value: "all", label: "All Jobs" },
+  { value: "latest", label: "Newest" },
+  { value: "oldest", label: "Oldest" },
+];
+
+export default function SearchListTwo() {
+  const [category, setCategory] = useState(null);
+  const [country, setCountry] = useState(null);
+  const [jobType, setJobType] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [companyType, setCompanyType] = useState("");
+  const [sortType, setSortType] = useState("");
+
+  // temp fields
+  const [tempJTitle, setTempJTitle] = useState("");
+  const [tempCountry, setTempCountry] = useState("");
+
+  const { query } = useRouter();
+
+  useEffect(() => {
+    if (query.category) {
+      setCategory(query.category);
+    }
+    if (query.country) {
+      setCountry(query.country);
+    }
+    if (query.jobType) {
+      setJobType(query.jobType);
+    }
+    if (query.jobTitle) {
+      setJobTitle(query.jobTitle);
+    }
+  }, [query]);
+
   return (
     <>
       <PageWrapper>
@@ -64,7 +122,7 @@ export default function SearchListTwo () {
                       {/* <!-- .select-city starts --> */}
                       <div className="form-group position-relative w-lg-50">
                         <Select
-                          options={defaultCountries}
+                          options={countries}
                           className="pl-8 h-100 arrow-3 font-size-4 d-flex align-items-center w-100"
                           border={false}
                         />
@@ -90,10 +148,13 @@ export default function SearchListTwo () {
           <div className="container">
             <div className="row justify-content-center">
               <div className="col-12 col-lg-10 col-xl-12">
-                <h2 className="font-size-8 mb-6">
-                  You’re searching "UI Designer"
-                </h2>
-                <form className="mb-8">
+                <form
+                  className="mb-8"
+                  style={{
+                    display: "grid",
+                    placeItems: "center",
+                  }}
+                >
                   <div className="search-filter from-group d-flex align-items-center flex-wrap">
                     <div className="mr-5 mb-5">
                       <Select
@@ -103,52 +164,58 @@ export default function SearchListTwo () {
                         css={`
                           min-width: 175px;
                         `}
+                        onChange={(e) => setJobType(e.value)}
                       />
                     </div>
                     <div className="mr-5 mb-5">
                       <Select
-                        options={defaultSalaryRange}
+                        options={defaultCategories}
                         className="font-size-4"
                         // border={false}
                         css={`
                           min-width: 175px;
                         `}
+                        onChange={(e) => setCategory(e.value)}
                       />
                     </div>
                     <div className="mr-5 mb-5">
                       <Select
-                        options={defaultExpLevels}
+                        options={companyTypes}
                         className="font-size-4"
                         // border={false}
                         css={`
                           min-width: 175px;
                         `}
+                        onChange={(e) => setCompanyType(e.value)}
                       />
                     </div>
                     <div className="mr-5 mb-5">
                       <Select
-                        options={defaultPostedTimes}
+                        options={sortTypes}
                         className="font-size-4"
                         // border={false}
                         css={`
                           min-width: 175px;
                         `}
+                        onChange={(e) => setSortType(e.value)}
                       />
                     </div>
                   </div>
                 </form>
-                <div className="d-flex align-items-center justify-content-between mb-6">
-                  <h5 className="font-size-4 font-weight-normal text-gray">
-                    Showing
-                    <span className="text-black-2">120</span> matched jobs
-                  </h5>
-                </div>
+                <div className="d-flex align-items-center justify-content-between mb-6"></div>
               </div>
             </div>
-            <SearchTab />
+            <SearchTab
+              category={category}
+              country={country}
+              jobTitle={jobTitle}
+              jobType={jobType}
+              companyType={companyType}
+              sortType={sortType}
+            />
           </div>
         </div>
       </PageWrapper>
     </>
   );
-};
+}

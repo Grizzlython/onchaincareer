@@ -1,7 +1,8 @@
 import React from "react";
 import PageWrapper from "../components/PageWrapper";
 
-export default function Contact(){
+export default function Contact() {
+  // TODO: Make the contact form work
   return (
     <>
       <PageWrapper>
@@ -125,4 +126,4 @@ export default function Contact(){
       </PageWrapper>
     </>
   );
-};
+}

@@ -2,6 +2,13 @@ import React from "react";
 import Link from "next/link";
 import PageWrapper from "../components/PageWrapper";
 import { Select } from "../components/Core";
+import { useContext } from "react";
+import GlobalContext from "../context/GlobalContext";
+import moment from "moment";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
+import { toast } from "react-toastify";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
 const defaultJobs = [
   { value: "pd", label: "Product Designer" },
@@ -11,7 +18,25 @@ const defaultJobs = [
   { value: "cw", label: "Content Writer" },
 ];
 
-export default function DashboardJobs () {
+export default function DashboardJobs() {
+  const router = useRouter();
+  const gContext = useContext(GlobalContext);
+  const { publicKey, connected } = useWallet();
+  const { connection } = useConnection();
+  useEffect(() => {
+    if (
+      !gContext.user ||
+      gContext.user?.isProfileComplete === false ||
+      !gContext.user?.userType === "recruiter"
+    ) {
+      router.push("/");
+      toast("⚠️ Not allowed to view this page");
+    } else {
+      if (publicKey) {
+        gContext.getCompanyPostedJobs(publicKey, connection);
+      }
+    }
+  }, []);
   return (
     <>
       <PageWrapper
@@ -27,7 +52,9 @@ export default function DashboardJobs () {
             <div className="mb-18">
               <div className="row mb-11 align-items-center">
                 <div className="col-lg-6 mb-lg-0 mb-4">
-                  <h3 className="font-size-6 mb-0">Posted Jobs (4)</h3>
+                  <h3 className="font-size-6 mb-0">
+                    Posted Jobs ({gContext.companyPostedJobs?.length})
+                  </h3>
                 </div>
                 <div className="col-lg-6">
                   <div className="d-flex flex-wrap align-items-center justify-content-lg-end">
@@ -88,206 +115,61 @@ export default function DashboardJobs () {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border border-color-2">
-                        <th
-                          scope="row"
-                          className="pl-6 border-0 py-7 min-width-px-235"
-                        >
-                          <div className="">
-                            <Link href="/job-details">
-                              <a className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                                Senior Project Manager
-                              </a>
-                            </Link>
-                          </div>
-                        </th>
-                        <td className="table-y-middle py-7 min-width-px-135">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            Full-Time
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-125">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            New York
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-155">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            12 July, 2020
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-205">
-                          <h3 className="font-size-4 font-weight-bold text-black-2 mb-0">
-                            47
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-80">
-                          <a
-                            href="/#"
-                            className="font-size-3 font-weight-bold text-green text-uppercase"
+                      {gContext.companyPostedJobs?.map((job, index) => (
+                        <tr className="border border-color-2" key={index}>
+                          <th
+                            scope="row"
+                            className="pl-6 border-0 py-7 min-width-px-235"
                           >
-                            Edit
-                          </a>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-100">
-                          <a
-                            href="/#"
-                            className="font-size-3 font-weight-bold text-red-2 text-uppercase"
-                          >
-                            Delete
-                          </a>
-                        </td>
-                      </tr>
-                      <tr className="border border-color-2">
-                        <th
-                          scope="row"
-                          className="pl-6 border-0 py-7 min-width-px-235"
-                        >
-                          <div className="">
-                            <Link href="/job-details">
-                              <a className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                                UI Designer
-                              </a>
-                            </Link>
-                          </div>
-                        </th>
-                        <td className="table-y-middle py-7 min-width-px-135">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            Full-Time
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-125">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            Remote
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-155">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            24 June, 2020
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-205">
-                          <h3 className="font-size-4 font-weight-bold text-black-2 mb-0">
-                            145
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-80">
-                          <a
-                            href="/#"
-                            className="font-size-3 font-weight-bold text-green text-uppercase"
-                          >
-                            Edit
-                          </a>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-100">
-                          <a
-                            href="/#"
-                            className="font-size-3 font-weight-bold text-red-2 text-uppercase"
-                          >
-                            Delete
-                          </a>
-                        </td>
-                      </tr>
-                      <tr className="border border-color-2">
-                        <th
-                          scope="row"
-                          className="pl-6 border-0 py-7 min-width-px-235"
-                        >
-                          <div className="">
-                            <Link href="/job-details">
-                              <a className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                                Head of Marketing
-                              </a>
-                            </Link>
-                          </div>
-                        </th>
-                        <td className="table-y-middle py-7 min-width-px-135">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            Full-Time
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-125">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            London
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-155">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            15 June, 2020
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-205">
-                          <h3 className="font-size-4 font-weight-bold text-black-2 mb-0">
-                            62
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-80">
-                          <a
-                            href="/#"
-                            className="font-size-3 font-weight-bold text-green text-uppercase"
-                          >
-                            Edit
-                          </a>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-100">
-                          <a
-                            href="/#"
-                            className="font-size-3 font-weight-bold text-red-2 text-uppercase"
-                          >
-                            Delete
-                          </a>
-                        </td>
-                      </tr>
-                      <tr className="border border-color-2">
-                        <th
-                          scope="row"
-                          className="pl-6 border-0 py-7 min-width-px-235"
-                        >
-                          <div className="">
-                            <Link href="/job-details">
-                              <a className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                                Full-Stack Developer
-                              </a>
-                            </Link>
-                          </div>
-                        </th>
-                        <td className="table-y-middle py-7 min-width-px-135">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            Part-Time
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-125">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            California
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-155">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            29 May, 2020
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-205">
-                          <h3 className="font-size-4 font-weight-bold text-black-2 mb-0">
-                            184
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-80">
-                          <a
-                            href="/#"
-                            className="font-size-3 font-weight-bold text-green text-uppercase"
-                          >
-                            Edit
-                          </a>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-100">
-                          <a
-                            href="/#"
-                            className="font-size-3 font-weight-bold text-red-2 text-uppercase"
-                          >
-                            Delete
-                          </a>
-                        </td>
-                      </tr>
+                            <div className="">
+                              <Link href={`/job-details/${job.id}`}>
+                                <a className="font-size-4 mb-0 font-weight-semibold text-black-2">
+                                  {job.title}
+                                </a>
+                              </Link>
+                            </div>
+                          </th>
+                          <td className="table-y-middle py-7 min-width-px-135">
+                            <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                              {job.jobType}
+                            </h3>
+                          </td>
+                          <td className="table-y-middle py-7 min-width-px-125">
+                            <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                              {job.jobLocationType === "remote"
+                                ? "Remote"
+                                : `${job.city} , ${job.country}`}
+                            </h3>
+                          </td>
+                          <td className="table-y-middle py-7 min-width-px-155">
+                            <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                              {moment(job.createdAt).format("DD MMM YYYY")}
+                            </h3>
+                          </td>
+                          <td className="table-y-middle py-7 min-width-px-155">
+                            <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                              {job.totalApplicants}
+                            </h3>
+                          </td>
+
+                          <td className="table-y-middle py-7 min-width-px-80">
+                            <a
+                              href="/#"
+                              className="font-size-3 font-weight-bold text-green text-uppercase"
+                            >
+                              Edit
+                            </a>
+                          </td>
+                          <td className="table-y-middle py-7 min-width-px-100">
+                            <a
+                              href="/#"
+                              className="font-size-3 font-weight-bold text-red-2 text-uppercase"
+                            >
+                              Delete
+                            </a>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -298,4 +180,4 @@ export default function DashboardJobs () {
       </PageWrapper>
     </>
   );
-};
+}

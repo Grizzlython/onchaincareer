@@ -1,8 +1,12 @@
 import React from "react";
 import Link from "next/link";
 import PageWrapper from "../components/PageWrapper";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
-export default function Pricing (){
+export default function Pricing() {
+  const { publicKey, connected, signTransaction } = useWallet();
+  const { connection } = useConnection();
+
   return (
     <>
       <PageWrapper>
@@ -223,4 +227,4 @@ export default function Pricing (){
       </PageWrapper>
     </>
   );
-};
+}

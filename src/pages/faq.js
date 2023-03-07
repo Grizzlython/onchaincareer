@@ -3,7 +3,7 @@ import { Collapse } from "react-bootstrap";
 import Link from "next/link";
 import PageWrapper from "../components/PageWrapper";
 
-export default function Faq () {
+export default function Faq() {
   const [openItem, setOpenItem] = useState(1);
   return (
     <>
@@ -59,7 +59,7 @@ export default function Faq () {
                             end of your current term (month or year) but it will
                             not auto-renew. Unless you delete your account
                             manually, your account and all data will be deleted
-                            60 days from the day your subscription becomes
+                            60 days from the day your subscription becomes and
                             inactive.
                           </div>
                         </div>
@@ -274,4 +274,4 @@ export default function Faq () {
       </PageWrapper>
     </>
   );
-};
+}

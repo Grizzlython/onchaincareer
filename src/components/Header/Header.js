@@ -10,9 +10,20 @@ import Offcanvas from "../Offcanvas";
 import NestedMenu from "../NestedMenu";
 import { device } from "../../utils";
 import Logo from "../Logo";
-import { menuItems } from "./menuItems";
+import { menuItems, userMenuItems } from "./menuItems";
 
 import imgP from "../../assets/image/header-profile.png";
+import { useEffect } from "react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { toast } from "react-toastify";
+import {
+  add_user_info,
+  check_if_user_exists,
+} from "../../utils/web3/web3_functions";
+import { Connection } from "@solana/web3.js";
+import dynamic from "next/dynamic";
+import ConnectToPhantom from "../ConnectToPhantom";
 
 const SiteHeader = styled.header`
   .dropdown-toggle::after {
@@ -52,6 +63,7 @@ const Header = () => {
   const gContext = useContext(GlobalContext);
   const [showScrolling, setShowScrolling] = useState(false);
   const [showReveal, setShowReveal] = useState(false);
+  const [cMenuItems, setCMenuItems] = useState(menuItems);
 
   const size = useWindowSize();
 
@@ -67,6 +79,94 @@ const Header = () => {
       setShowReveal(false);
     }
   });
+
+  // useEffect(() => {
+  //   if (gContext.user) {
+  //     if (gContext.user?.userType === "candidate") {
+  //       setCMenuItems(userMenuItems);
+  //     } else {
+  //       setCMenuItems(menuItems);
+  //     }
+  //   } else {
+  //     setCMenuItems(userMenuItems);
+  //   }
+  // }, [gContext.user]);
+
+  const { wallet, publicKey, signTransaction, connected } = useWallet();
+  const { connection } = useConnection();
+
+  useEffect(() => {
+    if (publicKey && connected) {
+      console.log("publicKey =>", publicKey);
+      console.log("connection => ", connection);
+      console.log("signTransaction => ", signTransaction);
+      (async () => {
+        toast.success("👍 Wallet Connected");
+        const userExistsRes = await check_if_user_exists(publicKey, connection);
+
+        console.log(userExistsRes, "---userExistsResP---");
+
+        if (!userExistsRes.status) {
+          await gContext.toggleUserTypeModal();
+        }
+
+        console.log(userExistsRes.data, "---userExistsRes--- user_info");
+
+        if (userExistsRes.data) {
+          gContext.setUserFromChain(userExistsRes.data);
+          gContext.updateUserStateAccount(
+            userExistsRes.applicantInfoStateAccount
+          );
+        }
+
+        // const res = await gContext.getApplicantInfoStateAccount(
+        //   userExistsRes.data,
+        //   connection
+        // );
+
+        // const applicantInfo = {
+        //   username: publicKey.toString(),
+        //   name: "Sandeep Ghosh",
+        //   address: "Metaverse",
+        //   image_uri: "https://dummy.org",
+        //   bio: "applicant bio",
+        //   skills: ["Developer", "Speaker"],
+        //   designation: "Developer",
+        //   current_employment_status: "Startup",
+        //   can_join_in: "never",
+        //   user_type: "applicant",
+        //   is_company_profile_complete: false,
+        //   is_overview_complete: false,
+        //   is_projects_complete: false,
+        //   is_contact_info_complete: false,
+        //   is_education_complete: false,
+        //   is_work_experience_complete: false,
+        // };
+        // console.log(connection, "---connection--- user_info");
+        // const addUserRes = await add_user_info(
+        //   publicKey,
+        //   applicantInfo,
+        //   connection,
+        //   signTransaction
+        // );
+
+        // console.log(addUserRes);
+
+        // if (addUserRes && addUserRes.length) {
+        //   toast.success("User added successfully");
+        // } else {
+        //   toast.error("User not added");
+        // }
+        // toast.success("👍 Wallet Connected");
+      })();
+    }
+  }, [publicKey, connected]);
+
+  const WalletMultiButtonDynamic = dynamic(
+    async () =>
+      (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
+    { ssr: false }
+  );
 
   return (
     <>
@@ -104,7 +204,7 @@ const Header = () => {
             <div className="collapse navbar-collapse">
               <div className="navbar-nav-wrapper">
                 <ul className="navbar-nav main-menu d-none d-lg-flex">
-                  {menuItems.map(
+                  {cMenuItems.map(
                     (
                       { label, isExternal = false, name, items, ...rest },
                       index
@@ -243,7 +343,7 @@ const Header = () => {
               </div>
             )}
 
-            {gContext.header.button === "profile" && (
+            {publicKey && (
               <div className="header-btn-devider ml-auto ml-lg-5 pl-2 d-none d-xs-flex align-items-center">
                 <div>
                   <Link href="/#">
@@ -271,6 +371,9 @@ const Header = () => {
                         className="gr-menu-dropdown border-0 border-width-2 py-2 w-auto bg-default"
                         key="1"
                       >
+                        <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
+                          👋 Welcome {gContext.user?.username}
+                        </a>
                         <Link href="/#">
                           <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
                             Settings
@@ -281,32 +384,52 @@ const Header = () => {
                             Edit Profile
                           </a>
                         </Link>
-                        <Link href="/#">
-                          <a className=" dropdown-item py-2 text-red font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
+                        {/* <Link href="/#">
+                          <a
+                            className=" dropdown-item py-2 text-red font-size-3 font-weight-semibold line-height-1p2 text-uppercase"
+                            onClick={() => gContext.logoutUser()}
+                          >
                             Log Out
                           </a>
-                        </Link>
+                        </Link> */}
                       </Dropdown.Menu>
                     ) : (
                       <div
                         className="dropdown-menu gr-menu-dropdown dropdown-right border-0 border-width-2 py-2 w-auto bg-default"
                         key="2"
                       >
+                        <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
+                          👋 Welcome <br /> {gContext.user?.username}
+                          {/* {gContext.user?.username.splice(0, 5) +
+                            "..." +
+                            gContext.user?.username.slice(-5)} */}
+                        </a>
                         <Link href="/#">
                           <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
                             Settings
                           </a>
                         </Link>
-                        <Link href="/#">
+                        <Link
+                          href={
+                            gContext.user?.user_type === "recruiter"
+                              ? "/dashboard-main"
+                              : "/candidate-view"
+                          }
+                        >
                           <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
-                            Edit Profile
+                            {gContext.user?.user_type === "recruiter"
+                              ? "View Company Dashboard"
+                              : "View Profile"}
                           </a>
                         </Link>
-                        <Link href="/#">
-                          <a className=" dropdown-item py-2 text-red font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
+                        {/* <Link href="/#">
+                          <a
+                            className=" dropdown-item py-2 text-red font-size-3 font-weight-semibold line-height-1p2 text-uppercase"
+                            onClick={() => gContext.logoutUser()}
+                          >
                             Log Out
                           </a>
-                        </Link>
+                        </Link> */}
                       </div>
                     )}
                   </Dropdown>
@@ -314,9 +437,9 @@ const Header = () => {
               </div>
             )}
 
-            {gContext.header.button === "account" && (
+            {!gContext.user?.email?.length > 0 && (
               <div className="header-btns header-btn-devider ml-auto pr-2 ml-lg-6 d-none d-xs-flex">
-                <a
+                {/* <a
                   className="btn btn-transparent text-uppercase font-size-3 heading-default-color focus-reset"
                   href="/#"
                   onClick={(e) => {
@@ -335,7 +458,10 @@ const Header = () => {
                   }}
                 >
                   Sign Up
-                </a>
+                </a> */}
+                {/* <ConnectToPhantom /> */}
+                <WalletMultiButton />
+                {/* <WalletMultiButtonDynamic></WalletMultiButtonDynamic> */}
               </div>
             )}
 

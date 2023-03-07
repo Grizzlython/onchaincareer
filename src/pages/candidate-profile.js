@@ -17,7 +17,7 @@ import imgT5 from "../assets/image/l3/png/team-member-5.png";
 
 import imgL from "../assets/image/svg/icon-loaction-pin-black.svg";
 
-export default function CandidateProfile () {
+export default function CandidateProfile() {
   return (
     <>
       <PageWrapper headerConfig={{ button: "profile" }}>
@@ -160,9 +160,9 @@ export default function CandidateProfile () {
                           {/* <!-- Single Card --> */}
                           <div className="w-100">
                             <div className="d-flex align-items-center pr-11 mb-9 flex-wrap flex-sm-nowrap">
-                              <div className="square-72 d-block mr-8 mb-7 mb-sm-0">
+                              {/* <div className="square-72 d-block mr-8 mb-7 mb-sm-0">
                                 <img src={imgB1.src} alt="" />
-                              </div>
+                              </div> */}
                               <div className="w-100 mt-n2">
                                 <h3 className="mb-0">
                                   <Link href="/#">
@@ -203,9 +203,9 @@ export default function CandidateProfile () {
                           {/* <!-- Single Card --> */}
                           <div className="w-100">
                             <div className="d-flex align-items-center pr-11 mb-9 flex-wrap flex-sm-nowrap">
-                              <div className="square-72 d-block mr-8 mb-7 mb-sm-0">
+                              {/* <div className="square-72 d-block mr-8 mb-7 mb-sm-0">
                                 <img src={imgB2.src} alt="" />
-                              </div>
+                              </div> */}
                               <div className="w-100 mt-n2">
                                 <h3 className="mb-0">
                                   <Link href="/#">
@@ -569,4 +569,4 @@ export default function CandidateProfile () {
       </PageWrapper>
     </>
   );
-};
+}
