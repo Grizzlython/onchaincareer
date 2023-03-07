@@ -1,10 +1,10 @@
 import React from "react";
 import Link from "next/link";
 import PageWrapper from "../components/PageWrapper";
-import imgLogo from "../assets/image/logo-main-black.png";
 import imgError from "../assets/image/svg/404.svg";
+import Clgo from "../assets/image/Clgo.png";
 
-export default function ErrorPage(){
+export default function ErrorPage() {
   return (
     <>
       <PageWrapper>
@@ -14,7 +14,7 @@ export default function ErrorPage(){
               <div className="col-12 text-center">
                 <Link href="/">
                   <a className="brand-logo">
-                    <img src={imgLogo.src} alt="" />
+                    <img src={Clgo.src} alt="" />
                   </a>
                 </Link>
               </div>
@@ -37,20 +37,20 @@ export default function ErrorPage(){
                   {/* <!-- card-icon start --> */}
                   <div className="404-texts pt-14">
                     <h3 className="card-title font-size-9 font-weight-bold">
-                      Page is not found!
+                      No data found
                     </h3>
                     {/* <!-- card-texts start --> */}
-                    <p className="card-text font-size-4 px-xxl-28 px-xs-10 px-sm-13 px-lg-13 px-md-28 px-xl-22 px-0 mb-11">
+                    {/* <p className="card-text font-size-4 px-xxl-28 px-xs-10 px-sm-13 px-lg-13 px-md-28 px-xl-22 px-0 mb-11">
                       Collaboratively administrate empowered markets via
                       plug-and-play networks. Dynamically procrastinate B2C
                       users after installed base.
-                    </p>
+                    </p> */}
                     {/* <!-- card-texts end --> */}
-                    <Link href="/">
+                    {/* <Link href="/">
                       <a className="btn btn-green btn-h-60 text-white rounded-5 w-180 m-auto text-uppercase">
                         Back to home
                       </a>
-                    </Link>
+                    </Link> */}
                   </div>
                 </div>
                 {/* <!-- card end --> */}
@@ -61,4 +61,4 @@ export default function ErrorPage(){
       </PageWrapper>
     </>
   );
-};
+}

@@ -5,8 +5,30 @@ import imgC from "../../assets/image/l1/jpg/content-1-img2.jpg";
 import imgM1 from "../../assets/image/l1/png/media-img-1.png";
 import imgM2 from "../../assets/image/l1/png/media-img-2.png";
 import imgM3 from "../../assets/image/l1/png/media-img-3.png";
+import { useContext } from "react";
+import GlobalContext from "../../context/GlobalContext";
+import { useRouter } from "next/router";
+import { toast } from "react-toastify";
 
 const Content = () => {
+  const router = useRouter();
+
+  const gContext = useContext(GlobalContext);
+
+  const handleCTA = () => {
+    if (gContext.user?.userType === "recruiter") {
+      router.push("/dashboard-jobpost");
+      return;
+    } else {
+      if (!gContext.user) {
+        toast.error("Please login to post a job");
+        gContext.toggleSignInModal();
+        return;
+      }
+      toast.error("You have to be a recruiter to post a job");
+    }
+  };
+
   return (
     <>
       {/* <!-- Content Area -->  */}
@@ -112,11 +134,13 @@ const Content = () => {
                   additional clickthroughs from DevOps.
                 </p>
                 {/* <!-- content-2 section title end --> */}
-                <Link href="/#">
-                  <a className="btn btn-green btn-h-60 text-white w-180 rounded-5 text-uppercase">
-                    Post a Job
-                  </a>
-                </Link>
+
+                <a
+                  className="btn btn-green btn-h-60 text-white w-180 rounded-5 text-uppercase"
+                  onClick={handleCTA}
+                >
+                  Post a Job
+                </a>
               </div>
               {/* <!-- content-2 end --> */}
             </div>

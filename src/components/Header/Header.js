@@ -10,9 +10,12 @@ import Offcanvas from "../Offcanvas";
 import NestedMenu from "../NestedMenu";
 import { device } from "../../utils";
 import Logo from "../Logo";
-import { menuItems } from "./menuItems";
+import { menuItems, userMenuItems } from "./menuItems";
 
 import imgP from "../../assets/image/header-profile.png";
+import { useEffect } from "react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 const SiteHeader = styled.header`
   .dropdown-toggle::after {
@@ -52,6 +55,7 @@ const Header = () => {
   const gContext = useContext(GlobalContext);
   const [showScrolling, setShowScrolling] = useState(false);
   const [showReveal, setShowReveal] = useState(false);
+  const [cMenuItems, setCMenuItems] = useState(menuItems);
 
   const size = useWindowSize();
 
@@ -67,6 +71,18 @@ const Header = () => {
       setShowReveal(false);
     }
   });
+
+  useEffect(() => {
+    if (gContext.user) {
+      if (gContext.user?.userType === "candidate") {
+        setCMenuItems(userMenuItems);
+      } else {
+        setCMenuItems(menuItems);
+      }
+    } else {
+      setCMenuItems(userMenuItems);
+    }
+  }, [gContext.user]);
 
   return (
     <>
@@ -104,7 +120,7 @@ const Header = () => {
             <div className="collapse navbar-collapse">
               <div className="navbar-nav-wrapper">
                 <ul className="navbar-nav main-menu d-none d-lg-flex">
-                  {menuItems.map(
+                  {cMenuItems.map(
                     (
                       { label, isExternal = false, name, items, ...rest },
                       index
@@ -243,7 +259,7 @@ const Header = () => {
               </div>
             )}
 
-            {gContext.header.button === "profile" && (
+            {gContext.user?.email?.length > 0 && (
               <div className="header-btn-devider ml-auto ml-lg-5 pl-2 d-none d-xs-flex align-items-center">
                 <div>
                   <Link href="/#">
@@ -271,6 +287,9 @@ const Header = () => {
                         className="gr-menu-dropdown border-0 border-width-2 py-2 w-auto bg-default"
                         key="1"
                       >
+                        <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
+                          👋 Welcome {gContext.user?.username}
+                        </a>
                         <Link href="/#">
                           <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
                             Settings
@@ -282,7 +301,10 @@ const Header = () => {
                           </a>
                         </Link>
                         <Link href="/#">
-                          <a className=" dropdown-item py-2 text-red font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
+                          <a
+                            className=" dropdown-item py-2 text-red font-size-3 font-weight-semibold line-height-1p2 text-uppercase"
+                            onClick={() => gContext.logoutUser()}
+                          >
                             Log Out
                           </a>
                         </Link>
@@ -292,18 +314,32 @@ const Header = () => {
                         className="dropdown-menu gr-menu-dropdown dropdown-right border-0 border-width-2 py-2 w-auto bg-default"
                         key="2"
                       >
+                        <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
+                          👋 Welcome {gContext.user?.username}
+                        </a>
                         <Link href="/#">
                           <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
                             Settings
                           </a>
                         </Link>
-                        <Link href="/#">
+                        <Link
+                          href={
+                            gContext.user?.userType === "recruiter"
+                              ? "/dashboard-main"
+                              : "/candidate-view"
+                          }
+                        >
                           <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
-                            Edit Profile
+                            {gContext.user?.userType === "recruiter"
+                              ? "View Company Dashboard"
+                              : "View Profile"}
                           </a>
                         </Link>
                         <Link href="/#">
-                          <a className=" dropdown-item py-2 text-red font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
+                          <a
+                            className=" dropdown-item py-2 text-red font-size-3 font-weight-semibold line-height-1p2 text-uppercase"
+                            onClick={() => gContext.logoutUser()}
+                          >
                             Log Out
                           </a>
                         </Link>
@@ -314,9 +350,9 @@ const Header = () => {
               </div>
             )}
 
-            {gContext.header.button === "account" && (
+            {!gContext.user?.email?.length > 0 && (
               <div className="header-btns header-btn-devider ml-auto pr-2 ml-lg-6 d-none d-xs-flex">
-                <a
+                {/* <a
                   className="btn btn-transparent text-uppercase font-size-3 heading-default-color focus-reset"
                   href="/#"
                   onClick={(e) => {
@@ -335,7 +371,8 @@ const Header = () => {
                   }}
                 >
                   Sign Up
-                </a>
+                </a> */}
+                <WalletMultiButton></WalletMultiButton>
               </div>
             )}
 

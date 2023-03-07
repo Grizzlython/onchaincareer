@@ -23,6 +23,12 @@ import { get, merge } from "lodash";
 
 // the full theme object
 import { theme as baseTheme } from "../../utils";
+import ModalCompanyProfile from "../ModalCompanyProfile";
+import ModalCandidateProfile from "../ModalCandidateProfile";
+import ModalJobPost from "../ModalJobPost";
+import ModalProjects from "../ModalProjects";
+import ModalWorkExperience from "../ModalWorkExperience";
+import ModalCandidateSocials from "../ModalCandidateSocials";
 
 const Loader = styled.div`
   position: fixed;
@@ -93,7 +99,7 @@ const Layout = ({ children, pageContext }) => {
         <div data-theme-mode-panel-active data-theme="light">
           <GlobalStyle />
           <Head>
-            <title>JustCamp</title>
+            <title>Web3Jobs</title>
             {/* <link rel="icon" type="image/png" href={imgFavicon} /> */}
           </Head>
           <Loader id="loading" className={visibleLoader ? "" : "inActive"}>
@@ -124,7 +130,7 @@ const Layout = ({ children, pageContext }) => {
         <div data-theme-mode-panel-active data-theme="light">
           <GlobalStyle />
           <Head>
-            <title>JustCamp</title>
+            <title>Web3Jobs</title>
             {/* <link rel="icon" type="image/png" href={imgFavicon} /> */}
           </Head>
           <Loader id="loading" className={visibleLoader ? "" : "inActive"}>
@@ -145,6 +151,7 @@ const Layout = ({ children, pageContext }) => {
           <ModalApplication />
           <ModalSignIn />
           <ModalSignUp />
+          <ModalProjects />
         </div>
       </ThemeProvider>
     );
@@ -160,7 +167,7 @@ const Layout = ({ children, pageContext }) => {
         <div data-theme-mode-panel-active data-theme="light">
           <GlobalStyle />
           <Head>
-            <title>JustCamp</title>
+            <title>Web3Jobs</title>
             {/* <link rel="icon" type="image/png" href={imgFavicon} /> */}
           </Head>
           <Loader id="loading" className={visibleLoader ? "" : "inActive"} />
@@ -175,6 +182,11 @@ const Layout = ({ children, pageContext }) => {
           <ModalApplication />
           <ModalSignIn />
           <ModalSignUp />
+          <ModalCompanyProfile />
+          <ModalCandidateProfile />
+          <ModalProjects />
+          <ModalWorkExperience />
+          <ModalCandidateSocials />
         </div>
       </ThemeProvider>
     </>

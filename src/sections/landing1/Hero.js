@@ -3,16 +3,12 @@ import React from "react";
 import { Select } from "../../components/Core";
 import imgH from "../../assets/image/l1/png/hero-image-man.png";
 import imgP from "../../assets/image/patterns/hero-pattern.png";
-
-const defaultCountries = [
-  { value: "sp", label: "Singapore" },
-  { value: "bd", label: "Bangladesh" },
-  { value: "usa", label: "United States of America" },
-  { value: "uae", label: "United Arab Emirates" },
-  { value: "pk", label: "Pakistan" },
-];
+import Link from "next/link";
+import { countries } from "../../staticData";
 
 const Hero = () => {
+  const [jobTitle, setJobTitle] = React.useState("");
+  const [country, setCountry] = React.useState();
   return (
     <>
       {/* <!-- Hero Area --> */}
@@ -44,6 +40,8 @@ const Hero = () => {
                           type="text"
                           id="keyword"
                           placeholder="Job title"
+                          value={jobTitle}
+                          onChange={(e) => setJobTitle(e.target.value)}
                         />
                         <span className="h-100 w-px-50 pos-abs-tl d-flex align-items-center justify-content-center font-size-6">
                           <i className="icon icon-zoom-2 text-primary font-weight-bold"></i>
@@ -52,9 +50,10 @@ const Hero = () => {
                       {/* <!-- .select-city starts --> */}
                       <div className="form-group position-relative">
                         <Select
-                          options={defaultCountries}
+                          options={countries}
                           className="pl-8 h-100 arrow-3 font-size-4 d-flex align-items-center w-100"
                           border={false}
+                          onChange={setCountry}
                         />
 
                         <span className="h-100 w-px-50 pos-abs-tl d-flex align-items-center justify-content-center font-size-6">
@@ -64,11 +63,15 @@ const Hero = () => {
                       {/* <!-- ./select-city ends --> */}
                     </div>
                     {/* <!-- .Hero Button --> */}
-                    <div className="button-block">
-                      <button className="btn btn-primary line-height-reset h-100 btn-submit w-100 text-uppercase">
-                        Search
-                      </button>
-                    </div>
+                    <Link
+                      href={`/search-jobs?jobTitle=${jobTitle}&country=${country?.value}`}
+                    >
+                      <div className="button-block">
+                        <button className="btn btn-primary line-height-reset h-100 btn-submit w-100 text-uppercase">
+                          Search
+                        </button>
+                      </div>
+                    </Link>
                     {/* <!-- ./Hero Button --> */}
                   </div>
                 </form>

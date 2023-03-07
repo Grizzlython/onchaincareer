@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import PageWrapper from "../components/PageWrapper";
 
-export default function Pricing (){
+export default function Pricing() {
   return (
     <>
       <PageWrapper>
@@ -223,4 +223,4 @@ export default function Pricing (){
       </PageWrapper>
     </>
   );
-};
+}

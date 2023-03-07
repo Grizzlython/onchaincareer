@@ -3,16 +3,13 @@ import Link from "next/link";
 
 import imgL1Logo from "../../assets/image/logo-main-black.png";
 import imgL1LogoWhite from "../../assets/image/logo-main-white.png";
+import Clgo from "../../assets/image/Clgo.png";
 
 const Logo = ({ white, height, className = "", ...rest }) => {
   return (
     <Link href="/">
       <a className={`d-block ${className}`} {...rest}>
-        {white ? (
-          <img src={imgL1LogoWhite.src} alt="" />
-        ) : (
-          <img src={imgL1Logo.src} alt="" />
-        )}
+        {white ? <img src={Clgo.src} alt="" /> : <img src={Clgo.src} alt="" />}
       </a>
     </Link>
   );
