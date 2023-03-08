@@ -31,7 +31,7 @@ const ModalStyled = styled(Modal)`
 
 const ModalEducation = (props) => {
   const gContext = useContext(GlobalContext);
-  const eduction = gContext.education;
+  const eductions = gContext.educations;
   const currentEducationNumber = gContext.currentEducationNumber;
   console.log(currentEducationNumber, "currentEducationNumber");
   const [candidateEducation, setCandidateEducation] = useState(educationSchema);
@@ -71,8 +71,8 @@ const ModalEducation = (props) => {
   const { connection } = useConnection();
 
   useEffect(() => {
-    if (eduction.length > 0 && currentEducationNumber) {
-      const filteredEducation = eduction.filter(
+    if (eductions.length > 0 && currentEducationNumber) {
+      const filteredEducation = eductions.filter(
         (edu) => edu.education_number === currentEducationNumber
       );
       if (filteredEducation && filteredEducation.length > 0) {
@@ -102,6 +102,45 @@ const ModalEducation = (props) => {
         educationInfo.end_date = new Date(educationInfo.end_date)
           .getTime()
           .toString();
+      }
+
+      // check if there is any undefined value in educationInfo and store it in notDefined variable
+      const notDefined = Object.keys(educationInfo).filter(
+        (key) => educationInfo[key] === undefined
+      );
+
+      console.log(notDefined, "notDefined");
+
+      if (notDefined && notDefined.length > 0) {
+        toast.error(`Please fill ${notDefined.join(", ")}`);
+        return;
+      }
+
+      let notFilledFields;
+      if (educationInfo.school_name === "") {
+        notFilledFields = "School Name";
+      }
+      if (educationInfo.degree === "") {
+        notFilledFields += "Degree,";
+      }
+      if (educationInfo.field_of_study === "") {
+        notFilledFields += "Field of Study,";
+      }
+      if (educationInfo.start_date === "") {
+        notFilledFields += "Start Date,";
+      }
+      if (educationInfo.end_date === "") {
+        notFilledFields += "End Date,";
+      }
+      if (educationInfo.grade === "") {
+        notFilledFields += "Grade,";
+      }
+
+      if (notFilledFields && notFilledFields.length > 0) {
+        toast.error(`Please fill ${notFilledFields}`, {
+          autoClose: 10000,
+        });
+        return;
       }
 
       if (currentEducationNumber) {

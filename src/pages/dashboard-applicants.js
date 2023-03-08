@@ -5,42 +5,24 @@ import { Select } from "../components/Core";
 import GlobalContext from "../context/GlobalContext";
 
 import imgP1 from "../assets/image/table-one-profile-image-1.png";
-import imgP2 from "../assets/image/table-one-profile-image-2.png";
-import imgP3 from "../assets/image/table-one-profile-image-3.png";
-import imgP4 from "../assets/image/table-one-profile-image-4.png";
-import imgP5 from "../assets/image/table-one-profile-image-5.png";
 import moment from "moment";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
-import { publicKey } from "@project-serum/borsh";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { findAllWorkflowOfJobPost } from "../utils/web3/web3_functions";
 import { WORKFLOW_STATUSES_enum } from "../utils/web3/struct_decoders/jobsonchain_constants_enum";
 import { BN } from "bn.js";
 import Loader from "../components/Loader";
-
-const defaultJobs = [
-  { value: "pd", label: "Product Designer" },
-  { value: "gd", label: "Graphics Designer" },
-  { value: "fd", label: "Frontend Developer" },
-  { value: "bd", label: "Backend Developer" },
-  { value: "cw", label: "Content Writer" },
-];
 
 export default function DashboardApplicants() {
   const router = useRouter();
   const gContext = useContext(GlobalContext);
 
-  const [selectedJob, setSelectedJob] = useState();
   const [appliedCandidates, setAppliedCandidates] = useState([]);
 
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
-  const { companySelectedByUser, allAppliedApplicants } = gContext;
-
-  const jobId = router.query.job;
-  console.log(jobId, "jobId");
+  const { allAppliedApplicants, loading } = gContext;
 
   useEffect(() => {
     if (
@@ -89,29 +71,12 @@ export default function DashboardApplicants() {
       console.log(err);
     }
   };
-  const [applicants, setApplicants] = useState([]);
 
   const viewCandidateProfile = (workflow) => {
-    if(!workflow) return;
+    if (!workflow) return;
     gContext.fetchAndSetWorkflowInfo(workflow.pubkey, connection);
     router.push(`/candidate/${workflow.pubkey}`);
-  }
-
-  // useEffect(() => {
-  //   if(selectedJob) {
-
-  //   }
-  // },[gContext.applicants]);
-
-  // const handleSelectJob = async () => {
-  //   try {
-
-  //   } catch {
-
-  //   }
-  // }
-
-  const loading = gContext.loading;
+  };
 
   return (
     <>
@@ -194,18 +159,21 @@ export default function DashboardApplicants() {
                                 scope="row"
                                 className="pl-6 border-0 py-7 pr-0"
                               >
-                                  <a className="media min-width-px-235 align-items-center" onClick={()=>viewCandidateProfile(item)}>
-                                    <div className="circle-36 mr-6">
-                                      <img
-                                        src={imgP1.src}
-                                        alt=""
-                                        className="w-100"
-                                      />
-                                    </div>
-                                    <h4 className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                                      {item?.applicantInfo?.name}
-                                    </h4>
-                                  </a>
+                                <a
+                                  className="media min-width-px-235 align-items-center"
+                                  onClick={() => viewCandidateProfile(item)}
+                                >
+                                  <div className="circle-36 mr-6">
+                                    <img
+                                      src={imgP1.src}
+                                      alt=""
+                                      className="w-100"
+                                    />
+                                  </div>
+                                  <h4 className="font-size-4 mb-0 font-weight-semibold text-black-2">
+                                    {item?.applicantInfo?.name}
+                                  </h4>
+                                </a>
                               </th>
                               <td className="table-y-middle py-7 min-width-px-235 pr-0">
                                 <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
@@ -215,16 +183,18 @@ export default function DashboardApplicants() {
                               <td className="table-y-middle py-7 min-width-px-170 pr-0">
                                 <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
                                   {moment(
-                                    new Date(Number(item?.last_updated_at))
+                                    new Date(Number(item?.job_applied_at))
                                   ).format("DD MMM YYYY")}
                                 </h3>
                               </td>
                               <td className="table-y-middle py-7 min-width-px-170 pr-0">
                                 <div className="">
-                                  
-                                    <a className="font-size-3 font-weight-bold text-black-2 text-uppercase" onClick={()=> viewCandidateProfile(item) }>
-                                      View Applicant
-                                    </a>
+                                  <a
+                                    className="font-size-3 font-weight-bold text-black-2 text-uppercase"
+                                    onClick={() => viewCandidateProfile(item)}
+                                  >
+                                    View Applicant
+                                  </a>
                                 </div>
                               </td>
                               <td className="table-y-middle py-7 min-width-px-110 pr-0">
@@ -233,7 +203,7 @@ export default function DashboardApplicants() {
                                     href={`/job-details/${item?.job_pubkey.toString()}`}
                                   >
                                     <a className="font-size-3 font-weight-bold text-green text-uppercase">
-                                      View job post
+                                      View Job Post
                                     </a>
                                   </Link>
                                 </div>
@@ -259,22 +229,44 @@ export default function DashboardApplicants() {
                             </tr>
                           ))
                         ) : (
-                          <tr className="border border-color-2">
-                            <td className="table-y-middle py-7 min-width-px-235 pr-0">
-                              <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                            </td>
-                            <td className="table-y-middle py-7 min-width-px-235 pr-0">
-                              <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                                No applicants yet
-                              </h3>
-                            </td>
-                          </tr>
+                          // <tr className="border border-color-2">
+                          //   <td className="table-y-middle py-7 min-width-px-235 pr-0">
+                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
+                          //   </td>
+                          //   <td className="table-y-full py-7 pr-0">
+                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                          //       No Applicants yet
+                          //     </h3>
+                          //   </td>
+                          //   <td className="table-y-middle py-7 pr-0">
+                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
+                          //   </td>
+                          //   <td className="table-y-middle py-7 pr-0">
+                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
+                          //   </td>
+                          //   <td className="table-y-middle py-7 pr-0">
+                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
+                          //   </td>
+                          //   <td className="table-y-middle py-7 pr-0">
+                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
+                          //   </td>
+                          // </tr>
+                          <div style={{
+                            textAlign: "center",
+                            padding: "50px 20px",
+                            fontSize: "20px",
+                            fontWeight: "normal",
+                            width:"225%",
+                            background:"#eee"
+                          }}>
+                            No Applicants yet
+                          </div>
                         )}
                       </tbody>
                     </table>
                   )}
                 </div>
-                <div className="pt-2">
+                {appliedCandidates && appliedCandidates?.length > 0 && <div className="pt-2">
                   <nav aria-label="Page navigation example">
                     <ul className="pagination pagination-hover-primary rounded-0 ml-n2">
                       <li className="page-item rounded-0 flex-all-center">
@@ -335,6 +327,7 @@ export default function DashboardApplicants() {
                     </ul>
                   </nav>
                 </div>
+            }
               </div>
             </div>
           </div>

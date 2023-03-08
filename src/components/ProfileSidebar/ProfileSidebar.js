@@ -13,16 +13,17 @@ import { toast } from "react-toastify";
 
 const Sidebar = (props) => {
   const gContext = useContext(GlobalContext);
-  const {candidateSocials} = gContext;
-
-  const router = useRouter();
+  const { candidateSocials, fetchAndSetCandidateSocials, isPremiumCompanyOwner } = gContext;
+  console.log(isPremiumCompanyOwner,'isPremiumCompanyOwner')
   const { publicKey, wallet, connected } = useWallet();
   const { connection } = useConnection();
 
   const [candidateProfile, setCandidateProfile] = React.useState({});
   const [viewSocials, setViewSocials] = React.useState(false);
-  const [candidateSocialsContext, setCandidateSocialsContext] = React.useState(null);
-  const {workflow} = props;
+  const [paidForSoccial, setPaidForSoccial] = React.useState(false);
+  const [candidateSocialsContext, setCandidateSocialsContext] =
+    React.useState(null);
+  const { workflow, candidateInfo, fromAllCandidatesPage } = props;
 
   // useEffect(() => {
   //   if (!userName) return;
@@ -41,7 +42,7 @@ const Sidebar = (props) => {
   //     router.push("/");
   //     return;
   //   }
-    
+
   //   (async () => {
   //     await gContext.fetchAndSetCandidateSocials(publicKey, connection);
   //   })();
@@ -49,51 +50,99 @@ const Sidebar = (props) => {
 
   // console.log("gContext.user", gContext.user);
 
-  useEffect(()=>{
-    if(!workflow) return;
-    if(workflow.is_paid){
-      setViewSocials(true);
-    }else{
-      setViewSocials(false);
+  useEffect(() => {
+    if (!workflow) return;
+    if (workflow.is_paid || isPremiumCompanyOwner) {
+      setPaidForSoccial(true);
+    } else {
+      setPaidForSoccial(false);
     }
     setCandidateSocialsContext(null);
-    setCandidateProfile(workflow.applicantInfo)
-  },[workflow])
+    setCandidateProfile(workflow.applicantInfo);
+  }, [workflow]);
 
   useEffect(()=>{
-    if(viewSocials && workflow.user_pubkey){
-      (async () => {        
-        await gContext.fetchAndSetCandidateSocials(workflow.user_pubkey, connection, workflow.user_pubkey);
+    if(!fromAllCandidatesPage) return;
+    (async () => {
+      setCandidateProfile(candidateInfo);
+    })();
+  },[fromAllCandidatesPage])
+
+  useEffect(() => {
+    if (!candidateInfo) return;
+    (async () => {
+      setCandidateProfile(candidateInfo);
+
+      if(fromAllCandidatesPage && !isPremiumCompanyOwner){
+        setPaidForSoccial(false);
+        return;
+      }else if(fromAllCandidatesPage && isPremiumCompanyOwner){
+        setPaidForSoccial(true);
+      }else{
+        await fetchAndSetCandidateSocials(
+          publicKey,
+          connection,
+          candidateInfo.pubkey
+        );
+      }
+
+    })();
+  }, [candidateInfo]);
+
+  useEffect(() => {
+    if(fromAllCandidatesPage && isPremiumCompanyOwner && candidateInfo){
+      if(!publicKey || !connection) return;
+      (async()=>{
+        await fetchAndSetCandidateSocials(
+          publicKey,
+          connection,
+          candidateInfo.pubkey
+        );
+      })()
+    }
+    if (paidForSoccial && workflow && workflow.user_pubkey) {
+      (async () => {
+        await fetchAndSetCandidateSocials(
+          workflow.user_pubkey,
+          connection,
+          workflow.user_pubkey
+        );
       })();
     }
-  },[viewSocials])
+  }, [paidForSoccial]);
 
-  useEffect(()=>{
+  useEffect(() => {
+    if (!candidateSocials) {
+      setViewSocials(false);
+      setCandidateSocialsContext(null)
+      return;
+    }
+    console.log(candidateSocials, "candidateSocials")
+    setViewSocials(true);
     setCandidateSocialsContext(candidateSocials);
-  },[candidateSocials])
+  }, [candidateSocials]);
 
-  const payAndViewSocials = (workflow) =>{
-    try{
-      (async() => {
+  const payAndViewSocials = (workflow) => {
+    try {
+      (async () => {
         const txnStatus = await pay_and_reveal_user_details(
-        wallet.adapter,
-        publicKey,
-        connection,
-        workflow.user_pubkey,
-        workflow.company_pubkey,
-        workflow.job_pubkey
-        )
-        if(!txnStatus || !txnStatus.status){
-          // toast.error(txnStatus.message)
+          wallet.adapter,
+          publicKey,
+          connection,
+          workflow.user_pubkey,
+          workflow.company_pubkey,
+          workflow.job_pubkey
+        );
+        if (!txnStatus || !txnStatus.status) {
+          toast.error();
           return;
         }
-        gContext.fetchAndSetWorkflowInfo(workflow.pubkey);
-      })()
-    }catch(err){
-      toast.error(err.message)
+        gContext.fetchAndSetWorkflowInfo(workflow.pubkey, connection);
+      })();
+    } catch (err) {
+      toast.error(err.message);
     }
-    
-  }
+  };
 
   return (
     <>
@@ -120,23 +169,21 @@ const Sidebar = (props) => {
                 </a>
               </p>
 
-              {!viewSocials && (
+              {!viewSocials && workflow && (
                 <p className="mb-8">
                   <a
                     className="text-blue font-size-4"
                     style={{
                       cursor: "pointer",
                     }}
-                    onClick={()=>
-                      payAndViewSocials(workflow)
-                    }
+                    onClick={() => payAndViewSocials(workflow)}
                   >
                     <i className="fa fa-unlock mr-2"></i>
                     Unlock candidate
                   </a>
                 </p>
               )}
-              {viewSocials && !workflow &&
+              {(!workflow && !fromAllCandidatesPage) &&
                 (!candidateSocialsContext ? (
                   <p className="mb-8">
                     <a
@@ -155,7 +202,7 @@ const Sidebar = (props) => {
                 ) : (
                   <p className="mb-8">
                     <a
-                    className="btn btn-outline-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
+                      className="btn btn-outline-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
                       style={{
                         cursor: "pointer",
                       }}
@@ -203,7 +250,7 @@ const Sidebar = (props) => {
                   </p>
                 )}
               </div> */}
-              {candidateSocialsContext && (
+              {viewSocials && candidateSocialsContext && (
                 <div className="icon-link d-flex align-items-center justify-content-center flex-wrap">
                   {candidateSocialsContext?.github?.length > 0 && (
                     <Link href={candidateSocialsContext?.github}>
@@ -281,8 +328,18 @@ const Sidebar = (props) => {
               <div className="mb-7">
                 <p className="font-size-4 mb-0">Location</p>
                 <h5 className="font-size-4 font-weight-semibold mb-0 text-black-2 text-break">
-                  
-                  {viewSocials ? (<><i class="fa fa-location-arrow mr-2"></i> candidateProfile </> )?.address : (<><i className="fa fa-lock mr-2"></i> Locked </>) }
+                  {viewSocials ? (
+                    (
+                      <>
+                        <i class="fa fa-location-arrow mr-2"></i>{" "}
+                        candidateProfile{" "}
+                      </>
+                    )?.address
+                  ) : (
+                    <>
+                      <i className="fa fa-lock mr-2"></i> Locked{" "}
+                    </>
+                  )}
                 </h5>
               </div>
               {/* <!-- Single List --> */}
@@ -340,12 +397,12 @@ const Sidebar = (props) => {
                       Locked
                     </a>
                   ) : (
-                      <Link href={"/"}>
-                        <a className="text-break">
-                          <i className="fa fa-link mr-2"></i>
-                          {candidateSocialsContext?.website}
-                        </a>
-                      </Link>
+                    <Link href={"/"}>
+                      <a className="text-break">
+                        <i className="fa fa-link mr-2"></i>
+                        {candidateSocialsContext?.website}
+                      </a>
+                    </Link>
                   )}
                 </h5>
               </div>

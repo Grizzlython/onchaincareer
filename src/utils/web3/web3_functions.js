@@ -22,6 +22,7 @@ import {
   ProjectInfoState_SIZE,
   EducationInfoState_SIZE,
   WorkExperienceInfoState_SIZE,
+  UserCandidateInfoState_SIZE,
 } from "./struct_decoders/jobsonchain_user_info_decoder";
 import {
   JobPostInfoState,
@@ -161,11 +162,15 @@ export const getProjectInfo = async (
   return projectInfo;
 };
 
-export const getContactInfoByUserAccount = async (owner, connection, user_info_state_account = "") => {
-  let candidate_info_state_account =[]
-  if(user_info_state_account){
-    candidate_info_state_account=[user_info_state_account]
-  }else{
+export const getContactInfoByUserAccount = async (
+  owner,
+  connection,
+  user_info_state_account = ""
+) => {
+  let candidate_info_state_account = [];
+  if (user_info_state_account) {
+    candidate_info_state_account = [user_info_state_account];
+  } else {
     candidate_info_state_account = await PublicKey.findProgramAddress(
       [
         Buffer.from(APPLICANT_STATE_ACCOUNT_PREFIX),
@@ -377,28 +382,16 @@ export const findAllCompanyInfosOfUser = async (
     );
 
     const companyInfos = [];
-
+    let isPremiumCompanyOwner = false;
     for (let i = 0; i < companyInfosOfUser.length; i++) {
-      // const companyInfoAccount = await PublicKey.findProgramAddress(
-      //   [
-      //     Buffer.from(APPLICANT_STATE_ACCOUNT_PREFIX),
-      //     new PublicKey(companyInfosOfUser[i].pubkey).toBuffer(),
-      //   ],
-      //   JobsOnChain_Company_Info_ID
-      // );
-
-      // console.log(companyInfoAccount, "---companyInfoAccount---");
-
-      // const companyJobs = await findAllJobsOfCompany(
-      //   connection,
-      //   companyInfoAccount[0]
-      // );
-
-      // console.log(companyJobs, "---companyJobs---");
 
       const companyInfo = CompanyInfoState.deserialize(
         companyInfosOfUser[i].account.data
       );
+
+      if(companyInfo.subscription_plan != SUBSCRIPTION_PLANS_enum.PAYNUSE && companyInfo.subscription_valid_till > Date.now()){
+        isPremiumCompanyOwner = true;
+      }
 
       const companyInfoWithPubKey = {
         ...companyInfo,
@@ -411,6 +404,7 @@ export const findAllCompanyInfosOfUser = async (
     return {
       status: true,
       data: companyInfos,
+      isPremiumCompanyOwner
     };
   } catch (err) {
     console.log(err);
@@ -472,7 +466,7 @@ export const findAllJobsOfCompany = async (
         dataSize: JobPostInfoState_SIZE,
       },
     ];
-
+    console.log(company_info_account, "---company_info_account---")
     //if company_info_account is not null, then filter by company_info_account else return all jobs
     if (company_info_account) {
       filters.push({
@@ -618,7 +612,10 @@ export const findAllWorkflowOfJobPost = async (
         allWorkflowOfJobs[i].account.data
       );
 
-      jobWorkflows.push({...jobWorkflow, pubkey: allWorkflowOfJobs[i].pubkey});
+      jobWorkflows.push({
+        ...jobWorkflow,
+        pubkey: allWorkflowOfJobs[i].pubkey,
+      });
     }
 
     // return jobWorkflows;
@@ -750,7 +747,7 @@ export const check_if_user_exists = async (user_public_key, connection) => {
 
   return {
     status: true,
-    data: userData,
+    data: { ...userData, pubkey: applicant_info_state_account[0] },
     applicantInfoStateAccount: applicant_info_state_account[0],
   };
 };
@@ -2225,6 +2222,8 @@ export const add_jobpost_info = async (
     const buffer =
       JobPostInfoState.serializeAddJobPostInfoInstruction(newJobPostInfo);
 
+    console.log(buffer, "---jobpost buffer---", buffer.length);
+
     const companyParsedInfo = await getCompanyInfo(
       company_info_account[0],
       connection
@@ -3131,14 +3130,16 @@ export const pay_and_reveal_user_details = async (
   provider,
   owner,
   connection,
-  user_info_state_account, 
-  company_info_state_account, 
+  user_info_state_account,
+  company_info_state_account,
   job_info_account
 ) => {
-  let RECONCILING_AMOUNT = 0
+  let RECONCILING_AMOUNT = 0;
   try {
     //Check if applicant_info_state_account exists
-    const applicant_info_state_account = [new PublicKey(user_info_state_account)]
+    const applicant_info_state_account = [
+      new PublicKey(user_info_state_account),
+    ];
 
     const applicant_info_state_account_exists = await connection.getAccountInfo(
       applicant_info_state_account[0]
@@ -3149,8 +3150,8 @@ export const pay_and_reveal_user_details = async (
       console.log(erroMessage);
       return {
         status: false,
-        message:erroMessage,
-      }
+        message: erroMessage,
+      };
     }
     // console.log(
     //   " applicant_info_state_account => ",
@@ -3158,7 +3159,7 @@ export const pay_and_reveal_user_details = async (
     // );
 
     //Check if company_info_account exists
-    const company_info_account =  [new PublicKey(company_info_state_account)];
+    const company_info_account = [new PublicKey(company_info_state_account)];
     const company_info_account_exists = await connection.getAccountInfo(
       company_info_account[0]
     );
@@ -3167,28 +3168,28 @@ export const pay_and_reveal_user_details = async (
       console.log(erroMessage);
       return {
         status: false,
-        message:erroMessage,
-
-      }
+        message: erroMessage,
+      };
     }
     // console.log(
     //   " company_info_account => ",
     //   company_info_account[0].toBase58()
     // );
 
-    const company_info = await getCompanyInfo(company_info_account[0], connection);
-    if(!company_info){
+    const company_info = await getCompanyInfo(
+      company_info_account[0],
+      connection
+    );
+    if (!company_info) {
       console.log("company_info not found");
       return {
         status: false,
-        message:"company_info not found",
-      }
+        message: "company_info not found",
+      };
     }
 
-
-
     //Check if jobpost_info_account exists
-    const jobpost_info_account = [new PublicKey(job_info_account)]
+    const jobpost_info_account = [new PublicKey(job_info_account)];
     const jobpost_info_account_exists = await connection.getAccountInfo(
       jobpost_info_account[0]
     );
@@ -3196,8 +3197,8 @@ export const pay_and_reveal_user_details = async (
       console.log("jobpost_info_account do not exists");
       return {
         status: false,
-        message:"jobpost_info_account do not exists",
-      }
+        message: "jobpost_info_account do not exists",
+      };
     }
     // console.log(
     //   " jobpost_info_account => ",
@@ -3221,8 +3222,8 @@ export const pay_and_reveal_user_details = async (
       console.log("workflow_info_account do not exists");
       return {
         status: false,
-        message:"workflow_info_account do not exists",
-      }
+        message: "workflow_info_account do not exists",
+      };
     }
     // console.log(
     //   " workflow_info_account => ",
@@ -3246,22 +3247,22 @@ export const pay_and_reveal_user_details = async (
       console.log("contact_info_state_account do not exists");
       return {
         status: false,
-        message:"contact_info_state_account do not exists",
-      }
+        message: "Candidate contact details does not exists",
+      };
     }
 
     console.log(company_info, "company_info");
 
-    const plan_type_details = REVEAL_USER_DETAILS_PRICE[company_info.subscription_plan];
+    const plan_type_details =
+      REVEAL_USER_DETAILS_PRICE[company_info.subscription_plan];
     if (!plan_type_details) {
       console.log("plan_type_details not found");
       return {
         status: false,
-        message:"plan_type_details not found",
-      }
+        message: "plan_type_details not found",
+      };
     }
     console.log("plan_type_details => ", plan_type_details);
-    return
     if (plan_type_details.price) {
       RECONCILING_AMOUNT = plan_type_details.price;
       toast.info("Please wait while we process your payment");
@@ -3276,43 +3277,11 @@ export const pay_and_reveal_user_details = async (
         console.log(transactionStatus.message || "Transaction failed");
         return {
           status: false,
-          message:transactionStatus.message || "Transaction failed",
-        }
+          message: transactionStatus.message || "Transaction failed",
+        };
       }
 
       console.log(transactionStatus.message || "Transaction success");
-      // const USDC_MINT_ID = new PublicKey(SOLANA_USDC_MINT_KEY_LOCALHOST);
-      // const usdcAccountExists = await findAssociatedTokenAccountPublicKey(
-      //   owner,
-      //   USDC_MINT_ID
-      // );
-      // if (!usdcAccountExists) {
-      //   console.log(
-      //     "USDC account not found in your wallet, Please load your wallet with USDC"
-      //   );
-      //   return;
-      // }
-
-      // const payer = await getPayer();
-      // const payerUSDCAccount = await findAssociatedTokenAccountPublicKey(
-      //   payer.publicKey,
-      //   USDC_MINT_ID
-      // );
-
-      // const transferResult = await transferCustomToken(
-      //   provider,
-      //   connection,
-      //   plan_type_details.price,
-      //   usdcAccountExists,
-      //   payerUSDCAccount
-      // );
-      // if (!transferResult) {
-      //   console.log("Transfer failed, Please try again");
-      //   return;
-      // }
-
-      // console.log("transferResult => ", transferResult);
-
     }
     toast.info("Updating your payment status");
     const updateWorkflowInfo = {
@@ -3395,8 +3364,8 @@ export const pay_and_reveal_user_details = async (
     await new Promise((resolve) => setTimeout(resolve, 2000));
     return {
       status: true,
-      message:"Payment success updating successful",
-    }
+      message: "Payment success updating successful",
+    };
     // const workflowInfoResult = await getWorkflowInfo(
     //   workflow_info_account[0],
     //   connection
@@ -3419,10 +3388,12 @@ export const pay_and_reveal_user_details = async (
       owner,
       connection,
       RECONCILING_AMOUNT
-    )
+    );
     // if(!txnStatus.status){
-      // toast.error("Reconciling txn failed")
-    toast.info("In case of failure, Please send email to admin to reconcile your payment with transaction id or wallet address")
+    // toast.error("Reconciling txn failed")
+    toast.info(
+      "In case of failure, Please send email to admin to reconcile your payment with transaction id or wallet address"
+    );
     // }
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -3430,7 +3401,13 @@ export const pay_and_reveal_user_details = async (
   }
 };
 
-export const reveal_user_details = async (owner,user_info_state_account, company_info_state_account, job_info_account, connection) => {
+export const reveal_user_details = async (
+  owner,
+  user_info_state_account,
+  company_info_state_account,
+  job_info_account,
+  connection
+) => {
   try {
     const candidate_pubkey = new PublicKey(
       "D3YCmJCTyx8CtSv39bwN46Aut6At9ucGNf6QFzhnVrHc"
@@ -3439,7 +3416,9 @@ export const reveal_user_details = async (owner,user_info_state_account, company
     // let job_number = "JP2";
 
     //Check if applicant_info_state_account exists
-    const applicant_info_state_account = [new PublicKey(user_info_state_account)]
+    const applicant_info_state_account = [
+      new PublicKey(user_info_state_account),
+    ];
 
     const applicant_info_state_account_exists = await connection.getAccountInfo(
       applicant_info_state_account[0]
@@ -3455,7 +3434,7 @@ export const reveal_user_details = async (owner,user_info_state_account, company
     );
 
     //Check if company_info_account exists
-    const company_info_account =  [new PublicKey(company_info_state_account)];
+    const company_info_account = [new PublicKey(company_info_state_account)];
     // await PublicKey.findProgramAddress(
     //   [
     //     Buffer.from(COMPANY_STATE_ACCOUNT_PREFIX),
@@ -3477,7 +3456,7 @@ export const reveal_user_details = async (owner,user_info_state_account, company
     );
 
     //Check if jobpost_info_account exists
-    const jobpost_info_account = [new PublicKey(job_info_account)]
+    const jobpost_info_account = [new PublicKey(job_info_account)];
     // await PublicKey.findProgramAddress(
     //   [
     //     Buffer.from(JOBPOST_STATE_ACCOUNT_PREFIX),
@@ -3637,7 +3616,6 @@ export const fetchAllWorkflowOfJobPost = async (owner, connection) => {
       [WORKFLOW_STATUSES[2]]: [],
       [WORKFLOW_STATUSES[3]]: [],
       [WORKFLOW_STATUSES[4]]: [],
-      [WORKFLOW_STATUSES[5]]: [],
     };
     const allWorkflowOfJobPost = await findAllWorkflowOfJobPost(
       connection,
@@ -3672,7 +3650,6 @@ export const fetchAllWorkflowOfUsers = async (owner, connection) => {
       [WORKFLOW_STATUSES[2]]: [],
       [WORKFLOW_STATUSES[3]]: [],
       [WORKFLOW_STATUSES[4]]: [],
-      [WORKFLOW_STATUSES[5]]: [],
     };
 
     const applicant_info_state_account = await PublicKey.findProgramAddress(
@@ -3736,6 +3713,51 @@ export const fetchAllWorkflowOfUsers = async (owner, connection) => {
   } catch (err) {
     console.log("err in fetchAllJobs => ", err);
     throw err;
+  }
+};
+
+export const fetchAllUsers = async (userType, connection) => {
+  try {
+    let allCandidates = await connection.getProgramAccounts(
+      JobsOnChain_User_Info_ID,
+      {
+        filters: [
+          {
+            dataSize: UserCandidateInfoState_SIZE,
+          },
+        ],
+      }
+    );
+    if (!allCandidates || !allCandidates.length) {
+      console.log("No Candidate found");
+      return {
+        status: true,
+        candidates: [],
+      };
+    }
+
+    const candidates = [];
+    for (let i = 0; i < allCandidates.length; i++) {
+      const userInfo = UserCandidateInfoState.deserialize(
+        allCandidates[i].account.data
+      );
+      if (userInfo && userInfo.user_type === userType) {
+        candidates.push({
+          ...userInfo,
+          pubkey: allCandidates[i].pubkey,
+        });
+      }
+    }
+    return {
+      status: true,
+      candidates,
+    };
+  } catch (err) {
+    console.log("err in fetchAllUsers => ", err);
+    return {
+      status: false,
+      candidates: [],
+    };
   }
 };
 

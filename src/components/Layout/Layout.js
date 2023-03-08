@@ -31,6 +31,7 @@ import ModalWorkExperience from "../ModalWorkExperience";
 import ModalCandidateSocials from "../ModalCandidateSocials";
 import ModalUserType from "../ModalUserType/ModalUserType";
 import ModalEducation from "../ModalEducation";
+import ModalCompaniesSlider from "../ModalCompaniesSlider";
 
 const Loader = styled.div`
   position: fixed;
@@ -120,6 +121,7 @@ const Layout = ({ children, pageContext }) => {
           <ModalUserType />
           <ModalJobPost />
           <ModalEducation />
+          <ModalCompaniesSlider />
         </div>
       </ThemeProvider>
     );
@@ -160,6 +162,7 @@ const Layout = ({ children, pageContext }) => {
           <ModalJobPost />
           <ModalUserType />
           <ModalEducation />
+          <ModalCompaniesSlider />
         </div>
       </ThemeProvider>
     );
@@ -198,6 +201,7 @@ const Layout = ({ children, pageContext }) => {
           <ModalUserType />
           <ModalJobPost />
           <ModalEducation />
+          <ModalCompaniesSlider />
         </div>
       </ThemeProvider>
     </>

@@ -1,28 +1,50 @@
-import React from "react";
+import React, { useContext, useEffect } from "react";
 import Link from "next/link";
 import PageWrapper from "../components/PageWrapper";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { SUBSCRIPTION_PLANS_enum, SUBSCRIPTION_PLANS_PRICES } from "../utils/web3/struct_decoders/jobsonchain_constants_enum";
+import {
+  SUBSCRIPTION_PLANS_enum,
+  SUBSCRIPTION_PLANS_PRICES,
+} from "../utils/web3/struct_decoders/jobsonchain_constants_enum";
 import { purchase_subscription_plan } from "../utils/web3/web3_functions";
 import { toast } from "react-toastify";
+import GlobalContext from "../context/GlobalContext";
 
 export default function Pricing() {
   const { publicKey, wallet, connected, signTransaction } = useWallet();
   const { connection } = useConnection();
 
-  const handlePaymentOfPlan = async (plan_type) =>{
-    if(!publicKey){
-      alert("Please connect your wallet first.")
+  const gContext = useContext(GlobalContext);
+  const { toggleSelectCompanyModal, fetchAndSetAllListedCompaniesByUser } =
+    gContext;
+
+  const handlePaymentOfPlan = async (plan_type) => {
+    if (!publicKey) {
+      alert("Please connect your wallet first.");
       return;
     }
-    try{
-      await purchase_subscription_plan(wallet.adapter, publicKey, connection, plan_type);
-      toast.success("Plan purchased successfully.")
-    }catch(err){
-      console.log(err)
-      toast.error("Error while purchasing plan. Please try again later.")
+    try {
+      await purchase_subscription_plan(
+        wallet.adapter,
+        publicKey,
+        connection,
+        plan_type
+      );
+      toast.success("Plan purchased successfully.");
+      await fetchAndSetAllListedCompaniesByUser(connection, publicKey);
+    } catch (err) {
+      console.log(err);
+      toast.error("Error while purchasing plan. Please try again later.");
     }
-  }
+  };
+
+  useEffect(() => {
+    if (!publicKey) return;
+
+    (async () => {
+      await fetchAndSetAllListedCompaniesByUser(connection, publicKey);
+    })();
+  }, [connection, publicKey]);
 
   return (
     <>
@@ -41,9 +63,7 @@ export default function Pricing() {
                 >
                   {/* <!-- section-title start --> */}
                   <div className="section-title text-center mb-12 mb-lg-18 mb-lg-15 pb-lg-15 pb-0">
-                    <h2 className="mb-9">
-                      Choose the best plan for you.
-                    </h2>
+                    <h2 className="mb-9">Choose the best plan for you.</h2>
                     <p className="text-default-color font-size-4 px-5 px-md-10 px-lg-15 px-xl-24 px-xxl-22">
                       World's first fully decentralized job portal.
                     </p>
@@ -54,7 +74,7 @@ export default function Pricing() {
               <div className="row justify-content-center">
                 <div className="col-xxl-10 col-xl-11">
                   <div className="row justify-content-center">
-                  <div
+                    <div
                       className="col-lg-4 col-md-6 col-xs-9"
                       data-aos="fade-right"
                       data-aos-duration="1000"
@@ -72,15 +92,12 @@ export default function Pricing() {
                               Pay per use
                             </h6>
                           </div>
-                          <h2 className="mt-11 text-dodger">
-                            
-                          </h2>
+                          <h2 className="mt-11 text-dodger"></h2>
                         </div>
                         {/* <!-- card-header end --> */}
                         {/* <!-- card-body start --> */}
                         <div className="card-body px-0 pt-11 pb-15">
                           <ul className="list-unstyled">
-                            
                             <li className="mb-6 text-black-2 d-flex font-size-4">
                               <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                               Unlimited Job Postings ($20/job)
@@ -113,11 +130,21 @@ export default function Pricing() {
                               Monthly Plan
                             </h5>
                             <h6 className="font-size-4 text-gray font-weight-normal">
-                              $USDC {SUBSCRIPTION_PLANS_PRICES[SUBSCRIPTION_PLANS_enum.MONTHLY].price}
+                              $USDC{" "}
+                              {
+                                SUBSCRIPTION_PLANS_PRICES[
+                                  SUBSCRIPTION_PLANS_enum.MONTHLY
+                                ].price
+                              }
                             </h6>
                           </div>
                           <h2 className="mt-11 text-dodger">
-                            ${SUBSCRIPTION_PLANS_PRICES[SUBSCRIPTION_PLANS_enum.MONTHLY].price}
+                            $
+                            {
+                              SUBSCRIPTION_PLANS_PRICES[
+                                SUBSCRIPTION_PLANS_enum.MONTHLY
+                              ].price
+                            }
                             <span className="font-size-4 text-smoke font-weight-normal">
                               /month
                             </span>
@@ -127,10 +154,15 @@ export default function Pricing() {
                         {/* <!-- card-body start --> */}
                         <div className="card-body px-0 pt-11 pb-6">
                           <ul className="list-unstyled">
-                            
                             <li className="mb-6 text-black-2 d-flex font-size-4">
                               <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
-                              Unlimited Job Postings (${SUBSCRIPTION_PLANS_PRICES[SUBSCRIPTION_PLANS_enum.MONTHLY].job_posting_price}/job)
+                              Unlimited Job Postings ($
+                              {
+                                SUBSCRIPTION_PLANS_PRICES[
+                                  SUBSCRIPTION_PLANS_enum.MONTHLY
+                                ].job_posting_price
+                              }
+                              /job)
                             </li>
                             <li className="mb-6 text-black-2 d-flex font-size-4">
                               <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
@@ -149,11 +181,15 @@ export default function Pricing() {
                         {/* <!-- card-body end --> */}
                         {/* <!-- card-footer end --> */}
                         <div className="card-footer bg-transparent border-0 px-0 py-0">
-                          
-                            <a className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase" onClick={()=>handlePaymentOfPlan(SUBSCRIPTION_PLANS_enum.MONTHLY)}>
-                              Start with Monthly
-                            </a>
-                          
+                          <a
+                            className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase"
+                            onClick={() =>
+                              handlePaymentOfPlan(SUBSCRIPTION_PLANS_enum.MONTHLY)
+                              // toggleSelectCompanyModal()
+                            }
+                          >
+                            Start with Monthly
+                          </a>
                         </div>
                         {/* <!-- card-footer end --> */}
                       </div>
@@ -177,11 +213,21 @@ export default function Pricing() {
                               Six Months Plan
                             </h5>
                             <h6 className="font-size-4 text-gray font-weight-normal">
-                              $USDC {SUBSCRIPTION_PLANS_PRICES[SUBSCRIPTION_PLANS_enum.SIXMONTHS].price}
+                              $USDC{" "}
+                              {
+                                SUBSCRIPTION_PLANS_PRICES[
+                                  SUBSCRIPTION_PLANS_enum.SIXMONTHS
+                                ].price
+                              }
                             </h6>
                           </div>
                           <h2 className="mt-11 text-dodger">
-                          ${(SUBSCRIPTION_PLANS_PRICES[SUBSCRIPTION_PLANS_enum.SIXMONTHS].price/6).toFixed(0)}
+                            $
+                            {(
+                              SUBSCRIPTION_PLANS_PRICES[
+                                SUBSCRIPTION_PLANS_enum.SIXMONTHS
+                              ].price / 6
+                            ).toFixed(0)}
                             <span className="font-size-4 text-smoke font-weight-normal">
                               /month
                             </span>{" "}
@@ -193,7 +239,13 @@ export default function Pricing() {
                           <ul className="list-unstyled">
                             <li className="mb-6 text-black-2 d-flex font-size-4">
                               <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
-                              Unlimited Job Postings (${SUBSCRIPTION_PLANS_PRICES[SUBSCRIPTION_PLANS_enum.SIXMONTHS].job_posting_price}/job)
+                              Unlimited Job Postings ($
+                              {
+                                SUBSCRIPTION_PLANS_PRICES[
+                                  SUBSCRIPTION_PLANS_enum.SIXMONTHS
+                                ].job_posting_price
+                              }
+                              /job)
                             </li>
                             <li className="mb-6 text-black-2 d-flex font-size-4">
                               <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
@@ -212,11 +264,16 @@ export default function Pricing() {
                         {/* <!-- card-body end --> */}
                         {/* <!-- card-footer end --> */}
                         <div className="card-footer bg-transparent border-0 px-0 py-0">
-                          
-                            <a className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase" onClick={()=>handlePaymentOfPlan(SUBSCRIPTION_PLANS_enum.SIXMONTHS)}>
-                              Start with Six Monthly
-                            </a>
-                          
+                          <a
+                            className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase"
+                            onClick={() =>
+                              handlePaymentOfPlan(
+                                SUBSCRIPTION_PLANS_enum.SIXMONTHS
+                              )
+                            }
+                          >
+                            Start with Six Monthly
+                          </a>
                         </div>
                         {/* <!-- card-footer end --> */}
                       </div>
@@ -237,11 +294,21 @@ export default function Pricing() {
                               Yearly Plan
                             </h5>
                             <h6 className="font-size-4 text-gray font-weight-normal">
-                            $USDC {SUBSCRIPTION_PLANS_PRICES[SUBSCRIPTION_PLANS_enum.YEARLY].price}
+                              $USDC{" "}
+                              {
+                                SUBSCRIPTION_PLANS_PRICES[
+                                  SUBSCRIPTION_PLANS_enum.YEARLY
+                                ].price
+                              }
                             </h6>
                           </div>
                           <h2 className="mt-11 text-dodger">
-                            ${(SUBSCRIPTION_PLANS_PRICES[SUBSCRIPTION_PLANS_enum.YEARLY].price/12).toFixed(0)}
+                            $
+                            {(
+                              SUBSCRIPTION_PLANS_PRICES[
+                                SUBSCRIPTION_PLANS_enum.YEARLY
+                              ].price / 12
+                            ).toFixed(0)}
                             <span className="font-size-4 text-smoke font-weight-normal">
                               /month
                             </span>{" "}
@@ -253,7 +320,13 @@ export default function Pricing() {
                           <ul className="list-unstyled">
                             <li className="mb-6 text-black-2 d-flex font-size-4">
                               <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
-                              Unlimited Job Postings (${SUBSCRIPTION_PLANS_PRICES[SUBSCRIPTION_PLANS_enum.YEARLY].price}/job)
+                              Unlimited Job Postings ($
+                              {
+                                SUBSCRIPTION_PLANS_PRICES[
+                                  SUBSCRIPTION_PLANS_enum.YEARLY
+                                ].price
+                              }
+                              /job)
                             </li>
                             <li className="mb-6 text-black-2 d-flex font-size-4">
                               <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
@@ -276,11 +349,16 @@ export default function Pricing() {
                         {/* <!-- card-body end --> */}
                         {/* <!-- card-footer end --> */}
                         <div className="card-footer bg-transparent border-0 px-0 py-0">
-                          
-                            <a className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase" onClick={()=>handlePaymentOfPlan(SUBSCRIPTION_PLANS_enum.YEARLY)}>
-                              Start with Yearly
-                            </a>
-                          
+                          <a
+                            className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase"
+                            onClick={() =>
+                              handlePaymentOfPlan(
+                                SUBSCRIPTION_PLANS_enum.YEARLY
+                              )
+                            }
+                          >
+                            Start with Yearly
+                          </a>
                         </div>
                         {/* <!-- card-footer end --> */}
                       </div>
@@ -301,18 +379,20 @@ export default function Pricing() {
                               Forever Plan
                             </h5>
                             <h6 className="font-size-4 text-gray font-weight-normal">
-                              $USDC {SUBSCRIPTION_PLANS_PRICES[SUBSCRIPTION_PLANS_enum.FOREVER].price}
+                              $USDC{" "}
+                              {
+                                SUBSCRIPTION_PLANS_PRICES[
+                                  SUBSCRIPTION_PLANS_enum.FOREVER
+                                ].price
+                              }
                             </h6>
                           </div>
-                          <h3 className="mt-11 text-dodger">
-                            Forever Free
-                          </h3>
+                          <h3 className="mt-11 text-dodger">Forever Free</h3>
                         </div>
                         {/* <!-- card-header end --> */}
                         {/* <!-- card-body start --> */}
                         <div className="card-body px-0 pt-11 pb-6">
                           <ul className="list-unstyled">
-                            
                             <li className="mb-6 text-black-2 d-flex font-size-4">
                               <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                               Unlimited Job Postings
@@ -338,11 +418,16 @@ export default function Pricing() {
                         {/* <!-- card-body end --> */}
                         {/* <!-- card-footer end --> */}
                         <div className="card-footer bg-transparent border-0 px-0 py-0">
-                          
-                            <a className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase" onClick={()=>handlePaymentOfPlan(SUBSCRIPTION_PLANS_enum.FOREVER)}>
-                              Go for Forever Plan
-                            </a>
-                          
+                          <a
+                            className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase"
+                            onClick={() =>
+                              handlePaymentOfPlan(
+                                SUBSCRIPTION_PLANS_enum.FOREVER
+                              )
+                            }
+                          >
+                            Go for Forever Plan
+                          </a>
                         </div>
                         {/* <!-- card-footer end --> */}
                       </div>

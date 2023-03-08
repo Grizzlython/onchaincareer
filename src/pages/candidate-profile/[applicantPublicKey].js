@@ -17,17 +17,12 @@ import { toast } from "react-toastify";
 
 export default function FullProfile() {
   const router = useRouter();
-
+  const { applicantPublicKey } = router.query;
   const gContext = useContext(GlobalContext);
-  const [candidateInfo, setCandidateInfo] = React.useState(null);
+  const [candidateProfile, setCandidateProfile] = React.useState(null);
+  const [applicant_info_state_account, setCandidateInfoStateAccount] = React.useState(null);
 
-  const applicant_info_state_account = gContext.userStateAccount;
-  const {publicKey} = useWallet()
   const { connection } = useConnection();
-
-  const applicantWorkExperiences = gContext.workExperience;
-  const applicantProjects = gContext.projects;
-  const applicantEducation = gContext.education;
 
   useEffect(() => {
     if (applicant_info_state_account) {
@@ -46,78 +41,24 @@ export default function FullProfile() {
         );
       })();
     }
-    if (!gContext.workExperienceModalVisible) {
-      (async () => {
-        await gContext.fetchAndSetWorkExperience(
-          applicant_info_state_account,
-          connection
-        );
-      })();
-    }
-    if (!gContext.projectsModalVisible) {
-      (async () => {
-        await gContext.fetchAndSetProjects(
-          applicant_info_state_account,
-          connection
-        );
-      })();
-    }
-    if (!gContext.educationModalVisible) {
-      (async () => {
-        await gContext.fetchAndSetEducation(
-          applicant_info_state_account,
-          connection
-        );
-      })();
-    }
-  }, [
-    gContext.workExperienceModalVisible,
-    gContext.projectsModalVisible,
-    gContext.educationModalVisible,
-  ]);
+  }, [applicant_info_state_account]);
 
   useEffect(() => {
-    if (!publicKey) {
+    if (!applicantPublicKey) {
       router.push("/");
       return;
     }
 
     (async () => {
-      const userExistsRes = await check_if_user_exists(publicKey, connection);
-      if (userExistsRes.data.user_type === userTypeEnum.RECRUITER) {
-        toast.info("⚠️ You are a recruiter, you can't access the candidate dashboard");
-        router.push("/dashboard-main");
-      }
-
-      if(userExistsRes.data){
-        setCandidateInfo(userExistsRes.data);
-      }
-
+      const userExistsRes = await check_if_user_exists(applicantPublicKey, connection);
+      
+        if(userExistsRes.data){
+        setCandidateProfile(userExistsRes.data);
+        setCandidateInfoStateAccount(userExistsRes.data.applicantInfoStateAccount);
+        }
+      
     })();
-  }, [publicKey]);
-
-  const setWorkflowSequenceNumberAndToggleModal = (sequenceNumber) => {
-    gContext.setWorkflowSequenceNumber(sequenceNumber);
-    gContext.toggleWorkExperienceModal();
-  };
-
-  const setProjectNumberAndToggleModal = (projectNumber) => {
-    gContext.setProjectNumber(projectNumber);
-    gContext.toggleProjectsModal();
-  };
-
-  const setEducationNumberAndToggleModal = (educationNumber) => {
-    gContext.setEducationNumber(educationNumber);
-    gContext.toggleEducationModal();
-  };
-
-  const updateCandidateBasicInfo = () => {
-    gContext.setCandidateInfoAction("edit");
-    gContext.toggleCandidateProfileModal();
-  };
-
-
-
+  }, [applicantPublicKey]);
   return (
     <>
       <PageWrapper headerConfig={{ button: "profile" }}>
@@ -148,7 +89,7 @@ export default function FullProfile() {
             <div className="row">
               {/* <!-- Left Sidebar Start --> */}
               <div className="col-12 col-xxl-3 col-lg-4 col-md-5 mb-11 mb-lg-0">
-                <ProfileSidebar candidateInfo={candidateInfo}/>
+                <ProfileSidebar candidateInfo={candidateProfile} fromAllCandidatesPage={true}/>
               </div>
               {/* <!-- Left Sidebar End --> */}
               {/* <!-- Middle Content --> */}
@@ -217,155 +158,103 @@ export default function FullProfile() {
                     </Nav>
                     {/* <!-- Tab Content --> */}
                     <Tab.Content>
-                      <Tab.Pane eventKey="one">
-                        {/* <!-- Excerpt Start --> */}
-                        <div className="pr-xl-0 pr-xxl-14 p-5 px-xs-12 pt-7 pb-5">
-                          <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                            }}
-                          >
+                    <Tab.Pane eventKey="one">
+                          {/* <!-- Excerpt Start --> */}
+                          <div className="pr-xl-0 pr-xxl-14 p-5 px-xs-12 pt-7 pb-5">
                             <h4 className="font-size-6 mb-7 mt-5 text-black-2 font-weight-semibold">
                               About
                             </h4>
-                            <p
-                              className="btn btn-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
-                              style={{
-                                cursor: "pointer",
-                              }}
-                              onClick={updateCandidateBasicInfo}
-                            >
-                              <i className="fa fa-pen mr-2"></i>
-                              Update Info
+                            <p className="font-size-4 mb-8">
+                              {candidateProfile?.bio}
                             </p>
-                            {/* <input
-                              type="button"
-                              value="Update Details"
-                              className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
-                              onClick={updateApplicantInfo}
-                            /> */}
                           </div>
-                          <p className="font-size-4 mb-8">
-                            {gContext.user?.bio}
-                          </p>
-                        </div>
-                        {/* <!-- Excerpt End --> */}
-                        {/* <!-- Skills --> */}
-                        <div className="border-top pr-xl-0 pr-xxl-14 p-5 pl-xs-12 pt-7 pb-5">
-                          <h4 className="font-size-6 mb-7 mt-5 text-black-2 font-weight-semibold">
-                            Skills
-                          </h4>
-                          <ul className="list-unstyled d-flex align-items-center flex-wrap">
-                            {gContext.user?.skills?.map((skill, index) => (
-                              <li key={index}>
-                                <a className="bg-polar text-black-2  mr-6 px-7 mt-2 mb-2 font-size-3 rounded-3 min-height-32 d-flex align-items-center">
-                                  {skill}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        {/* <!-- Skills End --> */}
-                        {/* <!-- Card Section Start --> */}
+                          {/* <!-- Excerpt End --> */}
+                          {/* <!-- Skills --> */}
+                          <div className="border-top pr-xl-0 pr-xxl-14 p-5 pl-xs-12 pt-7 pb-5">
+                            <h4 className="font-size-6 mb-7 mt-5 text-black-2 font-weight-semibold">
+                              Skills
+                            </h4>
+                            <ul className="list-unstyled d-flex align-items-center flex-wrap">
+                              {candidateProfile?.skills?.map((skill, index) => (
+                                <li key={index}>
+                                  <a className="bg-polar text-black-2  mr-6 px-7 mt-2 mb-2 font-size-3 rounded-3 min-height-32 d-flex align-items-center">
+                                    {skill}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          {/* <!-- Skills End --> */}
+                          {/* <!-- Card Section Start --> */}
 
-                        {/* <!-- Card Section End --> */}
-                        {/* <!-- Card Section Start --> */}
+                          {/* <!-- Card Section End --> */}
+                          {/* <!-- Card Section Start --> */}
 
-                        {/* <!-- Card Section End --> */}
-                      </Tab.Pane>
-                      <Tab.Pane eventKey="two">
-                        <div className="border-top p-5 pl-xs-12 pt-7 pb-5">
-                          {!applicantWorkExperiences ||
-                          applicantWorkExperiences?.length === 0 ? (
-                            <>
-                              <p>No workexperience found</p>
-                            </>
-                          ) : (
-                            applicantWorkExperiences.map((workExp, index) => (
-                              <div className="w-100" key={index}>
-                                <div className="d-flex align-items-center pr-11 mb-9 flex-wrap flex-sm-nowrap">
-                                  {/* <div className="square-72 d-block mr-8 mb-7 mb-sm-0">
+                          {/* <!-- Card Section End --> */}
+                        </Tab.Pane>
+                        <Tab.Pane eventKey="two">
+                          <div className="border-top p-5 pl-xs-12 pt-7 pb-5">
+                            {gContext.workExperience?.length === 0 ? (
+                              <>
+                                <p>No workexperience found</p>
+                              </>
+                            ) : (
+                              gContext.workExperience.map((workExp, index) => (
+                                <div className="w-100" key={index}>
+                                  <div className="d-flex align-items-center pr-11 mb-9 flex-wrap flex-sm-nowrap">
+                                    {/* <div className="square-72 d-block mr-8 mb-7 mb-sm-0">
                                 <img src={imgB1.src} alt="" />
                               </div> */}
-                                  <div className="w-100 mt-n2">
-                                    <h3 className="mb-0">
-                                      <a className="font-size-6 text-black-2 font-weight-semibold">
-                                        {workExp.designation}
-                                      </a>
-                                    </h3>
-
-                                    <a className="font-size-4 text-default-color line-height-2">
-                                      {workExp.company_name}
-                                    </a>
-
-                                    <div className="d-flex align-items-center justify-content-md-between flex-wrap">
-                                      <>
-                                        <a className="font-size-4 text-gray mr-5">
-                                          {`${
-                                            workExp.start_date &&
-                                            workExp.start_date !== "NaN"
-                                              ? moment(
-                                                  +workExp.start_date
-                                                ).format("DD MMM YYYY")
-                                              : "Present"
-                                          } - ${
-                                            workExp.end_date &&
-                                            workExp.end_date !== "NaN"
-                                              ? moment(
-                                                  +workExp.end_date
-                                                ).format("DD MMM YYYY")
-                                              : "Present"
-                                          }`}
+                                    <div className="w-100 mt-n2">
+                                      <h3 className="mb-0">
+                                        <Link href="/#">
+                                          <a className="font-size-6 text-black-2 font-weight-semibold">
+                                            {workExp.designation}
+                                          </a>
+                                        </Link>
+                                      </h3>
+                                      <Link href="/#">
+                                        <a className="font-size-4 text-default-color line-height-2">
+                                          {workExp.company_name}
                                         </a>
-
-                                        <a className="font-size-3 text-gray">
-                                          <span
-                                            className="mr-4"
-                                            css={`
-                                              margin-top: -2px;
-                                            `}
-                                          >
-                                            <img src={imgL.src} alt="" />
-                                          </span>
-                                          {workExp.location}
-                                        </a>
-                                      </>
+                                      </Link>
+                                      <div className="d-flex align-items-center justify-content-md-between flex-wrap">
+                                        <Link href="/#">
+                                          <a className="font-size-4 text-gray mr-5">
+                                            {`${moment(
+                                              workExp.startDate
+                                            ).format("DD MMM YYYY")} - ${moment(
+                                              workExp.endDate
+                                            ).format("DD MMM YYYY")}`}
+                                          </a>
+                                        </Link>
+                                        <Link href="/#">
+                                          <a className="font-size-3 text-gray">
+                                            <span
+                                              className="mr-4"
+                                              css={`
+                                                margin-top: -2px;
+                                              `}
+                                            >
+                                              <img src={imgL.src} alt="" />
+                                            </span>
+                                            {workExp.location}
+                                          </a>
+                                        </Link>
+                                      </div>
                                     </div>
-                                    <a
-                                      className="btn btn-outline-green text-uppercase w-150 h-px-32 rounded-5 mr-7 mb-7 mt-7"
-                                      onClick={() => {
-                                        setWorkflowSequenceNumberAndToggleModal(
-                                          workExp.work_experience_number
-                                        );
-                                      }}
-                                    >
-                                      <i className="fa fa-pen mr-2"></i>
-                                      Update
-                                    </a>
                                   </div>
                                 </div>
-                              </div>
-                            ))
-                          )}
-                          <a
-                            className="btn btn-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
-                            onClick={() => {
-                              setWorkflowSequenceNumberAndToggleModal(0);
-                            }}
-                          >
-                            <i className="fa fa-plus mr-2"></i>
-                            Add Experience
-                          </a>
-                        </div>
-                      </Tab.Pane>
-                      <Tab.Pane eventKey="three">
-                        <div className="border-top p-5 pl-xs-12 pt-7 pb-5">
-                          {applicantProjects?.length === 0 ? (
-                            <>
-                              <p>No projects found</p>
-                              {/* <Button
+                              ))
+                            )}
+                          </div>
+                        </Tab.Pane>
+                        <Tab.Pane eventKey="three">
+                          <div className="border-top p-5 pl-xs-12 pt-7 pb-5">
+                            {gContext.projects?.length === 0 ? (
+                              <>
+                                <p>No projects found</p>
+                                {/* <Button
                                 onClick={() => {
                                   gContext.toggleProjectsModal();
                                 }}
@@ -374,84 +263,55 @@ export default function FullProfile() {
                               >
                                 Add project
                               </Button> */}
-                            </>
-                          ) : (
-                            applicantProjects.map((project, index) => (
-                              <div
-                                className="w-100"
-                                key={index}
-                                style={{ borderBottom: "0.5px solid #dddddd" }}
-                              >
-                                <div className="d-flex align-items-center pr-11 mb-9 flex-wrap flex-sm-nowrap">
-                                  {/* <div className="square-72 d-block mr-8 mb-7 mb-sm-0">
+                              </>
+                            ) : (
+                              gContext.projects.map((project, index) => (
+                                <div className="w-100" key={index}>
+                                  <div className="d-flex align-items-center pr-11 mb-9 flex-wrap flex-sm-nowrap">
+                                    {/* <div className="square-72 d-block mr-8 mb-7 mb-sm-0">
                                 <img src={imgB1.src} alt="" />
                               </div> */}
-                                  <div className="w-100 mt-n2">
-                                    <h3 className="mb-0">
-                                      <a className="font-size-6 text-black-2 font-weight-semibold">
-                                        {project.project_name}
-                                      </a>
-                                    </h3>
-                                    <Link href={"#"}>
-                                      <a className="font-size-3 text-blue">
-                                        <i className="fa fa-link mr-2"></i>
-                                        {project.project_link}
-                                      </a>
-                                    </Link>
-                                    <br />
+                                    <div className="w-100 mt-n2">
+                                      <h3 className="mb-0">
+                                        <Link href="/#">
+                                          <a className="font-size-6 text-black-2 font-weight-semibold">
+                                            {project.project_name}
+                                          </a>
+                                        </Link>
+                                      </h3>
+                                      <Link href={project.project_link}>
+                                        <a className="font-size-3 text-blue">
+                                          <i className="fa fa-link mr-2"></i>
+                                          {project.project_link}
+                                        </a>
+                                      </Link>
+                                      <br />
 
-                                    <a className="font-size-4 text-default-color line-height-2">
-                                      {project.project_description}
-                                    </a>
-
-                                    <div className="d-flex align-items-center justify-content-md-between flex-wrap">
-                                      <a className="font-size-4 text-gray mr-5">
-                                        {`${
-                                          project.project_start_date
-                                            ? moment(
-                                                +project.project_start_date
-                                              ).format("DD MMM YYYY")
-                                            : "Present"
-                                        } - ${
-                                          project.project_end_date
-                                            ? moment(
-                                                +project.project_end_date
-                                              ).format("DD MMM YYYY")
-                                            : "Present"
-                                        }`}
+                                      <a className="font-size-4 text-default-color line-height-2">
+                                        {project.project_description}
                                       </a>
+
+                                      <div className="d-flex align-items-center justify-content-md-between flex-wrap">
+                                        <Link href="/#">
+                                          <a className="font-size-4 text-gray mr-5">
+                                            {`${moment(
+                                              project.project_start_date
+                                            ).format("DD MMM YYYY")} - ${moment(
+                                              project.project_end_date
+                                            ).format("DD MMM YYYY")}`}
+                                          </a>
+                                        </Link>
+                                      </div>
                                     </div>
                                   </div>
-                                  <a
-                                    className="btn btn-outline-green text-uppercase h-px-48 rounded-5 mr-7 mb-7"
-                                    onClick={() => {
-                                      setProjectNumberAndToggleModal(
-                                        project.project_number
-                                      );
-                                    }}
-                                  >
-                                    <i className="fa fa-pen mr-2"></i>
-                                    Update
-                                  </a>
                                 </div>
-                              </div>
-                            ))
-                          )}
-                          <br></br>
-                          <a
-                            className="btn btn-outline-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
-                            onClick={() => {
-                              setProjectNumberAndToggleModal(0);
-                            }}
-                          >
-                            <i className="fa fa-plus mr-2"></i>
-                            Add
-                          </a>
-                        </div>
-                      </Tab.Pane>
+                              ))
+                            )}
+                          </div>
+                        </Tab.Pane>
                       <Tab.Pane eventKey="four">
                         <div className="border-top p-5 pl-xs-12 pt-7 pb-5">
-                          {applicantEducation?.length === 0 ? (
+                          {gContext.educations?.length === 0 ? (
                             <>
                               <p>No Education found</p>
                               {/* <Button
@@ -465,7 +325,7 @@ export default function FullProfile() {
                               </Button> */}
                             </>
                           ) : (
-                            applicantEducation.map((education, index) => (
+                            gContext.educations.map((education, index) => (
                               <div
                                 className="w-100"
                                 key={index}

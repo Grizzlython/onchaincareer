@@ -12,13 +12,13 @@ const projectSchema = {
   project_name: "",
   project_description: "",
   project_image_uris: [],
-  project_link: "", 
-  project_skills:[], 
-  project_start_date: "", 
-  project_end_date: "", 
-  project_status: "", 
+  project_link: "",
+  project_skills: [],
+  project_start_date: "",
+  project_end_date: "",
+  project_status: "",
   project_number: "",
-}
+};
 
 const ModalStyled = styled(Modal)`
   /* &.modal {
@@ -27,24 +27,27 @@ const ModalStyled = styled(Modal)`
 `;
 
 const ModalProjects = (props) => {
-
   const gContext = useContext(GlobalContext);
   const projects = gContext.projects;
-  const currentProjectNumber = gContext.currentProjectNumber
-  console.log(currentProjectNumber, "currentProjectNumber")
+  const currentProjectNumber = gContext.currentProjectNumber;
+  console.log(currentProjectNumber, "currentProjectNumber");
   const [candidateProject, setCandidateProject] = useState(projectSchema);
-
+  const [archived, setArchived] = useState(false);
+  const handleChange = (e) => {
+    setArchived(!archived);
+    handleToggleofArchive(e);
+  };
   const handleToggleofArchive = async (e, index) => {
     e.preventDefault();
     candidateProject.archived = !candidateProject.archived;
-    setCandidateProject({...candidateProject});
+    setCandidateProject({ ...candidateProject });
   };
 
   const handleProjects = async (e, key) => {
     const { value } = e.target;
-    const candidateProjectCopy = {...candidateProject};
+    const candidateProjectCopy = { ...candidateProject };
     candidateProjectCopy[key] = value;
-    setCandidateProject({...candidateProjectCopy});
+    setCandidateProject({ ...candidateProjectCopy });
   };
 
   const handleClose = () => {
@@ -54,50 +57,76 @@ const ModalProjects = (props) => {
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
 
-  useEffect(()=>{
-    if(projects.length > 0 && currentProjectNumber){
-      const fitleredProject = projects.filter(project => project.project_number === currentProjectNumber)
-      if(fitleredProject && fitleredProject.length > 0){
-        setCandidateProject({...fitleredProject[0]})
+  useEffect(() => {
+    if (projects.length > 0 && currentProjectNumber) {
+      const fitleredProject = projects.filter(
+        (project) => project.project_number === currentProjectNumber
+      );
+      if (fitleredProject && fitleredProject.length > 0) {
+        setCandidateProject({ ...fitleredProject[0] });
       }
     }
-    
-  },[currentProjectNumber])
-
+  }, [currentProjectNumber]);
 
   const handleOrUpdateCandidateProject = async () => {
     try {
-        if(!publicKey){
-          toast.error("Please connect your wallet")
-          return;
-        }
-        const projectInfo = {...candidateProject};
-        console.log(projectInfo, "projectInfo in handleOrUpdateCandidateProject")
-        if(projectInfo.project_start_date) {
-          projectInfo.project_start_date = new Date(projectInfo.project_start_date).getTime().toString();
-          console.log(projectInfo.project_start_date, "projectInfo.project_start_date")
-        }
-        if(projectInfo.project_end_date) {
-          projectInfo.project_end_date = new Date(projectInfo.project_end_date).getTime().toString();
-        }
+      if (!publicKey) {
+        toast.error("Please connect your wallet");
+        return;
+      }
+      const projectInfo = { ...candidateProject };
+      console.log(projectInfo, "projectInfo in handleOrUpdateCandidateProject");
+      if (projectInfo.project_start_date) {
+        projectInfo.project_start_date = new Date(
+          projectInfo.project_start_date
+        )
+          .getTime()
+          .toString();
+        console.log(
+          projectInfo.project_start_date,
+          "projectInfo.project_start_date"
+        );
+      }
+      if (projectInfo.project_end_date) {
+        projectInfo.project_end_date = new Date(projectInfo.project_end_date)
+          .getTime()
+          .toString();
+      }
 
-        if(currentProjectNumber){
-          projectInfo.project_number = currentProjectNumber;
-          await gContext.updateProject(
-            publicKey,
-            projectInfo,
-            connection,
-            signTransaction
-          );
-        }else{
+      const notDefined = Object.keys(projectInfo).filter(
+        (key) => projectInfo[key] === undefined
+      );
 
-          await gContext.addProject(
-            publicKey,
-            projectInfo,
-            connection,
-            signTransaction
-          );
-        }
+      if (notDefined && notDefined.length > 0) {
+        toast.error(`Please fill ${notDefined.join(", ")}`);
+        return;
+      }
+
+      let notFilled = Object.keys(projectInfo).filter(
+        (key) => projectInfo[key] === ""
+      );
+
+      if (notFilled && notFilled.length > 0) {
+        toast.error(`Please fill ${notFilled.join(", ")}`);
+        return;
+      }
+
+      if (currentProjectNumber) {
+        projectInfo.project_number = currentProjectNumber;
+        await gContext.updateProject(
+          publicKey,
+          projectInfo,
+          connection,
+          signTransaction
+        );
+      } else {
+        await gContext.addProject(
+          publicKey,
+          projectInfo,
+          connection,
+          signTransaction
+        );
+      }
       handleClose();
     } catch (error) {
       console.log(error.message);
@@ -252,16 +281,41 @@ const ModalProjects = (props) => {
                                 </div>
                               </div>
                             </div>
-                            
-                              <a
-                                className="btn btn-outline-red text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
-                                onClick={(e) =>
-                                  handleToggleofArchive(e)
-                                }
+
+                            {/* <a
+                              className="btn btn-outline-red text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
+                              onClick={(e) => handleToggleofArchive(e)}
+                            >
+                              <i className="fa fa-archive mr-2"></i>
+                              {!candidateProject.archived
+                                ? "Archive"
+                                : "Unarchive"}
+                            </a> */}
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                marginBottom: "20px",
+                              }}
+                            >
+                              <h5 className="text-black-2 font-size-4 font-weight-semibold mb-4">
+                                Archive ?
+                              </h5>
+                              <label
+                                class="switch"
+                                style={{
+                                  marginLeft: "10px",
+                                  marginTop: "10px",
+                                }}
                               >
-                                <i className="fa fa-archive mr-2"></i>
-                                {!candidateProject.archived ? "Archive" : "Unarchive"} 
-                              </a>
+                                <input
+                                  type="checkbox"
+                                  id="switchArchive"
+                                  onChange={handleChange}
+                                />
+                                <span class="slider round"></span>
+                              </label>
+                            </div>
                           </>
                         )}
                         <pre>{JSON.stringify(candidateProject)}</pre>

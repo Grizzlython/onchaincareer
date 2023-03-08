@@ -35,9 +35,9 @@ const ModalCompanyProfile = (props) => {
   const [name, setName] = useState("");
   const [logo, setLogo] = useState("https://www.solgames.fun/logo.png");
   const [domain, setDomain] = useState("");
-  const [type, setType] = useState("");
+  const [type, setType] = useState(defaultTypes[0]);
   const [foundedIn, setFoundedIn] = useState("");
-  const [employeeSize, setEmployeeSize] = useState("");
+  const [employeeSize, setEmployeeSize] = useState(defaultEmployees[0]);
   const [location, setLocation] = useState("");
   const [linkedinHandle, setLinkedinHandle] = useState("");
   const [twitterHandle, setTwitterHandle] = useState("");
@@ -53,13 +53,42 @@ const ModalCompanyProfile = (props) => {
 
   const handleAddCompany = async () => {
     try {
-      if (!gContext.user?.username) {
+      if (!publicKey) {
         alert("Please login to add company profile");
         return;
       }
 
+      let notFilledFields;
+      if (!name) {
+        notFilledFields = "Company name,";
+      } else if (!domain) {
+        notFilledFields = "Domain,";
+      } else if (!type) {
+        notFilledFields = "Company type,";
+      } else if (!foundedIn) {
+        notFilledFields = "Founded in,";
+      } else if (!employeeSize) {
+        notFilledFields = "Employee size,";
+      } else if (!location) {
+        notFilledFields = "Location,";
+      } else if (!description) {
+        notFilledFields = "Description,";
+      } else if (!website) {
+        notFilledFields = "Website,";
+      }
+
+      if (notFilledFields && notFilledFields.length > 0) {
+        toast.error(
+          `Please fill the following fields: ${notFilledFields} before adding company profile`,
+          {
+            duration: 20000,
+          }
+        );
+        return;
+      }
+
       const companyInfo = {
-        username: gContext.user?.username, //32
+        username: publicKey.toString(), //32
         name: name, //64
         logo_uri: logo, //128
         domain: domain, //64
@@ -80,8 +109,6 @@ const ModalCompanyProfile = (props) => {
         facebook: "facebook", //128
         instagram: "instagram", //128
       };
-
-      console.log(companyInfo, "companyInfo in react");
 
       await gContext.addCompanyProfile(
         publicKey,

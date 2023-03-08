@@ -45,6 +45,7 @@ export const menuItems = [
   //     },
   //   ],
   // },
+  { name: "all-candidates", label: "Candidates" },
   { name: "pricing", label: "Pricing" },
   { name: "faq", label: "FAQ" },
 
@@ -60,8 +61,12 @@ export const userMenuItems = [
     name: "search-jobs",
     label: "View all jobs",
   },
-  { name: "pricing", label: "Pricing" },
+  {
+    name: "all-companies",
+    label: "All companies",
+  },
+  // { name: "pricing", label: "Pricing" },
   { name: "faq", label: "FAQ" },
 
-  { name: "contact", label: "Contact" },
+  // { name: "contact", label: "Contact" },
 ];

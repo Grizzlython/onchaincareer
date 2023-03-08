@@ -9,15 +9,14 @@ import {
   layout,
 } from "styled-system";
 
-const SwitchStyled = styled.div`
+export const SwitchStyled = styled.div`
   display: inline-block;
   cursor: pointer;
   width: 72px;
   height: 33px;
   border-radius: 17px;
   transition: all 0.3s ease-out;
-  background: ${({ active, theme, bg }) =>
-    active ? theme.colors[bg] : `#eae9f2`};
+  background: ${({ active, theme, bg }) => (active ? "#00b074" : `#eae9f2`)};
   position: relative;
   margin: 0 15px;
   white-space: nowrap;
@@ -29,10 +28,10 @@ const SwitchStyled = styled.div`
   ${layout};
 `;
 
-const Round = styled.span`
+export const Round = styled.span`
   width: 21px;
   height: 21px;
-  background-color: #ffffff;
+  background-color: !active ? "#ffffff" : "#00b074";
   position: absolute;
   transition: all 0.3s ease-out;
   left: ${({ active }) => (active ? `calc(100% - 33px)` : `0`)};
@@ -44,10 +43,15 @@ const Round = styled.span`
   pointer-events: none;
 `;
 
-const Switch = ({ bg = "secondary", onClick = () => {}, ...rest }) => {
+const Switch = ({
+  bg = "secondary",
+  onClick = () => {},
+  onChange,
+  ...rest
+}) => {
   const [active, setActive] = useState(false);
 
-  const handleSwitch = () => {
+  const handleSwitch = (props) => {
     setActive(!active);
     onClick();
   };
@@ -58,6 +62,7 @@ const Switch = ({ bg = "secondary", onClick = () => {}, ...rest }) => {
       {...rest}
       onClick={handleSwitch}
       active={active ? 1 : 0}
+      onChange={onChange}
     >
       <Round active={active ? 1 : 0} />
     </SwitchStyled>

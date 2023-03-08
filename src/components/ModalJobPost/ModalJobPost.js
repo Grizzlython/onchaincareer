@@ -13,6 +13,17 @@ const defaultTypes = [
   { value: "b2b", label: "b2b" },
 ];
 
+const remoteJobTypes = [
+  {
+    label: "Yes",
+    value: "remote",
+  },
+  {
+    label: "No",
+    value: "inOffice",
+  },
+]
+
 const jobTypes = [
   { value: "Full-Time", label: "Full-Time" },
   { value: "Part-Time", label: "Part-Time" },
@@ -72,20 +83,22 @@ const ModalJobPost = (props) => {
     if (!jobDetails || !publicKey) return;
 
     console.log(jobDetails, "jobDetails");
+    console.log(jobDetails?.category, "jobDetails?.category")
 
     setTitle(jobDetails?.job_title);
     setShortDescription(jobDetails?.short_description);
     setDescription(jobDetails?.long_description);
-    setCategory([
-      {
-        value: jobDetails?.category,
-        label: jobDetails?.category,
-      },
-    ]);
-    setJobType({
-      value: jobDetails?.job_type,
-      label: jobDetails?.job_type === "remote" ? "yes" : "no",
-    });
+
+   const selectedCategories = [];
+    for(let i = 0; i < jobDetails?.category.length; i++) {
+      const category = defaultCategories.filter(category => category.value === jobDetails?.category[i])[0];
+      selectedCategories.push({...category});
+    }
+    setCategory(selectedCategories);
+
+    const jobType = jobTypes.filter(type => type.value === jobDetails?.job_type)[0];
+
+    setJobType({...jobType});
 
     setMinSalary(jobDetails?.min_salary);
     setMaxSalary(jobDetails?.max_salary);
@@ -94,17 +107,23 @@ const ModalJobPost = (props) => {
 
     setQualification(jobDetails?.qualification);
 
+    const jobLocationType = remoteJobTypes.filter(type => type.value === jobDetails?.job_location_type)[0];
+
     setJobLocationType({
-      value: jobDetails?.job_location_type,
-      label: jobDetails?.job_location_type,
+      ...jobLocationType
     });
     setCountry({ value: jobDetails?.country, label: jobDetails?.country });
     setCity(jobDetails?.city);
+
+    let currencyType = defaultCurrencyTypes.filter(currency => currency.value === jobDetails?.currency_type)[0];
+
     setCurrencyType({
-      value: jobDetails?.currency_type,
-      label: jobDetails?.currency_type,
+      ...currencyType
     });
-    setCurrency({ value: jobDetails?.currency, label: jobDetails?.currency });
+
+    const currency = currencies.filter(currency => currency.value === jobDetails?.currency)[0];
+
+    setCurrency({ ...currency});
   }, [jobDetails]);
 
   const [archived, setArchived] = useState(false);
@@ -322,16 +341,7 @@ const ModalJobPost = (props) => {
                               Is remote job ?
                             </label>
                             <Select
-                              options={[
-                                {
-                                  label: "Yes",
-                                  value: "remote",
-                                },
-                                {
-                                  label: "No",
-                                  value: "inOffice",
-                                },
-                              ]}
+                              options={remoteJobTypes}
                               className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
                               border={false}
                               placeholder="Select job location type"

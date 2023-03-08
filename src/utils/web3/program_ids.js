@@ -15,19 +15,19 @@ export const getPayer = async () => {
 };
 
 export const JobsOnChain_Company_Info_ID= new PublicKey(
-  "FcizG1TyTSR3mgGMEDGvojwoQQZyX5RVkTdkivL8Fxzi"
+  "5FdvtwDvDqDRduCBbYiX3Csi1pSreKLgSYZWDrAL5DC3"
 )
 
 export const JobsOnChain_User_Info_ID= new PublicKey(
-  "A5TeEjBBFBSwJc6XGDjwD33wo5rZokC7hjAvMosmiF2i"
+  "HPRDNuy9QZqkeCRpnN1JqxJZgnX3sKPLnJKaJGVQNVCG"
 )
 
 export const JobsOnChain_JobPost_Info_ID= new PublicKey(
-  "MHvhkM4AfHJRKEKtcNtx2k7GyHnXG3MQdGQLdnoB7Y9"
+  "BiZCx5pKofnQ2YQRGReTNpt2L8icS8ZBgUsaq3sgjDYa"
 )
 
 export const JobsOnChain_Workflow_Info_ID= new PublicKey(
-  "J75gFMUDkYEiSAvMYv5dkfRiHxHkyMADcSVr8PL3PBoo"
+  "HtoJF8LiD7yWFbZnYiturhvtpVTETXC4PLEHQYK4fqMd"
 )
 
 export const treasory_token_account = new PublicKey(

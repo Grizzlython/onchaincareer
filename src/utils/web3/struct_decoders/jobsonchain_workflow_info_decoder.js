@@ -1,5 +1,5 @@
 import * as borsh from '@project-serum/borsh'
-export const WorkflowInfoState_SIZE = 1 + 1 + 1+ 16 + 32 + 32 + 32 + 32 + 8 + 1 + 8 + 8 + 8;
+export const WorkflowInfoState_SIZE = 1+1+1+16+32+32+32+32+8+1+8+8+8;
 export class WorkflowInfoState {
     is_initialized; //1
     archived; //1 true when job is in 'accepted' or 'rejected' or 'withdraw' status
@@ -13,7 +13,7 @@ export class WorkflowInfoState {
     is_paid; //1
     paid_amount;//8
     paid_at; //8 => timestamp in unix format
-    last_updated_at; //8 => timestamp in unix format
+    updated_at; //8 => timestamp in unix format
 
     constructor(data) {
         this.is_initialized = data.is_initialized;
@@ -28,7 +28,7 @@ export class WorkflowInfoState {
         this.is_paid = data.is_paid;
         this.paid_amount = data.paid_amount;
         this.paid_at = data.paid_at;
-        this.last_updated_at = data.last_updated_at;
+        this.updated_at = data.updated_at;
         
       }
 
@@ -45,7 +45,7 @@ export class WorkflowInfoState {
         borsh.bool('is_paid'),
         borsh.u64('paid_amount'),
         borsh.u64('paid_at'),
-        borsh.u64('last_updated_at'),
+        borsh.u64('updated_at'),
 	])
 
 	static deserialize(buffer /*Buffer*/) {
@@ -68,8 +68,6 @@ export class WorkflowInfoState {
 		
         const saveAccountInstructionSchema = borsh.struct([
             borsh.str('status'),
-            borsh.u64('job_applied_at'),
-            borsh.u64('last_updated_at'),
         ])
 
         const buffer = Buffer.alloc(WorkflowInfoState_SIZE)
@@ -85,8 +83,7 @@ export class WorkflowInfoState {
         const updateAccountInstructionSchema = borsh.struct([
             borsh.bool('archived'),
             borsh.bool('is_saved'),
-            borsh.str('status'),
-            borsh.u64('last_updated_at'),
+            borsh.str('status')
         ])
 
         const buffer = Buffer.alloc(WorkflowInfoState_SIZE)
@@ -101,8 +98,6 @@ export class WorkflowInfoState {
         const updateAccountInstructionSchema = borsh.struct([
             borsh.bool('is_paid'),
             borsh.u64('paid_amount'),
-            borsh.u64('paid_at'),
-            borsh.u64('last_updated_at'),
         ])
 
         const buffer = Buffer.alloc(WorkflowInfoState_SIZE)

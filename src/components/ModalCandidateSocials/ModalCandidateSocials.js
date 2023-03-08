@@ -34,10 +34,16 @@ const ModalStyled = styled(Modal)`
 
 const ModalCandidateSocials = (props) => {
   const gContext = useContext(GlobalContext);
-  const isCandidate = gContext.user && gContext.user.user_type === userTypeEnum.APPLICANT;
+  const isCandidate =
+    gContext.user && gContext.user.user_type === userTypeEnum.APPLICANT;
   const candidateSocialsContext = gContext.candidateSocials;
-  const showUpdateButton = candidateSocialsContext && candidateSocialsContext.is_initialized
-  console.log(candidateSocialsContext, "---candidateSocialsContext---",isCandidate);
+  const showUpdateButton =
+    candidateSocialsContext && candidateSocialsContext.is_initialized;
+  console.log(
+    candidateSocialsContext,
+    "---candidateSocialsContext---",
+    isCandidate
+  );
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [resume, setResume] = useState("");
@@ -52,34 +58,68 @@ const ModalCandidateSocials = (props) => {
   const [twitch, setTwitch] = useState("");
   const [instagram, setInstagram] = useState("");
 
-
   const handleClose = () => {
     gContext.toggleCandidateSocialsModal();
   };
 
-  useEffect(()=>{
-    if(candidateSocialsContext){
-      setEmail(candidateSocialsContext.email||"");
-      setPhone(candidateSocialsContext.phone||"");
-      setResume(candidateSocialsContext.resume_uri||"");
-      setGithub(candidateSocialsContext.github||"");
-      setLinkedin(candidateSocialsContext.linkedin||"");
-      setTwitter(candidateSocialsContext.twitter||"");
-      setDribble(candidateSocialsContext.dribble||"");
-      setBehance(candidateSocialsContext.behance||"");
-      setWebsite(candidateSocialsContext.website||"");
-      setFacebook(candidateSocialsContext.facebook||"");
-      setSolgames(candidateSocialsContext.solgames||"");
-      setTwitch(candidateSocialsContext.twitch||"");
-      setInstagram(candidateSocialsContext.instagram||"");
+  useEffect(() => {
+    if (candidateSocialsContext) {
+      setEmail(candidateSocialsContext.email || "");
+      setPhone(candidateSocialsContext.phone || "");
+      setResume(candidateSocialsContext.resume_uri || "");
+      setGithub(candidateSocialsContext.github || "");
+      setLinkedin(candidateSocialsContext.linkedin || "");
+      setTwitter(candidateSocialsContext.twitter || "");
+      setDribble(candidateSocialsContext.dribble || "");
+      setBehance(candidateSocialsContext.behance || "");
+      setWebsite(candidateSocialsContext.website || "");
+      setFacebook(candidateSocialsContext.facebook || "");
+      setSolgames(candidateSocialsContext.solgames || "");
+      setTwitch(candidateSocialsContext.twitch || "");
+      setInstagram(candidateSocialsContext.instagram || "");
     }
-  },[candidateSocialsContext])
+  }, [candidateSocialsContext]);
 
   const { publicKey, connected, signTransaction } = useWallet();
   const { connection } = useConnection();
 
   const handleAddorUpdateCandidateSocials = async () => {
-    try{
+    try {
+      if (!publicKey) {
+        toast.error("Please connect your wallet");
+        return;
+      }
+
+      let notFilledFields;
+      if (!email) {
+        notFilledFields = "email";
+      }
+      if (!phone) {
+        notFilledFields += "phone";
+      }
+      if (!resume) {
+        notFilledFields += "resume";
+      }
+      if (!github) {
+        notFilledFields += "github";
+      }
+      if (!linkedin) {
+        notFilledFields += "linkedin";
+      }
+
+      //regex for email
+      const emailRegex =
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      if (!emailRegex.test(email)) {
+        toast.error("Please enter a valid email");
+        return;
+      }
+
+      if (notFilledFields) {
+        toast.error(`Please fill ${notFilledFields}`);
+        return;
+      }
+
       const contactInfo = {
         email: email, //64
         phone: phone, //16
@@ -96,14 +136,14 @@ const ModalCandidateSocials = (props) => {
         website: website, //128
       };
 
-      if(showUpdateButton){
+      if (showUpdateButton) {
         await gContext.updateCandidateSocials(
           publicKey,
           contactInfo,
           connection,
           signTransaction
         );
-      }else{
+      } else {
         await gContext.addCandidateSocials(
           publicKey,
           contactInfo,
@@ -111,15 +151,18 @@ const ModalCandidateSocials = (props) => {
           signTransaction
         );
       }
-      
-      toast.success(`Candidate socials ${showUpdateButton? "updated":"added" } successfully`);
-  
+
+      toast.success(
+        `Candidate socials ${
+          showUpdateButton ? "updated" : "added"
+        } successfully`
+      );
+
       handleClose();
-    }catch(err){
+    } catch (err) {
       toast.error(err.message);
       handleClose();
     }
-    
   };
 
   return (
@@ -150,7 +193,8 @@ const ModalCandidateSocials = (props) => {
               <div className="row">
                 <div className="col-xxxl-9 px-lg-13 px-6">
                   <h5 className="font-size-6 font-weight-semibold mb-11">
-                    {showUpdateButton ? "Update ": "Add "} {isCandidate ? "candidate":"recruiter"} socials
+                    {showUpdateButton ? "Update " : "Add "}{" "}
+                    {isCandidate ? "candidate" : "recruiter"} socials
                   </h5>
                   <div
                     className="contact-form bg-white shadow-8 rounded-4 pl-sm-10 pl-4 pr-sm-11 pr-4 pt-15 pb-13"
@@ -333,7 +377,7 @@ const ModalCandidateSocials = (props) => {
                                 htmlFor="behance"
                                 className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
                               >
-                                Twitch 
+                                Twitch
                               </label>
                               <input
                                 type="text"
@@ -369,7 +413,7 @@ const ModalCandidateSocials = (props) => {
                                 htmlFor="behance"
                                 className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
                               >
-                                Instagram 
+                                Instagram
                               </label>
                               <input
                                 type="text"

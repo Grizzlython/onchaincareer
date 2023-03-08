@@ -1,4 +1,4 @@
-{
+const coinListRaw = {
   "42": "42 Coin",
   "300": "300 token",
   "365": "365Coin",
@@ -3758,3 +3758,12 @@
   "WBTC*": "wBTC",
   "OPET": "ÕpetFoundation"
 }
+
+const coinListArr = [];
+for(let coinKey of Object.keys(coinListRaw)){
+  coinListArr.push({
+    "value": coinKey,
+    "label": coinListRaw[coinKey]+" ("+coinKey+")"
+  });
+}
+export const coinList = coinListArr;

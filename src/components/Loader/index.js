@@ -7,7 +7,7 @@ const override = {
   borderColor: "red",
 };
 
-const Loader = () => {
+const Loader = (props) => {
   let [loading, setLoading] = useState(true);
   let [color, setColor] = useState("#008a5b");
   return (
@@ -16,7 +16,7 @@ const Loader = () => {
         color={color}
         loading={loading}
         cssOverride={override}
-        size={75}
+        size={props.size ? props.size : 75}
         aria-label="Loading Spinner"
         data-testid="loader"
       />

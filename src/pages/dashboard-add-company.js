@@ -23,9 +23,9 @@ export default function DashboardAddCompany() {
   const [name, setName] = useState("");
   const [logo, setLogo] = useState("https://www.solgames.fun/logo.png");
   const [domain, setDomain] = useState("");
-  const [type, setType] = useState("");
+  const [type, setType] = useState(defaultTypes[0]);
   const [foundedIn, setFoundedIn] = useState("");
-  const [employeeSize, setEmployeeSize] = useState("");
+  const [employeeSize, setEmployeeSize] = useState(defaultEmployees[0]);
   const [location, setLocation] = useState("");
   const [linkedinHandle, setLinkedinHandle] = useState("");
   const [twitterHandle, setTwitterHandle] = useState("");
@@ -41,14 +41,49 @@ export default function DashboardAddCompany() {
 
   const handleAddCompany = async () => {
     try {
-      console.log(publicKey, "publicKey in react")
       if (!publicKey) {
         alert("Please login to add company profile");
         return;
       }
 
+      let notFilledFields;
+      if (!name) {
+        notFilledFields = "Company name,";
+      }
+      if (!domain) {
+        notFilledFields = "Domain,";
+      }
+      if (!type) {
+        notFilledFields = "Company type,";
+      }
+      if (!foundedIn) {
+        notFilledFields = "Founded in,";
+      }
+      if (!employeeSize) {
+        notFilledFields = "Employee size,";
+      }
+      if (!location) {
+        notFilledFields = "Location,";
+      }
+      if (!description) {
+        notFilledFields = "Description,";
+      }
+      if (!website) {
+        notFilledFields = "Website,";
+      }
+
+      if (notFilledFields && notFilledFields.length > 0) {
+        toast.error(
+          `Please fill the following fields: ${notFilledFields} before adding company profile`,
+          {
+            duration: 20000,
+          }
+        );
+        return;
+      }
+
       const companyInfo = {
-        username: gContext.user?.username, //32
+        username: publicKey.toString(), //32
         name: name, //64
         logo_uri: logo, //128
         domain: domain, //64
@@ -69,8 +104,6 @@ export default function DashboardAddCompany() {
         facebook: "facebook", //128
         instagram: "instagram", //128
       };
-
-      console.log(companyInfo, "companyInfo in react");
 
       await gContext.addCompanyProfile(
         publicKey,
@@ -167,7 +200,7 @@ export default function DashboardAddCompany() {
                                   placeholder="eg. Social Media, E-commerce"
                                   value={domain}
                                   onChange={(e) => setDomain(e.target.value)}
-                                  maxLength={32}
+                                  maxLength={64}
                                 />
                               </div>
                             </div>

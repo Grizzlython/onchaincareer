@@ -20,6 +20,7 @@ import { toast } from "react-toastify";
 import {
   add_user_info,
   check_if_user_exists,
+  fetchAllUsers,
 } from "../../utils/web3/web3_functions";
 import { Connection } from "@solana/web3.js";
 import dynamic from "next/dynamic";
@@ -109,12 +110,17 @@ const Header = () => {
           await gContext.toggleUserTypeModal();
         }
         if (userExistsRes.data) {
-          gContext.setUserFromChain(userExistsRes.data);
+          gContext.setUserFromChain(userExistsRes.data, connection);
           gContext.updateUserStateAccount(
             userExistsRes.applicantInfoStateAccount
           );
         }
       })();
+    }
+
+    if (!publicKey || !connected) {
+      gContext.setUserFromChain({});
+      gContext.updateUserStateAccount(null);
     }
   }, [publicKey, connected]);
 
@@ -123,6 +129,8 @@ const Header = () => {
       (async () => {
         await gContext.fetchAndSetAllListedCompanies(connection);
         await gContext.fetchAndSetAllJobListings(connection);
+        // await fetchAllUsers("applicant",connection);
+        // await gContext.fetchAndSetAllListedCompanies(connection);
       })();
     }
   }, [connection]);
@@ -355,10 +363,10 @@ const Header = () => {
                       <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
                         👋 Welcome {gContext.user?.user_type?.toUpperCase()}{" "}
                         <br />{" "}
-                        {gContext.user &&
-                          gContext.user?.username.slice(0, 5) +
+                        {publicKey &&
+                          publicKey.toString().slice(0, 5) +
                             "..." +
-                            gContext.user?.username.slice(-5)}
+                            publicKey.toString().slice(-5)}
                         {/* {gContext.user?.username.splice(0, 5) +
                             "..." +
                             gContext.user?.username.slice(-5)} */}

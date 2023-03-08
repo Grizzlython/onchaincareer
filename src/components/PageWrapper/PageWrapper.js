@@ -8,8 +8,8 @@ const headerConfigDefault = {
   variant: "primary",
   align: "right",
   isFluid: false,
-  button: "account", // profile, cart, cta, account, null
-  buttonText: "Get started free", // profile, cart, cta, account, null
+  button: null, // profile, cart, cta, account, null
+  buttonText: null, // profile, cart, cta, account, null
   reveal: true,
 };
 

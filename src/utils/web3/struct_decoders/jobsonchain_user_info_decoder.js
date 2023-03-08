@@ -1,25 +1,5 @@
 import * as borsh from "@project-serum/borsh";
-export const UserCandidateInfoState_SIZE =
-  1 +
-  32 +
-  32 +
-  32 +
-  256 +
-  128 +
-  512 +
-  64 * 10 +
-  10 +
-  10 +
-  64 +
-  32 +
-  32 +
-  16 +
-  1 +
-  1 +
-  1 +
-  1 +
-  1 +
-  1;
+export const UserCandidateInfoState_SIZE = 1+32+8+8+32+32+256+128+512+660+64+32+32+16+1+1+1+1+1+1;
 export const ProjectInfoState_SIZE =
   1 + 32 + 1 + 64 + 1024 + 650 + 256 + 660 + 64 + 64 + 32 + 8;
 export const ContactInfoState_SIZE =
@@ -60,6 +40,8 @@ export const WorkExperienceInfoState_SIZE =
 export class UserCandidateInfoState {
   is_initialized; //1
   owner_pubkey; //32
+  created_at; //8
+  updated_at; //8
   username; //32
   name; //32
   address; //256
@@ -80,6 +62,8 @@ export class UserCandidateInfoState {
   constructor(data) {
     this.is_initialized = data.is_initialized;
     this.owner_pubkey = data.owner_pubkey;
+    this.created_at = data.created_at;
+    this.updated_at = data.updated_at;
     this.username = data.username;
     this.name = data.name;
     this.address = data.address;
@@ -101,6 +85,8 @@ export class UserCandidateInfoState {
   static borshAccountSchema = borsh.struct([
     borsh.bool("is_initialized"),
     borsh.publicKey("owner_pubkey"),
+    borsh.u64("created_at"),
+    borsh.u64("updated_at"),
     borsh.str("username"),
     borsh.str("name"),
     borsh.str("address"),

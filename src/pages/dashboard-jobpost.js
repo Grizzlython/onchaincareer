@@ -1,7 +1,7 @@
 import React from "react";
 
 import PageWrapper from "../components/PageWrapper";
-import { Select } from "../components/Core";
+import { Select, Switch } from "../components/Core";
 import SidebarDashboard from "../components/SidebarDashboard";
 import { useContext } from "react";
 import GlobalContext from "../context/GlobalContext";
@@ -12,6 +12,7 @@ import { useRouter } from "next/router";
 import { countries, currencies } from "../staticData";
 import { BN } from "bn.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { Col, Form, Row } from "react-bootstrap";
 
 const defaultTypes = [
   { value: "b2b", label: "B2B" },
@@ -42,12 +43,23 @@ const defaultCurrencyTypes = [
   { value: "crypto", label: "Crypto" },
 ];
 
+const defaultJobLocationTypes = [
+  {
+    label: "Yes",
+    value: "remote",
+  },
+  {
+    label: "No",
+    value: "inOffice",
+  },
+];
+
 export default function DashboardJobPost() {
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState(defaultCategories[0]);
   const [location, setLocation] = useState("");
-  const [jobType, setJobType] = useState("");
+  const [jobType, setJobType] = useState(jobTypes[0]);
   const [minSalary, setMinSalary] = useState(0);
   const [maxSalary, setMaxSalary] = useState(0);
   const [experience, setExperience] = useState("");
@@ -55,11 +67,15 @@ export default function DashboardJobPost() {
   const [qualification, setQualification] = useState("");
   const [description, setDescription] = useState("");
 
-  const [jobLocationType, setJobLocationType] = useState("");
+  const [jobLocationType, setJobLocationType] = useState(
+    defaultJobLocationTypes[0]
+  );
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
   const [currencyType, setCurrencyType] = useState("");
   const [currency, setCurrency] = useState("");
+
+  console.log(defaultCategories, "defaultCategories");
 
   const gContext = useContext(GlobalContext);
 
@@ -97,46 +113,98 @@ export default function DashboardJobPost() {
   }, [publicKey]);
 
   const handleAddJobPost = async (e) => {
-    e.preventDefault();
+    try {
+      e.preventDefault();
 
-    const categories = [];
-    category.map((item) => categories.push(item.value));
+      let notFilledFields;
+      if (!title) {
+        notFilledFields = "Title,";
+      }
+      if (!shortDescription) {
+        notFilledFields += "Short Description,";
+      }
+      if (!description) {
+        notFilledFields += "Description,";
+      }
+      if (!category) {
+        notFilledFields += "Category,";
+      }
+      if (!jobType) {
+        notFilledFields += "Job Type,";
+      }
+      if (!currencyType) {
+        notFilledFields += "Currency Type,";
+      }
+      if (!currency) {
+        notFilledFields += "Currency,";
+      }
+      if (!minSalary) {
+        notFilledFields += "Min Salary,";
+      }
+      if (!maxSalary) {
+        notFilledFields += "Max Salary,";
+      }
+      if (!experience) {
+        notFilledFields += "Experience,";
+      }
+      if (!skills) {
+        notFilledFields += "Skills,";
+      }
+      if (!qualification) {
+        notFilledFields += "Qualification,";
+      }
+      if (!jobLocationType) {
+        notFilledFields += "Job Location Type,";
+      }
 
-    const jobPostInfo = {
-      job_title: title, //128
-      short_description: shortDescription, //256
-      long_description: description, //1024
-      category: categories, //32*4+10+10 //category is an array of job category like Frontend Developer
-      job_type: jobType.value, //16 full-time, part-time, contract, internship",
-      currency_type: currencyType.value, //8 fiat, crypto
-      currency: currency.value, //8 USD, ETH, BTC, etc
-      min_salary: new BN(minSalary), //8 u64
-      max_salary: new BN(maxSalary), //8 u64
-      experience_in_months: new BN(experience), //8 u64
-      skills: skills.split(","), //64*10+10+10 // ReactJs, NodeJs, etc
-      qualification: qualification, //512
-      job_location_type: jobLocationType.value, //32
-      country: country.value, //64
-      city: city, //64
-    };
+      if (notFilledFields && notFilledFields.length > 0) {
+        toast.error(`Please fill ${notFilledFields} fields`, {
+          duration: 20000,
+        });
+        return;
+      }
 
-    const company_seq_number = selectedCompanyInfo?.company_seq_number;
+      const categories = [];
+      category.map((item) => categories.push(item.value));
 
-    console.log(jobPostInfo, "payload");
-    console.log(selectedCompanyInfo, "companyName");
+      const jobPostInfo = {
+        job_title: title, //128
+        short_description: shortDescription, //256
+        long_description: description, //1024
+        category: categories, //32*4+10+10 //category is an array of job category like Frontend Developer
+        job_type: jobType.value, //16 full-time, part-time, contract, internship",
+        currency_type: currencyType.value, //8 fiat, crypto
+        currency: currency.value, //8 USD, ETH, BTC, etc
+        min_salary: new BN(minSalary), //8 u64
+        max_salary: new BN(maxSalary), //8 u64
+        experience_in_months: new BN(experience), //8 u64
+        skills: skills.split(","), //64*10+10+10 // ReactJs, NodeJs, etc
+        qualification: qualification, //512
+        job_location_type: jobLocationType.value, //32
+        country: country.value, //64
+        city: city, //64
+      };
 
-    console.log(company_seq_number, "company_seq_number");
+      const company_seq_number = selectedCompanyInfo?.company_seq_number;
 
-    await addJobPost(
-      wallet.adapter,
-      publicKey,
-      jobPostInfo,
-      company_seq_number,
-      connection,
-      signTransaction
-    );
+      console.log(jobPostInfo, "payload");
+      console.log(selectedCompanyInfo, "companyName");
 
-    router.push("/dashboard-main");
+      console.log(company_seq_number, "company_seq_number");
+
+      await addJobPost(
+        wallet.adapter,
+        publicKey,
+        jobPostInfo,
+        company_seq_number,
+        connection,
+        signTransaction
+      );
+
+      router.push("/dashboard-main");
+    } catch (error) {
+      console.log(error, "error");
+    }
   };
 
   return (
@@ -221,27 +289,7 @@ export default function DashboardJobPost() {
                               />
                             </div>
                           </div>
-                          <div className="col-lg-6">
-                            <div className="form-group">
-                              <label
-                                htmlFor="sdesc"
-                                className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                              >
-                                Short Description
-                              </label>
-                              <input
-                                type="text"
-                                className="form-control h-px-48"
-                                id="sdesc"
-                                placeholder="eg. Short description of job title"
-                                maxLength="256"
-                                value={shortDescription}
-                                onChange={(e) =>
-                                  setShortDescription(e.target.value)
-                                }
-                              />
-                            </div>
-                          </div>
+
                           <div className="col-lg-6 mb-xl-0 mb-7">
                             <div className="form-group position-relative">
                               <label
@@ -251,16 +299,7 @@ export default function DashboardJobPost() {
                                 Is remote job ?
                               </label>
                               <Select
-                                options={[
-                                  {
-                                    label: "Yes",
-                                    value: "remote",
-                                  },
-                                  {
-                                    label: "No",
-                                    value: "inOffice",
-                                  },
-                                ]}
+                                options={defaultJobLocationTypes}
                                 className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
                                 border={false}
                                 placeholder="Select job location type"
@@ -346,8 +385,6 @@ export default function DashboardJobPost() {
                               />
                             </div>
                           </div>
-                        </div>
-                        <div className="row mb-8">
                           <div className="col-lg-6">
                             <div className="form-group position-relative">
                               <label
@@ -367,6 +404,8 @@ export default function DashboardJobPost() {
                               <span className="h-100 w-px-50 pos-abs-tl d-flex align-items-center justify-content-center font-size-6"></span>
                             </div>
                           </div>
+                        </div>
+                        <div className="row mb-8">
                           <div className="col-lg-6">
                             <div className="form-group position-relative">
                               <label
@@ -454,6 +493,30 @@ export default function DashboardJobPost() {
                           <div className="col-md-12">
                             <div className="form-group">
                               <label
+                                htmlFor="sdesc"
+                                className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                              >
+                                Short Description
+                              </label>
+
+                              <textarea
+                                name="textarea"
+                                id="sdesc"
+                                cols="30"
+                                rows="4"
+                                className="border border-mercury text-gray w-100 pt-4 pl-6"
+                                placeholder="Describe about the job"
+                                maxLength={2048}
+                                value={shortDescription}
+                                onChange={(e) =>
+                                  setShortDescription(e.target.value)
+                                }
+                              ></textarea>
+                            </div>
+                          </div>
+                          <div className="col-md-12">
+                            <div className="form-group">
+                              <label
                                 htmlFor="aboutTextarea"
                                 className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
                               >
@@ -466,7 +529,7 @@ export default function DashboardJobPost() {
                                 rows="7"
                                 className="border border-mercury text-gray w-100 pt-4 pl-6"
                                 placeholder="Describe about the job"
-                                maxLength={512}
+                                maxLength={2048}
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                               ></textarea>
@@ -490,6 +553,7 @@ export default function DashboardJobPost() {
                                 onChange={(e) => setSkills(e.target.value)}
                               />
                             </div>
+
                             <input
                               type="button"
                               value="Post Job"

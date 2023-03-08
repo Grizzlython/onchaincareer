@@ -4,9 +4,10 @@ import { Collapse } from "react-bootstrap";
 import GlobalContext from "../../context/GlobalContext";
 import imgL from "../../assets/image/logo-main-black.png";
 import { Select } from "../Core";
-import { useConnection } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
 const Sidebar = () => {
+  const { publicKey } = useWallet();
   const { connection } = useConnection();
   const [selectedCompanyState, setSelectedCompanyState] = useState({});
   const [companyOptions, setCompanyOptions] = useState([]);
@@ -17,6 +18,8 @@ const Sidebar = () => {
     setCompanySelectedByUser,
     companySelectedByUser,
     fetchAndSetCompanyInfo,
+    fetchAndSetCompanyPostedJobs,
+    fetchAndSetAllAppliedApplicants,
   } = gContext;
 
   useEffect(() => {}, [selectedCompanyInfo]);
@@ -30,20 +33,23 @@ const Sidebar = () => {
 
     (async () => {
       console.log("In async");
-      await gContext.fetchAndSetCompanyPostedJobs(
+      await fetchAndSetCompanyPostedJobs(
         companySelectedByUser.value,
         connection
       );
-      await gContext.fetchAndSetAllAppliedApplicants(
+      await fetchAndSetAllAppliedApplicants(
         connection,
         companySelectedByUser?.value
       );
-      await gContext.fetchAndSetCompanyPostedJobs(
-        companySelectedByUser.value,
-        connection
-      );
     })();
   }, [companySelectedByUser]);
+
+  useEffect(() => {
+    if (!publicKey) return;
+    (async () => {
+      await gContext.fetchAndSetAllListedCompaniesByUser(connection, publicKey);
+    })();
+  }, [publicKey]);
 
   useEffect(() => {
     if (
@@ -162,7 +168,7 @@ const Sidebar = () => {
             <li className="">
               <Link href="/dashboard-in-progress-applicants">
                 <a className="px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center">
-                  <i className="fas fa-user mr-7"></i>In progress applicants{" "}
+                  <i className="fas fa-user mr-7"></i>In Progress Applicants
                   {/* <span className="ml-auto px-1 h-1 bg-dodger text-white font-size-3 rounded-5 max-height-px-18 flex-all-center">
                     14
                   </span> */}

@@ -1,8 +1,8 @@
 import currencyList from "./currencyList.json";
 import countryList from "./countriesList.json";
-import cryptoCurrencyList from "./cryptoCurrency.json";
+import {coinList} from "./cryptoCurrency";
 
-export const currencies = currencyList;
+export const currencies = [...currencyList, ...coinList];
 export const countries = countryList;
 export const defaultCategories = [
   { value: "marketing", label: "Marketing" },

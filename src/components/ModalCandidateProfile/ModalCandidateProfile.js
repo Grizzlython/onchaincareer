@@ -37,14 +37,17 @@ const ModalStyled = styled(Modal)`
 const ModalCandidateProfile = (props) => {
   const gContext = useContext(GlobalContext);
   const userInfo = gContext.user;
-  console.log("userInfo gContext =>", userInfo);
+
+  const defaultEmpStatus = currentEmploymentStatusOptions[0];
+  const defaultCanJoinIn = canJoinInOptions[0];
+
   const [name, setName] = useState("");
   const [designation, setDesignation] = useState("");
   const [location, setLocation] = useState("");
   const [skills, setSkills] = useState("");
   const [currentEmploymentStatusState, setCurrentEmploymentStatusState] =
-    useState(currentEmploymentStatusOptions[0]);
-  const [canJoinInState, setCanJoinInState] = useState(canJoinInOptions[0]);
+    useState(defaultEmpStatus);
+  const [canJoinInState, setCanJoinInState] = useState(0);
   const [about, setAbout] = useState("");
 
   const { publicKey, signTransaction } = useWallet();
@@ -57,6 +60,40 @@ const ModalCandidateProfile = (props) => {
         return;
       }
       e.preventDefault();
+
+      console.log(currentEmploymentStatusState, "currentEmploymentStatusState");
+      console.log(canJoinInState, "canJoinInState");
+
+      let notFilledFields;
+      if (!name) {
+        notFilledFields = "Name,";
+      }
+      if (!designation) {
+        notFilledFields += "Designation,";
+      }
+      if (!location) {
+        notFilledFields += "Location,";
+      }
+      if (!skills) {
+        notFilledFields += "Skills,";
+      }
+      if (!about) {
+        notFilledFields += "About,";
+      }
+      if (!currentEmploymentStatusState) {
+        notFilledFields += "Current Employment Status,";
+      }
+      if (!canJoinInState) {
+        notFilledFields += "Can Join In";
+      }
+
+      if (notFilledFields && notFilledFields.length > 0) {
+        toast.error(`Please fill ${notFilledFields}`, {
+          autoClose: 10000,
+        });
+        return;
+      }
+
       const applicantInfo = {
         username: publicKey.toString(),
         name: name,
@@ -322,7 +359,7 @@ const ModalCandidateProfile = (props) => {
                           <div className="col-md-12">
                             <input
                               type="button"
-                              value="Update Details"
+                              value={`Submit info`}
                               className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
                               onClick={updateApplicantInfo}
                             />

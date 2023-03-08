@@ -7,6 +7,7 @@ import GlobalContext from "../context/GlobalContext";
 import moment from "moment";
 import { useEffect } from "react";
 import { useConnection } from "@solana/wallet-adapter-react";
+import Loader from "../components/Loader";
 
 const defaultJobs = [
   { value: "pd", label: "Product Designer" },
@@ -23,6 +24,7 @@ export default function DashboardJobs() {
     companyPostedJobs,
     companySelectedByUser,
     selectedCompanyInfo: selectedCompanyInfoContext,
+    loading,
   } = gContext;
 
   // const [postedJobs, setPostedJobs] = useState([]);
@@ -83,143 +85,151 @@ export default function DashboardJobs() {
               </div>
               <div className="bg-white shadow-8 pt-7 rounded pb-9 px-11">
                 <div className="table-responsive ">
-                  <table className="table table-striped">
-                    <thead>
-                      <tr>
-                        <th
-                          scope="col"
-                          className="pl-0 border-0 font-size-4 font-weight-normal"
-                        >
-                          Name
-                        </th>
-                        <th
-                          scope="col"
-                          className="pl-4 border-0 font-size-4 font-weight-normal"
-                        >
-                          Job Type
-                        </th>
-                        <th
-                          scope="col"
-                          className="pl-4 border-0 font-size-4 font-weight-normal"
-                        >
-                          City
-                        </th>
-                        <th
-                          scope="col"
-                          className="pl-4 border-0 font-size-4 font-weight-normal"
-                        >
-                          Created on
-                        </th>
-                        <th
-                          scope="col"
-                          className="pl-4 border-0 font-size-4 font-weight-normal"
-                        >
-                          Is archived
-                        </th>
-                        <th
-                          scope="col"
-                          className="pl-4 border-0 font-size-4 font-weight-normal"
-                        >
-                          Total Applicants
-                        </th>
-                        <th
-                          scope="col"
-                          className="pl-4 border-0 font-size-4 font-weight-normal"
-                        ></th>
-                        <th
-                          scope="col"
-                          className="pl-4 border-0 font-size-4 font-weight-normal"
-                        ></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {companyPostedJobs &&
-                        companyPostedJobs.length > 0 &&
-                        companyPostedJobs?.map((job, index) => (
-                          <tr className="border border-color-2" key={index}>
-                            <th
-                              scope="row"
-                              className="pl-6 border-0 py-7 min-width-px-235"
-                            >
-                              <div className="">
-                                <Link
-                                  href={`
+                  {loading ? (
+                    <Loader />
+                  ) : (
+                    <table className="table table-striped">
+                      <thead>
+                        <tr>
+                          <th
+                            scope="col"
+                            className="pl-0 border-0 font-size-4 font-weight-normal"
+                          >
+                            Job Title
+                          </th>
+                          <th
+                            scope="col"
+                            className="pl-4 border-0 font-size-4 font-weight-normal"
+                          >
+                            Job Type
+                          </th>
+                          <th
+                            scope="col"
+                            className="pl-4 border-0 font-size-4 font-weight-normal"
+                          >
+                            City
+                          </th>
+                          <th
+                            scope="col"
+                            className="pl-4 border-0 font-size-4 font-weight-normal"
+                          >
+                            Created on
+                          </th>
+                          <th
+                            scope="col"
+                            className="pl-4 border-0 font-size-4 font-weight-normal"
+                          >
+                            Is Archived
+                          </th>
+                          <th
+                            scope="col"
+                            className="pl-4 border-0 font-size-4 font-weight-normal"
+                          >
+                            Total Applicants
+                          </th>
+                          <th
+                            scope="col"
+                            className="pl-4 border-0 font-size-4 font-weight-normal"
+                          ></th>
+                          <th
+                            scope="col"
+                            className="pl-4 border-0 font-size-4 font-weight-normal"
+                          ></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {companyPostedJobs && companyPostedJobs.length > 0 ? (
+                          companyPostedJobs?.map((job, index) => (
+                            <tr className="border border-color-2" key={index}>
+                                <td className="table-y-middle py-7 min-width-px-235">
+                                  <Link
+                                    href={`
                                    /job-details/${job?.pubkey.toString()}
                                   `}
-                                >
-                                  <a className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                                    {job?.parsedInfo?.job_title}
-                                  </a>
-                                </Link>
-                              </div>
-                            </th>
-                            <td className="table-y-middle py-7 min-width-px-135">
-                              <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                                {job?.parsedInfo?.job_type}
-                              </h3>
-                            </td>
-                            <td className="table-y-middle py-7 min-width-px-125">
-                              <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                                {job?.parsedInfo?.jobLocationType === "remote"
-                                  ? "Remote"
-                                  : `${job?.parsedInfo?.city} , ${job?.parsedInfo?.country}`}
-                              </h3>
-                            </td>
-                            <td className="table-y-middle py-7 min-width-px-155">
-                              <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                                {moment(new Date()).format("DD MMM YYYY")}
-                              </h3>
-                            </td>
-                            <td className="table-y-middle py-7 min-width-px-125">
-                              <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                                {job?.archived ? "True" : "False"}
-                              </h3>
-                            </td>
-                            <td className="table-y-middle py-7 min-width-px-155">
-                              {/* <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                                  >
+                                    <a className="font-size-4 mb-0 font-weight-semibold text-black-2">
+                                      {job?.parsedInfo?.job_title}
+                                    </a>
+                                  </Link>
+                                  </td>
+                              <td className="table-y-middle py-7 min-width-px-135">
+                                <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                                  {job?.parsedInfo?.job_type}
+                                </h3>
+                              </td>
+                              <td className="table-y-middle py-7 min-width-px-125">
+                                <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                                  {job?.parsedInfo?.jobLocationType === "remote"
+                                    ? "Remote"
+                                    : `${job?.parsedInfo?.city} , ${job?.parsedInfo?.country}`}
+                                </h3>
+                              </td>
+                              <td className="table-y-middle py-7 min-width-px-155">
+                                <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                                  {moment(new Date()).format("DD MMM YYYY")}
+                                </h3>
+                              </td>
+                              <td className="table-y-middle py-7 min-width-px-125">
+                                <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                                  {job?.archived ? "True" : "False"}
+                                </h3>
+                              </td>
+                              <td className="table-y-middle py-7 min-width-px-155">
+                                {/* <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
                               {job.totalApplicants}
                             </h3> */}
-                              {gContext.allWorkflowsOfJob ? (
-                                gContext.allWorkflowsOfJob
-                              ) : (
-                                <Link
-                                  href={`/dashboard-applicants?job=${job?.pubkey.toString()}`}
-                                >
-                                  <a
-                                    className=" py-1 my-5 font-size-4 font-weight-semibold flex-y-center"
-                                    style={{
-                                      cursor: "pointer",
-                                    }}
-                                    // onClick={() =>
-                                    //   getAllJobWorkflows(job?.pubkey)
-                                    // }
+                                {gContext.allWorkflowsOfJob ? (
+                                  gContext.allWorkflowsOfJob
+                                ) : (
+                                  <Link
+                                    href={`/dashboard-applicants?job=${job?.pubkey.toString()}`}
                                   >
-                                    <i className="fas fa-eye mr-7"></i>View
-                                  </a>
-                                </Link>
-                              )}
-                            </td>
+                                    <a
+                                      className=" py-1 my-5 font-size-4 font-weight-semibold flex-y-center"
+                                      style={{
+                                        cursor: "pointer",
+                                      }}
+                                      // onClick={() =>
+                                      //   getAllJobWorkflows(job?.pubkey)
+                                      // }
+                                    >
+                                      <i className="fas fa-eye mr-2"></i>View
+                                    </a>
+                                  </Link>
+                                )}
+                              </td>
 
-                            <td className="table-y-middle py-7 min-width-px-80">
-                              <a
-                                className="font-size-3 font-weight-bold text-green text-uppercase"
-                                onClick={() => {
-                                  handleEditJobPost(job?.pubkey);
-                                }}
-                                style={{ cursor: "pointer" }}
-                              >
-                                Edit
-                              </a>
-                            </td>
-                            <td className="table-y-middle py-7 min-width-px-100">
-                              <a className="font-size-3 font-weight-bold text-red-2 text-uppercase">
-                                Delete
-                              </a>
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
+                              <td className="table-y-middle py-7 min-width-px-80">
+                                <a
+                                  className="font-size-3 font-weight-bold text-green text-uppercase"
+                                  onClick={() => {
+                                    handleEditJobPost(job?.pubkey);
+                                  }}
+                                  style={{ cursor: "pointer" }}
+                                >
+                                  <i className="fas fa-pen mr-2"></i>
+                                  Edit Job
+                                </a>
+                              </td>
+                              <td className="table-y-middle py-7 min-width-px-10">
+                                
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <div
+                            style={{
+                              marginTop: "50px",
+                            }}
+                          >
+                            <p>
+                              No <strong>posted</strong> jobs
+                            </p>
+                          </div>
+                        )}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
               </div>
             </div>

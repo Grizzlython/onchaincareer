@@ -28,6 +28,7 @@ export default function CandidateProfileTwo() {
   const allInteractedJobsByUser = gContext.allInteractedJobsByUser;
   const { publicKey } = useWallet();
   const { connection } = useConnection();
+  const [candidateInfo, setCandidateInfo] = React.useState(null);
   const router = useRouter();
   useEffect(() => {
     if (!publicKey) {
@@ -37,26 +38,21 @@ export default function CandidateProfileTwo() {
 
     (async () => {
       const userExistsRes = await check_if_user_exists(publicKey, connection);
-
       if (userExistsRes.data.user_type !== userTypeEnum.RECRUITER) {
         await gContext.fetchAndSetAllInteractedJobsByUser(
           publicKey,
           connection
         );
+      }else{
+        toast.info("⚠️ You are a recruiter, you can't access the candidate dashboard");
+        router.push("/dashboard-main");
       }
-    })();
 
-    // if (!gContext.user) {
-    //   gContext.toggleSignInModal();
-    //   toast.error("⚠️ Please sign in to see your profile");
-    // }
-    // if (gContext.user) {
-    //   gContext.getUserAppliedJobs(gContext.user?.username);
-    //   gContext.getSavedJobs(gContext.user?.username);
-    // } else {
-    //   toast.error("⚠️ Please login to see your profile");
-    //   //TODO: navigate to user profile page
-    // }
+      if(userExistsRes.data){
+        setCandidateInfo(userExistsRes.data);
+      }
+
+    })();
   }, [publicKey]);
 
   return (
@@ -82,7 +78,7 @@ export default function CandidateProfileTwo() {
             {/* <!-- back Button End --> */}
             <div className="row">
               <div className="col-12 col-xl-4 col-lg-4 col-md-12 col-xs-10 mb-11 mb-lg-0">
-                <ProfileSidebar />
+                <ProfileSidebar candidateInfo={candidateInfo} />
               </div>
               <div
                 className=""
