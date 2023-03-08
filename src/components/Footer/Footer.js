@@ -64,7 +64,7 @@ const Footer = () => {
               {/* <!-- widget social icon start --> */}
               <div className="social-icons">
                 <ul className="pl-0 list-unstyled d-flex align-items-end ">
-                  <li className="d-flex flex-column justify-content-center px-3 mr-3 font-size-4 heading-default-color">
+                  <li className="d-flex flex-column justify-content-center mr-3 font-size-4 heading-default-color">
                     Follow us on:
                   </li>
                   <li className="d-flex flex-column justify-content-center px-3 mr-3">
@@ -89,6 +89,7 @@ const Footer = () => {
                     </Link>
                   </li>
                 </ul>
+                <p className="text-white font-size-4" >Contact Us: <span className="font-size-6">contact@onchaincareer.io</span></p>
               </div>
               {/* <!-- widget social icon end --> */}
             </div>
@@ -110,20 +111,20 @@ const Footer = () => {
                           </a>
                         </Link>
                       </li>
-                      <li className="mb-6">
+                      {/* <li className="mb-6">
                         <Link href="/#">
                           <a className="heading-default-color font-size-4 font-weight-normal">
                             Contact us
                           </a>
                         </Link>
-                      </li>
-                      <li className="mb-6">
+                      </li> */}
+                      {/* <li className="mb-6">
                         <Link href="/#">
                           <a className="heading-default-color font-size-4 font-weight-normal">
                             Careers
                           </a>
                         </Link>
-                      </li>
+                      </li> */}
                     </ul>
                     {/* <!-- widget social menu end --> */}
                   </div>
@@ -174,6 +175,13 @@ const Footer = () => {
                         <Link href="/terms-and-conditions">
                           <a className="heading-default-color font-size-4 font-weight-normal">
                             Terms &amp; Conditions
+                          </a>
+                        </Link>
+                      </li>
+                      <li className="mb-6">
+                        <Link href="/faq">
+                          <a className="heading-default-color font-size-4 font-weight-normal">
+                            Faq
                           </a>
                         </Link>
                       </li>

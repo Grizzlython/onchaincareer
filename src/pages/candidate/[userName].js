@@ -26,17 +26,16 @@ export default function CandidateProfile() {
     fetchAndSetProjects,
     loading,
   } = gContext;
-  const { publicKey } = useWallet();
   const { connection } = useConnection();
   const [candidateProfile, setCandidateProfile] = React.useState({});
 
-  useEffect(() => {
+  // useEffect(() => {
     // if (!publicKey) return;
     // const applicantStateAccount = new PublicKey(userName);
     // gContext.getCandidateProfileByUsername(applicantStateAccount, connection);
     // gContext.fetchAndSetWorkExperience(applicantStateAccount, connection);
     // gContext.fetchAndSetProjects(applicantStateAccount, connection);
-  }, [userName]);
+  // }, [userName]);
 
   // const handleSocials = () => {
   //   gContext.setCandidateInfoAction("edit");
@@ -45,6 +44,7 @@ export default function CandidateProfile() {
   // const candidateProfile = gContext.candidateProfile;
 
   useEffect(() => {
+    if (!userName) return;
     if (!workflowSelectedToView || !Object.keys(workflowSelectedToView).length)
       return;
     setCandidateProfile(workflowSelectedToView.applicantInfo);
@@ -54,16 +54,37 @@ export default function CandidateProfile() {
     getCandidateProfileByUsername(applicantStateAccount, connection);
     fetchAndSetWorkExperience(applicantStateAccount, connection);
     fetchAndSetProjects(applicantStateAccount, connection);
-  }, [workflowSelectedToView]);
+  }, [workflowSelectedToView, userName]);
 
   return (
     <>
       <PageWrapper headerConfig={{ button: "profile" }}>
+        
         <div className="bg-default-2 pt-22 pt-lg-25 pb-13 pb-xxl-32">
+          
           {loading ? (
             <Loader />
           ) : (
+            
             <div className="container">
+              <div className="row">
+                <div className="col-12 col-xxl-3 col-lg-4 col-md-5 mb-11 mb-lg-0">
+                  <div className="mb-9">
+                    {/* <Link href="/"> */}
+                    <a
+                      className="d-flex align-items-center ml-4"
+                      onClick={() => router.back()}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <i className="icon icon-small-left bg-white circle-40 mr-5 font-size-7 text-black font-weight-bold shadow-8"></i>
+                      <span className="text-uppercase font-size-3 font-weight-bold text-gray">
+                        Back
+                      </span>
+                    </a>
+                    {/* </Link> */}
+                  </div>
+                </div>
+              </div>
               {/* <!-- back Button --> */}
               {/* <div className="row justify-content-center">
               <div className="col-12 dark-mode-texts">
@@ -83,6 +104,7 @@ export default function CandidateProfile() {
               <div className="row">
                 {/* <!-- Left Sidebar Start --> */}
                 <div className="col-12 col-xxl-3 col-lg-4 col-md-5 mb-11 mb-lg-0">
+                  
                   <ProfileSidebar workflow={workflowSelectedToView} />
                 </div>
                 {/* <!-- Left Sidebar End --> */}

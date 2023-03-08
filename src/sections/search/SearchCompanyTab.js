@@ -161,6 +161,8 @@ const SearchCompanyTab = (props) => {
                                       style={{
                                         width: "75px",
                                         height: "75px",
+                                        objectFit: "cover",
+                                        borderRadius: "50%",
                                       }}
                                     />
                                   </div>

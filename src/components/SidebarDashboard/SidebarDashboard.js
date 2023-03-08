@@ -22,7 +22,6 @@ const Sidebar = () => {
     companySelectedByUser,
     fetchAndSetCompanyInfo,
     fetchAndSetCompanyPostedJobs,
-    fetchAndSetAllAppliedApplicants,
   } = gContext;
 
   useEffect(() => {}, [selectedCompanyInfo]);
@@ -31,7 +30,6 @@ const Sidebar = () => {
     if (!companySelectedByUser && !connection) return;
 
     (async () => {
-      console.log("In async");
 
       await fetchAndSetCompanyPostedJobs(
         companySelectedByUser.value,
@@ -135,6 +133,21 @@ const Sidebar = () => {
                   onClick={() => setSelectedMenu("dashboard")}
                 >
                   <i className="icon icon-layout-11 mr-7"></i>Dashboard
+                </a>
+              </Link>
+            </li>
+            <li className="">
+              <Link href={`/recruiter/${publicKey}`}>
+                <a
+                  className={`px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center ${
+                    selectedMenu &&
+                    selectedMenu.length > 0 &&
+                    selectedMenu === "profile" &&
+                    "sidebar-menu-selected"
+                  }`}
+                  onClick={() => setSelectedMenu("profile")}
+                >
+                  <i className="icon icon-layout-11 mr-7"></i>Profile
                 </a>
               </Link>
             </li>

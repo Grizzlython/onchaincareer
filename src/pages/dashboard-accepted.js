@@ -26,24 +26,6 @@ export default function DashboardApplicants() {
   const [appliedCandidates, setAppliedCandidates] = useState([]);
   const [filter, setFilter] = useState("");
   const [filteredApplicants, setFilteredApplicants] = useState([]);
-  const [applicantStatus, setApplicantStatus] = useState([
-    {
-      value: WORKFLOW_STATUSES_enum.APPLIED,
-      label: "Applied",
-    },
-    {
-      value: WORKFLOW_STATUSES_enum.IN_PROGRESS,
-      label: "In Progress",
-    },
-    {
-      value: WORKFLOW_STATUSES_enum.REJECTED,
-      label: "Rejected",
-    },
-    {
-      value: WORKFLOW_STATUSES_enum.ACCEPTED,
-      label: "Accepted",
-    },
-  ]);
 
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState(10);
@@ -72,13 +54,6 @@ export default function DashboardApplicants() {
       );
     }
   }, [allAppliedApplicants]);
-
-  const jobTitles = gContext.companyPostedJobs?.map((job) => {
-    return {
-      value: job?.pubkey.toString(),
-      label: job?.parsedInfo?.job_title,
-    };
-  });
 
   const handleChangeApplicantStatus = async (
     jobInfoAccount,
@@ -122,13 +97,11 @@ export default function DashboardApplicants() {
       const filteredApplicants = allAppliedApplicants[
         WORKFLOW_STATUSES_enum.ACCEPTED
       ].filter((applicant) => {
-        console.log("applicant_in_regex", applicant);
         return (
           filterRegex.test(applicant?.applicantInfo?.name) ||
           filterRegex.test(applicant?.jobInfo?.job_title)
         );
       });
-      console.log("filteredApplicants", filteredApplicants);
       setFilteredApplicants(filteredApplicants);
     } else {
       setFilteredApplicants(
@@ -169,7 +142,9 @@ export default function DashboardApplicants() {
                 </div>
                 <div className="col-lg-6">
                   <div className="d-flex flex-wrap align-items-center justify-content-lg-end">
-                    <p className="font-size-4 mb-0 mr-6 py-2">Filter by Job:</p>
+                    <p className="font-size-4 mb-0 mr-6 py-2">
+                      Filter by name and title:
+                    </p>
                     <div className="h-px-48">
                       {/* <Select
                         options={jobTitles}

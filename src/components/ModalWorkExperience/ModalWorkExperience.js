@@ -8,6 +8,7 @@ import { Select } from "../Core";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
+import Loader from "../Loader";
 
 const currentEmploymentStatus = [
   { value: "employed", label: "Employed" },
@@ -35,10 +36,6 @@ const ModalWorkExperience = (props) => {
   const applicantWorkExperiences = gContext.workExperience;
   const to_be_updated_work_experience_number =
     gContext.currentWorkflowSequenceNumber;
-  console.log(
-    to_be_updated_work_experience_number,
-    "to_be_updated_work_experience_number"
-  );
   const [workExperience, setWorkExperience] = useState({
     archived: false,
     company_name: "",
@@ -50,6 +47,8 @@ const ModalWorkExperience = (props) => {
     location: "",
     website: "",
   });
+
+  const { loading } = gContext;
 
   // const handleAddWorkExperienceInput = async (e) => {
   //   e.preventDefault();
@@ -200,220 +199,223 @@ const ModalWorkExperience = (props) => {
           <i className="fas fa-times"></i>
         </button>
         <div className="mt-12" id="dashboard-body">
-          <div className="container">
-            <div className="mb-12 mb-lg-23">
-              <div className="row">
-                <div className="col-xxxl-9 px-lg-13 px-6">
-                  <h5 className="font-size-6 font-weight-semibold mb-11">
-                    {to_be_updated_work_experience_number ? "Update" : "Add"}{" "}
-                    work experience
-                  </h5>
-                  <div
-                    className="contact-form bg-white shadow-8 rounded-4 pl-sm-10 pl-4 pr-sm-11 pr-4 pt-15 pb-13"
-                    style={{
-                      border: "1px solid #e5e5e5",
-                    }}
-                  >
-                    <form action="/">
-                      <fieldset>
-                        {workExperience && (
-                          <div className="mb-8">
-                            <div className="row">
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weCname"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Company Name
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weCompanyName"
-                                    className="form-control h-px-48"
-                                    id="weCname"
-                                    placeholder="eg. Solgames"
-                                    value={workExperience.company_name}
-                                    onChange={(e) =>
-                                      handleWorkExperience(
-                                        e,
-
-                                        "company_name"
-                                      )
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weDesignation"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Designation
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weDesignation"
-                                    className="form-control h-px-48"
-                                    id="weDesignation"
-                                    placeholder="eg. Frontend Developer"
-                                    value={workExperience.designation}
-                                    onChange={(e) =>
-                                      handleWorkExperience(
-                                        e,
-
-                                        "designation"
-                                      )
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weDescription"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Brief description
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weDescription"
-                                    className="form-control h-px-48"
-                                    id="weDescription"
-                                    placeholder="eg. Brief description"
-                                    value={workExperience.description}
-                                    onChange={(e) =>
-                                      handleWorkExperience(
-                                        e,
-
-                                        "description"
-                                      )
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weCurrentlyWorking"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Are you currently working here ?
-                                  </label>
-                                  <Select
-                                    options={[
-                                      { value: true, label: "Yes" },
-                                      { value: false, label: "No" },
-                                    ]}
-                                    className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
-                                    border={false}
-                                    onChange={(e) =>
-                                      handleWorkExperience(
-                                        e,
-
-                                        "is_currently_working_here"
-                                      )
-                                    }
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weSdate"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Start Date
-                                  </label>
-                                  <input
-                                    type="date"
-                                    name="weStartDate"
-                                    className="form-control h-px-48"
-                                    id="weSdate"
-                                    placeholder="eg. Frontend Developer"
-                                    value={workExperience.start_date}
-                                    onChange={(e) =>
-                                      handleWorkExperience(
-                                        e,
-
-                                        "start_date"
-                                      )
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              {workExperience.is_currently_working_here ===
-                                false && (
+          {loading ? (
+            <Loader />
+          ) : (
+            <div className="container">
+              <div className="mb-12 mb-lg-23">
+                <div className="row">
+                  <div className="col-xxxl-9 px-lg-13 px-6">
+                    <h5 className="font-size-6 font-weight-semibold mb-11">
+                      {to_be_updated_work_experience_number ? "Update" : "Add"}{" "}
+                      work experience
+                    </h5>
+                    <div
+                      className="contact-form bg-white shadow-8 rounded-4 pl-sm-10 pl-4 pr-sm-11 pr-4 pt-15 pb-13"
+                      style={{
+                        border: "1px solid #e5e5e5",
+                      }}
+                    >
+                      <form action="/">
+                        <fieldset>
+                          {workExperience && (
+                            <div className="mb-8">
+                              <div className="row">
                                 <div className="col-lg-6">
                                   <div className="form-group">
                                     <label
-                                      htmlFor="eDate"
+                                      htmlFor="weCname"
                                       className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
                                     >
-                                      End Date
+                                      Company Name
                                     </label>
                                     <input
-                                      type="date"
-                                      name="weEndDate"
+                                      type="text"
+                                      name="weCompanyName"
                                       className="form-control h-px-48"
-                                      id="eDate"
-                                      placeholder="eg. Frontend Developer"
-                                      value={workExperience.end_date}
+                                      id="weCname"
+                                      placeholder="eg. Solgames"
+                                      value={workExperience.company_name}
                                       onChange={(e) =>
-                                        handleWorkExperience(e, "end_date")
+                                        handleWorkExperience(
+                                          e,
+
+                                          "company_name"
+                                        )
                                       }
                                     />
                                   </div>
                                 </div>
-                              )}
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weLocation"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Location
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weLocation"
-                                    className="form-control h-px-48"
-                                    id="weLocation"
-                                    placeholder="eg. New York, US"
-                                    value={workExperience.location}
-                                    onChange={(e) =>
-                                      handleWorkExperience(e, "location")
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weLocation"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Website
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weLocation"
-                                    className="form-control h-px-48"
-                                    id="weLocation"
-                                    placeholder="eg. https://www.google.com"
-                                    value={workExperience.website}
-                                    onChange={(e) =>
-                                      handleWorkExperience(e, "website")
-                                    }
-                                  />
-                                </div>
-                              </div>
-                            </div>
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weDesignation"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Designation
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="weDesignation"
+                                      className="form-control h-px-48"
+                                      id="weDesignation"
+                                      placeholder="eg. Frontend Developer"
+                                      value={workExperience.designation}
+                                      onChange={(e) =>
+                                        handleWorkExperience(
+                                          e,
 
-                            {/* <a
+                                          "designation"
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weDescription"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Brief description
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="weDescription"
+                                      className="form-control h-px-48"
+                                      id="weDescription"
+                                      placeholder="eg. Brief description"
+                                      value={workExperience.description}
+                                      onChange={(e) =>
+                                        handleWorkExperience(
+                                          e,
+
+                                          "description"
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weCurrentlyWorking"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Are you currently working here ?
+                                    </label>
+                                    <Select
+                                      options={[
+                                        { value: true, label: "Yes" },
+                                        { value: false, label: "No" },
+                                      ]}
+                                      className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
+                                      border={false}
+                                      onChange={(e) =>
+                                        handleWorkExperience(
+                                          e,
+
+                                          "is_currently_working_here"
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weSdate"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Start Date
+                                    </label>
+                                    <input
+                                      type="date"
+                                      name="weStartDate"
+                                      className="form-control h-px-48"
+                                      id="weSdate"
+                                      placeholder="eg. Frontend Developer"
+                                      value={workExperience.start_date}
+                                      onChange={(e) =>
+                                        handleWorkExperience(
+                                          e,
+
+                                          "start_date"
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                {workExperience.is_currently_working_here ===
+                                  false && (
+                                  <div className="col-lg-6">
+                                    <div className="form-group">
+                                      <label
+                                        htmlFor="eDate"
+                                        className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                      >
+                                        End Date
+                                      </label>
+                                      <input
+                                        type="date"
+                                        name="weEndDate"
+                                        className="form-control h-px-48"
+                                        id="eDate"
+                                        placeholder="eg. Frontend Developer"
+                                        value={workExperience.end_date}
+                                        onChange={(e) =>
+                                          handleWorkExperience(e, "end_date")
+                                        }
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weLocation"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Location
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="weLocation"
+                                      className="form-control h-px-48"
+                                      id="weLocation"
+                                      placeholder="eg. New York, US"
+                                      value={workExperience.location}
+                                      onChange={(e) =>
+                                        handleWorkExperience(e, "location")
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weLocation"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Website
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="weLocation"
+                                      className="form-control h-px-48"
+                                      id="weLocation"
+                                      placeholder="eg. https://www.google.com"
+                                      value={workExperience.website}
+                                      onChange={(e) =>
+                                        handleWorkExperience(e, "website")
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* <a
                               className="btn btn-outline-red text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
                               onClick={(e) => handleToggleofArchive(e)}
                             >
@@ -422,51 +424,52 @@ const ModalWorkExperience = (props) => {
                                 ? "Archive"
                                 : "Unarchive"}
                             </a> */}
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                marginBottom: "20px",
-                              }}
-                            >
-                              <h5 className="text-black-2 font-size-4 font-weight-semibold mb-4">
-                                Archive ?
-                              </h5>
-                              <label
-                                class="switch"
+                              <div
                                 style={{
-                                  marginLeft: "10px",
-                                  marginTop: "10px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  marginBottom: "20px",
                                 }}
                               >
-                                <input
-                                  type="checkbox"
-                                  id="switchArchive"
-                                  onChange={handleChange}
-                                />
-                                <span class="slider round"></span>
-                              </label>
+                                <h5 className="text-black-2 font-size-4 font-weight-semibold mb-4">
+                                  Archive ?
+                                </h5>
+                                <label
+                                  class="switch"
+                                  style={{
+                                    marginLeft: "10px",
+                                    marginTop: "10px",
+                                  }}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    id="switchArchive"
+                                    onChange={handleChange}
+                                  />
+                                  <span class="slider round"></span>
+                                </label>
+                              </div>
+                            </div>
+                          )}
+                          <pre>{JSON.stringify(workExperience)}</pre>
+                          <div className="row">
+                            <div className="col-md-12">
+                              <input
+                                type="button"
+                                value="Submit"
+                                className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
+                                onClick={addOrUpdateWorkExperience}
+                              />
                             </div>
                           </div>
-                        )}
-                        <pre>{JSON.stringify(workExperience)}</pre>
-                        <div className="row">
-                          <div className="col-md-12">
-                            <input
-                              type="button"
-                              value="Submit"
-                              className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
-                              onClick={addOrUpdateWorkExperience}
-                            />
-                          </div>
-                        </div>
-                      </fieldset>
-                    </form>
+                        </fieldset>
+                      </form>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </Modal.Body>
     </ModalStyled>

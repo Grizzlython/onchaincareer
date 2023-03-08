@@ -6,12 +6,10 @@ import { useContext } from "react";
 import GlobalContext from "../../context/GlobalContext";
 import { useEffect } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useRouter } from "next/router";
-import { PublicKey } from "@solana/web3.js";
 import { pay_and_reveal_user_details } from "../../utils/web3/web3_functions";
 import { toast } from "react-toastify";
 
-const Sidebar = (props) => {
+const ProfileSidebar = (props) => {
   const gContext = useContext(GlobalContext);
   const {
     candidateSocials,
@@ -149,7 +147,7 @@ const Sidebar = (props) => {
 
   return (
     <>
-      {/* <!-- Sidebar Start --> */}
+      {/* <!-- ProfileSidebar Start --> */}
 
       <div {...props}>
         <div className="pl-lg-5">
@@ -425,9 +423,9 @@ const Sidebar = (props) => {
         </div>
       </div>
 
-      {/* <!-- Sidebar End --> */}
+      {/* <!-- ProfileSidebar End --> */}
     </>
   );
 };
 
-export default Sidebar;
+export default ProfileSidebar;

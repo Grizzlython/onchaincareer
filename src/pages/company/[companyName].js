@@ -36,6 +36,7 @@ export default function Company() {
     companyPostedJobs,
     allListedCompanies,
     fetchAndSetCompanyPostedJobs,
+    fetchAndSetAllListedCompanies,
     loading,
   } = gContext;
   const { connection } = useConnection();
@@ -50,6 +51,7 @@ export default function Company() {
       const companyPubKey = new PublicKey(company_pubkey);
       await fetchAndSetCompanyInfo(companyPubKey, connection);
       await fetchAndSetCompanyPostedJobs(companyPubKey, connection);
+      await fetchAndSetAllListedCompanies(connection);
     })();
   }, [company_pubkey]);
 
@@ -104,13 +106,13 @@ export default function Company() {
                     <div className="col-12 col-xl-9 col-lg-8">
                       <div className="bg-white rounded-4  shadow-9">
                         <img
-                          src="https://plus.unsplash.com/premium_photo-1668473366796-636e38929ddd?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1632&q=80"
+                          src={selectedCompanyInfo?.cover_image_uri}
                           style={{
                             // position: "absolute",
                             // top: "0",
                             // right: "0",
                             zIndex: "99",
-                            background: "red",
+                            background: "#b2b2b2",
                             height: "300px",
                             width: "100%",
                             borderRadius: "10px",
@@ -292,11 +294,16 @@ export default function Company() {
                                       <div className="media align-items-center">
                                         <div className="square-72 d-block mr-8">
                                           <img
-                                            src={job.logo}
+                                            src={
+                                              job?.parsedInfo?.company_info
+                                                ?.logo_uri || job.logo
+                                            }
                                             alt=""
                                             style={{
                                               width: "75px",
                                               height: "75px",
+                                              objectFit: "cover",
+                                              borderRadius: "50%",
                                             }}
                                           />
                                         </div>
@@ -313,14 +320,17 @@ export default function Company() {
                                     <div className="col-md-6 text-right pt-7 pt-md-5">
                                       <div className="media justify-content-md-end">
                                         <div className="image mr-5 mt-2">
-                                          <img src={imgF1.src} alt="" />
+                                          <img src={imgF.src} alt="" />
                                         </div>
                                         <p className="font-weight-bold font-size-7 text-hit-gray mb-0">
+                                          <span className="text-primary mr-2">
+                                            {job?.parsedInfo?.currency}{" "}
+                                          </span>
                                           <span className="text-black-2">
-                                            {`${Number(
+                                            {` ${Number(
                                               job?.parsedInfo?.min_salary
                                             )} -
-                                      ${Number(job?.parsedInfo?.max_salary)}`}
+                                    ${Number(job?.parsedInfo?.max_salary)}`}
                                           </span>
                                         </p>
                                       </div>
@@ -389,10 +399,27 @@ export default function Company() {
                                           </span>
                                         </li>
                                       </ul>
+                                      <ul className="d-flex list-unstyled mr-n3 flex-wrap mr-n8 justify-content-md-end">
+                                        <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
+                                          <span className="mr-4">
+                                            Categories:
+                                          </span>
+                                          <span className="font-weight-semibold">
+                                            {job?.parsedInfo?.category.join(
+                                              ","
+                                            )}
+                                          </span>
+                                        </li>
+                                      </ul>
                                     </div>
                                   </div>
 
-                                  <div className="card-btn-group mt-3">
+                                  <div
+                                    className="card-btn-group mt-3"
+                                    style={{
+                                      display: "flex",
+                                    }}
+                                  >
                                     <Link
                                       href={`/job-details/${job?.pubkey?.toString()}`}
                                     >
@@ -400,6 +427,14 @@ export default function Company() {
                                         View Job
                                       </a>
                                     </Link>
+                                    <a
+                                      className="btn btn-outline-gray  text-uppercase btn-medium rounded-3 ml-3"
+                                      href={`https://explorer.solana.com/address/${job?.pubkey?.toString()}?cluster=devnet`}
+                                      target="_blank"
+                                    >
+                                      <i className="fa fa-globe mr-3"></i>
+                                      View on chain
+                                    </a>
                                   </div>
                                 </div>
                               ))}
@@ -418,7 +453,7 @@ export default function Company() {
                           Other Companies
                         </h4>
                         <ul className="list-unstyled">
-                          {
+                          {allListedCompanies &&
                             // filter out the current job company
                             allListedCompanies
                               .slice(0, 5)
@@ -433,9 +468,19 @@ export default function Company() {
                                     <a className="media align-items-center py-9">
                                       <div className="mr-7">
                                         <img
-                                          className="square-72 rounded-5"
-                                          src={imgB1.src}
+                                          className=""
+                                          src={
+                                            company?.logo_uri.length > 0
+                                              ? company?.logo_uri
+                                              : imgB1.src
+                                          }
                                           alt=""
+                                          style={{
+                                            width: "100px",
+                                            height: "100px",
+                                            objectFit: "cover",
+                                            borderRadius: "50%",
+                                          }}
                                         />
                                       </div>
                                       <div className="mt-n4">
@@ -453,8 +498,7 @@ export default function Company() {
                                     </a>
                                   </Link>
                                 </li>
-                              ))
-                          }
+                              ))}
                         </ul>
                       </div>
                     </div>

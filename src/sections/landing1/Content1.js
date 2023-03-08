@@ -1,17 +1,12 @@
 import Link from "next/link";
 import React from "react";
-import imgC from "../../assets/image/l1/jpg/content-1-img1.jpg";
-import imgL1 from "../../assets/image/l1/png/smal-logo1.png";
-import imgL2 from "../../assets/image/l1/png/smal-logo2.png";
-import imgL3 from "../../assets/image/l1/png/smal-logo3.png";
-import imgL4 from "../../assets/image/l1/png/smal-logo4.png";
-import imgL5 from "../../assets/image/l1/png/smal-logo5.png";
+import careerImg from "../../assets/image/l1/png/Career Development.png";
 
 const Content = () => {
   return (
     <>
       {/* <!-- Content Area -->  */}
-      <section className="pt-7 pt-lg-16 pb-2 pb-lg-32">
+      <section className="pt-7 pt-lg-24 pb-2 pb-lg-32">
         <div className="container">
           <div className="row pb-lg-6 justify-content-center">
             <div
@@ -23,7 +18,7 @@ const Content = () => {
               <div className="position-relative pr-xl-20 pr-md-15 pr-15">
                 {/* <!-- content img start --> */}
                 <img
-                  src={imgC.src}
+                  src={careerImg.src}
                   alt=""
                   className="w-100 rounded overflow-hidden"
                 />
@@ -31,14 +26,14 @@ const Content = () => {
                 {/* <!-- abs-content start --> */}
                 <div className="pos-abs-br pt-17 pb-9 pl-8 pr-12  bg-white shadow-2 rounded scale-p7 scale-xs-1 mb-n20 mr-n10 mr-xs-5 mr-sm-0 mb-xs-n10">
                   {/* <!-- check-mark start --> */}
-                  <span className="pos-abs-tl circle-79 bg-green font-size-9 mt-n9 ml-n9 ">
+                  {/* <span className="pos-abs-tl circle-79 bg-green font-size-9 mt-n9 ml-n9 ">
                     <i className="fas fa-check text-white"></i>
-                  </span>
+                  </span> */}
                   {/* <!-- check-mark end --> */}
-                  <p className="text-black-2 text-4 font-weight-bold mb-7">
-                    <span className="font-weight-normal">Found</span> 290+ Jobs
-                  </p>
-                  <div className="d-flex">
+                  {/* <p className="text-black-2 text-4 font-weight-bold mb-7">
+                    <span className="font-weight-normal">Find best Jobs</span>
+                  </p> */}
+                  {/* <div className="d-flex">
                     <ul className="list-unstyled list-overlapped-icon max-width-130px">
                       <li className="ml-0">
                         <a href="/#" className="circle-34">
@@ -69,7 +64,7 @@ const Content = () => {
                     <p className="text-space-black font-size-4 mt-1">
                       +14 Giants
                     </p>
-                  </div>
+                  </div> */}
                 </div>
                 {/* <!-- abs-content end --> */}
               </div>

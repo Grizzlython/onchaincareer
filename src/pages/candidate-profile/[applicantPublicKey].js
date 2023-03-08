@@ -408,16 +408,6 @@ export default function FullProfile() {
                               </div>
                             ))
                           )}
-                          <br></br>
-                          <a
-                            className="btn btn-outline-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
-                            onClick={() => {
-                              setEducationNumberAndToggleModal(0);
-                            }}
-                          >
-                            <i className="fa fa-plus mr-2"></i>
-                            Add
-                          </a>
                         </div>
                       </Tab.Pane>
 

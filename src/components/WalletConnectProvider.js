@@ -12,19 +12,15 @@ import {
   SolflareWalletAdapter,
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
-import { clusterApiUrl } from "@solana/web3.js";
+import { ACTIVE_SOLANA_NETWORK, SOLANA_RPC_NETWORK } from "../utils/constants";
 
 export const WalletConnectProvider = ({ children }) => {
   // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
-  const network = WalletAdapterNetwork.Devnet;
+  const network = ACTIVE_SOLANA_NETWORK;
 
   // You can also provide a custom RPC endpoint.
   const endpoint = useMemo(() => {
-    if (network === WalletAdapterNetwork.Devnet) {
-      return "https://api.devnet.solana.com";
-    }
-
-    return clusterApiUrl(network);
+    return SOLANA_RPC_NETWORK;
   }, [network]);
 
   // @solana/wallet-adapter-wallets includes all the adapters but supports tree shaking and lazy loading --

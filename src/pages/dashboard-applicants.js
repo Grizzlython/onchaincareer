@@ -5,17 +5,12 @@ import { Select } from "../components/Core";
 import GlobalContext from "../context/GlobalContext";
 
 import imgP1 from "../assets/image/table-one-profile-image-1.png";
-import inProgress from "../assets/image/svg/in-progress.svg";
-import accept from "../assets/image/svg/accept.svg";
-import reject from "../assets/image/svg/reject.svg";
 import moment from "moment";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { WORKFLOW_STATUSES_enum } from "../utils/web3/struct_decoders/jobsonchain_constants_enum";
-import { BN } from "bn.js";
-import Tippy from "@tippyjs/react";
 import Loader from "../components/Loader";
 import { PublicKey } from "@solana/web3.js";
 
@@ -26,27 +21,9 @@ export default function DashboardApplicants() {
   const [appliedCandidates, setAppliedCandidates] = useState([]);
   const [filter, setFilter] = useState("");
   const [filteredApplicants, setFilteredApplicants] = useState([]);
-  const [applicantStatus, setApplicantStatus] = useState([
-    {
-      value: WORKFLOW_STATUSES_enum.APPLIED,
-      label: "Applied",
-    },
-    {
-      value: WORKFLOW_STATUSES_enum.IN_PROGRESS,
-      label: "In Progress",
-    },
-    {
-      value: WORKFLOW_STATUSES_enum.REJECTED,
-      label: "Rejected",
-    },
-    {
-      value: WORKFLOW_STATUSES_enum.ACCEPTED,
-      label: "Accepted",
-    },
-  ]);
+  
 
   const [offset, setOffset] = useState(0);
-  const [limit, setLimit] = useState(10);
 
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
@@ -66,6 +43,7 @@ export default function DashboardApplicants() {
   }, [publicKey]);
 
   useEffect(() => {
+    console.log("allAppliedApplicants in dashboard-applicants", allAppliedApplicants)
     if (allAppliedApplicants) {
       setAppliedCandidates(
         allAppliedApplicants[WORKFLOW_STATUSES_enum.APPLIED]
@@ -73,26 +51,17 @@ export default function DashboardApplicants() {
     }
   }, [allAppliedApplicants]);
 
-  const jobTitles = gContext.companyPostedJobs?.map((job) => {
-    return {
-      value: job?.pubkey.toString(),
-      label: job?.parsedInfo?.job_title,
-    };
-  });
-
   const handleChangeApplicantStatus = async (
+    applicantInfoAccount,
     jobInfoAccount,
     companyInfoAccount,
     event
   ) => {
     try {
       const statusSelected = event.value;
-      console.log("job_number", jobInfoAccount);
-      console.log("companyInfoAccount", companyInfoAccount);
-      console.log("statusSelected", statusSelected);
       const companyStateAccount = new PublicKey(companyInfoAccount);
 
-      const jobWorkflowInfo = {
+      const updateWorkflowInfo = {
         status: statusSelected, //16 => 'saved' or 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
         // job_applied_at: new BN(new Date().getTime()), //8 => timestamp in unix format
         // last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
@@ -101,9 +70,10 @@ export default function DashboardApplicants() {
         publicKey,
         connection,
         signTransaction,
-        jobWorkflowInfo,
+        updateWorkflowInfo,
         jobInfoAccount,
-        companyStateAccount
+        companyStateAccount,
+        applicantInfoAccount
       );
     } catch (err) {
       console.log(err);
@@ -140,10 +110,8 @@ export default function DashboardApplicants() {
   const [pages, setPages] = useState(0);
   useEffect(() => {
     if (allAppliedApplicants) {
-      setPages(
-        Math.ceil(
-          allAppliedApplicants[WORKFLOW_STATUSES_enum.APPLIED].length / 10
-        )
+      setFilteredApplicants(
+          allAppliedApplicants[WORKFLOW_STATUSES_enum.APPLIED]
       );
     }
   }, [allAppliedApplicants]);
@@ -169,7 +137,9 @@ export default function DashboardApplicants() {
                 </div>
                 <div className="col-lg-6">
                   <div className="d-flex flex-wrap align-items-center justify-content-lg-end">
-                    <p className="font-size-4 mb-0 mr-6 py-2">Filter by Job:</p>
+                    <p className="font-size-4 mb-0 mr-6 py-2">
+                      Filter by name and title:
+                    </p>
                     <div className="h-px-48">
                       {/* <Select
                         options={jobTitles}
@@ -249,7 +219,6 @@ export default function DashboardApplicants() {
                       <tbody>
                         {filteredApplicants?.length > 0 ? (
                           filteredApplicants
-                            ?.slice(offset, limit)
                             ?.map((item, index) => (
                               <tr
                                 className="border-bottom"
@@ -379,6 +348,7 @@ export default function DashboardApplicants() {
                                     }}
                                     onChange={(e) =>
                                       handleChangeApplicantStatus(
+                                        item.user_pubkey,
                                         item?.job_pubkey,
                                         item?.company_pubkey,
                                         e

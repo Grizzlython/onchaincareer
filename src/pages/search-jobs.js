@@ -7,34 +7,22 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { useEffect } from "react";
 import { countries } from "../staticData";
-import { categoryOptions, sortTypes } from "../utils/constants";
+import { categoryOptions, defaultJobTypes, sortTypes } from "../utils/constants";
 import GlobalContext from "../context/GlobalContext";
-
-const defaultExpLevels = [
-  { value: "entry", label: "Entry" },
-  { value: "jn", label: "Junior" },
-  { value: "mid", label: "Mid Level" },
-  { value: "sr", label: "Sinior" },
-];
-
-const defaultJobTypes = [
-  { value: "all", label: "All Types" },
-  { value: "Full-Time", label: "Full Time" },
-  { value: "Part-Time", label: "Part Time" },
-  { value: "Freelancer", label: "Freelancer" },
-  { value: "Internship", label: "Internship" },
-];
+import { useConnection } from "@solana/wallet-adapter-react";
 
 export default function SearchListTwo() {
-  const [category, setCategory] = useState("all");
-  const [country, setCountry] = useState("any");
-  const [jobType, setJobType] = useState("all");
+  const [category, setCategory] = useState("All");
+  const [country, setCountry] = useState("Any");
+  const [jobType, setJobType] = useState("All");
   const [jobTitle, setJobTitle] = useState("");
-  const [sortType, setSortType] = useState("any");
+  const [sortType, setSortType] = useState("Any");
 
   const gContext = useContext(GlobalContext);
 
-  const { allListedJobs } = gContext;
+  const { allListedJobs, fetchAndSetAllJobListings } = gContext;
+
+  const { connection } = useConnection();
 
   const { query } = useRouter();
   useEffect(() => {
@@ -51,7 +39,15 @@ export default function SearchListTwo() {
       setJobTitle(query.jobTitle);
     }
   }, [query]);
-  return (
+
+  useEffect(() => {
+    if(allListedJobs && allListedJobs.length) return;
+    (async () => {
+      await fetchAndSetAllJobListings(connection);
+    })()
+  }, [allListedJobs]);
+
+    return (
     <>
       <PageWrapper>
         <div className="bg-black-2 mt-15 mt-lg-22 pt-18 pt-lg-13 pb-13">

@@ -6,11 +6,9 @@ import Categories from "../sections/landing1/Categories";
 import Content1 from "../sections/landing1/Content1";
 import FeaturedJobs from "../sections/landing1/FeaturedJobs";
 import Content2 from "../sections/landing1/Content2";
-import Slider from "../sections/landing3/Slider";
 import Companies from "../sections/landing1/Companies";
 
 export default function MainPage() {
-  //DONE: add the browse jobs by category section
   return (
     <>
       <PageWrapper
@@ -19,10 +17,10 @@ export default function MainPage() {
         }}
       >
         <Hero />
-        <Brands />
         <Categories />
-        <Content1 />
         <FeaturedJobs />
+        <Content1 />
+        <Brands />
         <Content2 />
         <Companies />
       </PageWrapper>

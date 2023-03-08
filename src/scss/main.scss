@@ -215,12 +215,37 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
-.selectedTableRow{
+.selectedTableRow {
   transition: all 0.3s ease-in-out;
   cursor: pointer;
-  :hover{
+  :hover {
     text-decoration: underline;
     font-weight: 500;
     text-underline-offset: 5px;
   }
+}
+
+.nav-item {
+  // min-width: 150px;
+  text-align: center;
+}
+
+.active-link {
+  // width: 90%;
+  text-align: center;
+  // padding: 12px 40px !important;
+  background-color: #0059190a !important;
+  border-radius: 4px;
+}
+.activeAnchorItem {
+  color: #00b074 !important;
+}
+
+.terms-paragraph {
+  p {
+    color: black;
+  }
+}
+.list-item {
+  font-size: 14px !important;
 }

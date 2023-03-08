@@ -26,24 +26,7 @@ export default function DashboardApplicants() {
   const [appliedCandidates, setAppliedCandidates] = useState([]);
   const [filter, setFilter] = useState("");
   const [filteredApplicants, setFilteredApplicants] = useState([]);
-  const [applicantStatus, setApplicantStatus] = useState([
-    {
-      value: WORKFLOW_STATUSES_enum.APPLIED,
-      label: "Applied",
-    },
-    {
-      value: WORKFLOW_STATUSES_enum.IN_PROGRESS,
-      label: "In Progress",
-    },
-    {
-      value: WORKFLOW_STATUSES_enum.REJECTED,
-      label: "Rejected",
-    },
-    {
-      value: WORKFLOW_STATUSES_enum.ACCEPTED,
-      label: "Accepted",
-    },
-  ]);
+  
 
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState(10);
@@ -66,21 +49,18 @@ export default function DashboardApplicants() {
   }, [publicKey]);
 
   useEffect(() => {
+    setAppliedCandidates([])
     if (allAppliedApplicants) {
+      console.log("allAppliedApplicants", allAppliedApplicants)
       setAppliedCandidates(
-        allAppliedApplicants[WORKFLOW_STATUSES_enum.IN_PROGRESS]
+        [...allAppliedApplicants[WORKFLOW_STATUSES_enum.IN_PROGRESS]]
       );
     }
   }, [allAppliedApplicants]);
 
-  const jobTitles = gContext.companyPostedJobs?.map((job) => {
-    return {
-      value: job?.pubkey.toString(),
-      label: job?.parsedInfo?.job_title,
-    };
-  });
 
   const handleChangeApplicantStatus = async (
+    applicantInfoAccount,
     jobInfoAccount,
     companyInfoAccount,
     event
@@ -94,8 +74,7 @@ export default function DashboardApplicants() {
 
       const jobWorkflowInfo = {
         status: statusSelected, //16 => 'saved' or 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
-        // job_applied_at: new BN(new Date().getTime()), //8 => timestamp in unix format
-        // last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
+        archived: ["accepted", "rejected","withdraw"].includes(statusSelected) ? true : false,
       };
       await gContext.updateJobApplication(
         publicKey,
@@ -103,7 +82,8 @@ export default function DashboardApplicants() {
         signTransaction,
         jobWorkflowInfo,
         jobInfoAccount,
-        companyStateAccount
+        companyStateAccount,
+        applicantInfoAccount
       );
     } catch (err) {
       console.log(err);
@@ -140,11 +120,9 @@ export default function DashboardApplicants() {
   const [pages, setPages] = useState(0);
   useEffect(() => {
     if (allAppliedApplicants) {
-      setPages(
-        Math.ceil(
-          allAppliedApplicants[WORKFLOW_STATUSES_enum.IN_PROGRESS].length / 10
+      setFilteredApplicants(
+          allAppliedApplicants[WORKFLOW_STATUSES_enum.IN_PROGRESS]
         )
-      );
     }
   }, [allAppliedApplicants]);
 
@@ -169,7 +147,9 @@ export default function DashboardApplicants() {
                 </div>
                 <div className="col-lg-6">
                   <div className="d-flex flex-wrap align-items-center justify-content-lg-end">
-                    <p className="font-size-4 mb-0 mr-6 py-2">Filter by Job:</p>
+                    <p className="font-size-4 mb-0 mr-6 py-2">
+                      Filter by name and title:
+                    </p>
                     <div className="h-px-48">
                       {/* <Select
                         options={jobTitles}
@@ -249,7 +229,6 @@ export default function DashboardApplicants() {
                       <tbody>
                         {filteredApplicants?.length > 0 ? (
                           filteredApplicants
-                            ?.slice(offset, limit)
                             ?.map((item, index) => (
                               <tr
                                 className="border-bottom"
@@ -379,6 +358,7 @@ export default function DashboardApplicants() {
                                     }}
                                     onChange={(e) =>
                                       handleChangeApplicantStatus(
+                                        item?.user_pubkey,
                                         item?.job_pubkey,
                                         item?.company_pubkey,
                                         e

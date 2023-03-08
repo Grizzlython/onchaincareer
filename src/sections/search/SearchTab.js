@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Tab, Nav } from "react-bootstrap";
 import Link from "next/link";
 
-import imgF from "../../assets/image/svg/icon-fire-rounded.svg";
 import iconL from "../../assets/image/svg/icon-loaction-pin-black.svg";
 import iconS from "../../assets/image/svg/icon-suitecase.svg";
 import iconC from "../../assets/image/svg/icon-clock.svg";
@@ -12,6 +11,7 @@ import { useEffect } from "react";
 import moment from "moment/moment";
 import ErrorPage from "../../pages/404";
 import Loader from "../../components/Loader";
+import { EXPLORER_ADDRESS_URL, EXPLORER_CLUSTER } from "../../utils/constants";
 
 const SearchTab = (props) => {
   const gContext = useContext(GlobalContext);
@@ -20,11 +20,8 @@ const SearchTab = (props) => {
 
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [filters, setFilters] = useState({});
-  const [limit, setLimit] = useState(2);
-  const [offset, setOffset] = useState(0);
-
   useEffect(async () => {
-    if (props.category && props.category !== "all") {
+    if (props.category && props.category !== "All") {
       filters.category = props.category;
       filters.categoryRegex = new RegExp(filters.category);
     } else {
@@ -103,7 +100,6 @@ const SearchTab = (props) => {
       }
 
       const filteredJobs = allListedJobs.filter((job) => {
-        console.log("job.parsedInfo.title ", conditions);
         return eval(conditions);
       });
 
@@ -144,7 +140,7 @@ const SearchTab = (props) => {
                     className="justify-content-center search-nav-tab nav nav-tabs border-bottom-0"
                     id="search-nav-tab"
                   >
-                    {filteredJobs?.slice(offset, limit)?.map((job, index) => (
+                    {filteredJobs?.map((job, index) => (
                       <Nav.Link
                         className="mb-8 p-0 w-100"
                         eventKey={`${job.id}`}
@@ -165,6 +161,8 @@ const SearchTab = (props) => {
                                     style={{
                                       width: "75px",
                                       height: "75px",
+                                      objectFit: "contain",
+                                      borderRadius: "50%",
                                     }}
                                   />
                                 </div>
@@ -180,12 +178,15 @@ const SearchTab = (props) => {
                             </div>
                             <div className="col-md-6 text-right pt-7 pt-md-5">
                               <div className="media justify-content-md-end">
-                                <div className="image mr-5 mt-2">
+                                {/* <div className="image mr-5 mt-2">
                                   <img src={imgF.src} alt="" />
-                                </div>
+                                </div> */}
                                 <p className="font-weight-bold font-size-7 text-hit-gray mb-0">
+                                  <span className="text-primary mr-2">
+                                    {job?.parsedInfo?.currency}{" "}
+                                  </span>
                                   <span className="text-black-2">
-                                    {`${Number(job?.parsedInfo?.min_salary)} -
+                                    {` ${Number(job?.parsedInfo?.min_salary)} -
                                     ${Number(job?.parsedInfo?.max_salary)}`}
                                   </span>
                                 </p>
@@ -254,7 +255,16 @@ const SearchTab = (props) => {
                                   </span>
                                 </li>
                               </ul>
+                              <ul className="d-flex list-unstyled mr-n3 flex-wrap mr-n8 justify-content-md-end">
+                                <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
+                                  <span className="mr-4">Categories:</span>
+                                  <span className="font-weight-semibold">
+                                    {job?.parsedInfo?.category.join(",")}
+                                  </span>
+                                </li>
+                              </ul>
                             </div>
+                            {/* <div className="col-md-5"></div> */}
                           </div>
 
                           <div
@@ -271,8 +281,8 @@ const SearchTab = (props) => {
                               </a>
                             </Link>
                             <a
-                              className="btn btn-outline-gray text-black text-uppercase btn-medium rounded-3 ml-3"
-                              href={`https://explorer.solana.com/address/${job?.pubkey?.toString()}?cluster=devnet`}
+                              className="btn btn-outline-green text-uppercase btn-medium rounded-3 ml-3"
+                              href={`${EXPLORER_ADDRESS_URL}${job?.pubkey?.toString()}${EXPLORER_CLUSTER}`}
                               target="_blank"
                             >
                               <i className="fa fa-globe mr-3"></i>
@@ -287,7 +297,7 @@ const SearchTab = (props) => {
                 ) : (
                   <ErrorPage />
                 )}
-                {filteredJobs?.length > limit && (
+                {/* {filteredJobs?.length > limit && (
                   <div className="text-center pt-5 pt-lg-13">
                     <a
                       className="text-green font-weight-bold text-uppercase font-size-3 d-flex align-items-center justify-content-center"
@@ -302,7 +312,7 @@ const SearchTab = (props) => {
                       <i className="fas fa-sort-down ml-3 mt-n2 font-size-4"></i>
                     </a>
                   </div>
-                )}
+                )} */}
               </div>
               {/* <!-- form end --> */}
             </div>

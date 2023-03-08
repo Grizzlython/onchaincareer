@@ -5,17 +5,12 @@ import { Select } from "../components/Core";
 import GlobalContext from "../context/GlobalContext";
 
 import imgP1 from "../assets/image/table-one-profile-image-1.png";
-import inProgress from "../assets/image/svg/in-progress.svg";
-import accept from "../assets/image/svg/accept.svg";
-import reject from "../assets/image/svg/reject.svg";
 import moment from "moment";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { WORKFLOW_STATUSES_enum } from "../utils/web3/struct_decoders/jobsonchain_constants_enum";
-import { BN } from "bn.js";
-import Tippy from "@tippyjs/react";
 import Loader from "../components/Loader";
 import { PublicKey } from "@solana/web3.js";
 
@@ -169,7 +164,9 @@ export default function DashboardApplicants() {
                 </div>
                 <div className="col-lg-6">
                   <div className="d-flex flex-wrap align-items-center justify-content-lg-end">
-                    <p className="font-size-4 mb-0 mr-6 py-2">Filter by Job:</p>
+                    <p className="font-size-4 mb-0 mr-6 py-2">
+                      Filter by name and title:
+                    </p>
                     <div className="h-px-48">
                       {/* <Select
                         options={jobTitles}

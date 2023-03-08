@@ -9,10 +9,13 @@ import { toast } from "react-toastify";
 import { Select } from "../components/Core";
 import GlobalContext from "../context/GlobalContext";
 import PageWrapper from "../components/PageWrapper";
+import usdcLogo from "../assets/image/solUsdcLogo.png";
 
 export default function Pricing() {
   const { publicKey, wallet } = useWallet();
   const { connection } = useConnection();
+
+  const [planType, setPlanType] = useState(SUBSCRIPTION_PLANS_enum.PAYNUSE);
 
   const gContext = useContext(GlobalContext);
   const {
@@ -90,7 +93,8 @@ export default function Pricing() {
                     }
                   />
                   <p className="text-default-color font-size-4 px-5 px-md-10 px-lg-15 px-xl-24 px-xxl-22 mt-9">
-                    World's first fully decentralized job portal.
+                    World's first fully decentralized job portal. <br />
+                    <strong>*Plan valid for selected company only</strong>
                   </p>
                 </div>
                 {/* <!-- section-title end --> */}
@@ -117,112 +121,48 @@ export default function Pricing() {
                             Pay per use
                           </h6>
                         </div>
-                        <h2 className="mt-11 text-dodger"></h2>
+                        <h2 className="mt-4 text-dodger"></h2>
                       </div>
                       {/* <!-- card-header end --> */}
                       {/* <!-- card-body start --> */}
-                      <div className="card-body px-0 pt-11 pb-15">
+                      <div
+                        className="card-body px-0 pt-4 pb-4"
+                        style={{
+                          minHeight: "280px !important",
+                        }}
+                      >
                         <ul className="list-unstyled">
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                             Unlimited Job Postings ($20/job)
                           </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                             View Job Applicants social ($1/applicant)
                           </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                             By default activated for each company
                           </li>
                         </ul>
                       </div>
-                    </div>
-                    {/* <!-- card end --> */}
-                  </div>
-                  <div
-                    className="col-lg-4 col-md-6 col-xs-9"
-                    data-aos="fade-right"
-                    data-aos-duration="1000"
-                    data-aos-delay="500"
-                  >
-                    {/* <!-- card start --> */}
-                    <div className="card border-mercury rounded-8 mb-lg-3 mb-9 px-xl-12 px-lg-8 px-12 pb-12 hover-shadow-hitgray">
-                      {/* <!-- card-header start --> */}
-                      <div className="card-header bg-transparent border-hit-gray-opacity-5 text-center pt-11 pb-8">
-                        <div className="pricing-title text-center">
-                          <h5 className="font-weight-semibold font-size-6 text-black-2">
-                            Monthly Plan
-                          </h5>
-                          <h6 className="font-size-4 text-gray font-weight-normal">
-                            $USDC{" "}
-                            {
-                              SUBSCRIPTION_PLANS_PRICES[
-                                SUBSCRIPTION_PLANS_enum.MONTHLY
-                              ].price
-                            }
-                          </h6>
-                        </div>
-                        <h2 className="mt-11 text-dodger">
-                          $
-                          {
-                            SUBSCRIPTION_PLANS_PRICES[
-                              SUBSCRIPTION_PLANS_enum.MONTHLY
-                            ].price
-                          }
-                          <span className="font-size-4 text-smoke font-weight-normal">
-                            /month
-                          </span>
-                        </h2>
-                      </div>
-                      {/* <!-- card-header end --> */}
-                      {/* <!-- card-body start --> */}
-                      <div className="card-body px-0 pt-11 pb-6">
-                        <ul className="list-unstyled">
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
-                            <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
-                            Unlimited Job Postings ($
-                            {
-                              SUBSCRIPTION_PLANS_PRICES[
-                                SUBSCRIPTION_PLANS_enum.MONTHLY
-                              ].job_posting_price
-                            }
-                            /job)
-                          </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
-                            <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
-                            Unlimited View Job Applicants
-                          </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
-                            <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
-                            Job Alert Emails
-                          </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
-                            <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
-                            *Plan valid for selected company
-                          </li>
-                        </ul>
-                      </div>
-                      {/* <!-- card-body end --> */}
-                      {/* <!-- card-footer end --> */}
                       <div className="card-footer bg-transparent border-0 px-0 py-0">
-                        <a
-                          className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase"
-                          onClick={
-                            () =>
-                              handlePaymentOfPlan(
-                                SUBSCRIPTION_PLANS_enum.MONTHLY
-                              )
-                            // toggleSelectCompanyModal()
-                          }
-                        >
-                          Start with Monthly
-                        </a>
+                        {planType === SUBSCRIPTION_PLANS_enum.PAYNUSE && (
+                          <button
+                            className="btn btn-gray btn-h-60 text-white rounded-5 btn-block text-uppercase"
+                            disabled={true}
+                            style={{
+                              cursor: "not-allowed",
+                            }}
+                          >
+                            Currently Active
+                          </button>
+                        )}
                       </div>
-                      {/* <!-- card-footer end --> */}
                     </div>
                     {/* <!-- card end --> */}
                   </div>
+
                   <div
                     className="col-lg-4 col-md-6 col-xs-9"
                     data-aos="fade-up"
@@ -240,16 +180,33 @@ export default function Pricing() {
                           <h5 className="font-weight-semibold font-size-6 text-black-2">
                             Six Months Plan
                           </h5>
-                          <h6 className="font-size-4 text-gray font-weight-normal">
-                            $USDC{" "}
-                            {
-                              SUBSCRIPTION_PLANS_PRICES[
-                                SUBSCRIPTION_PLANS_enum.SIXMONTHS
-                              ].price
-                            }
-                          </h6>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                            }}
+                          >
+                            <img
+                              src={usdcLogo.src}
+                              alt=""
+                              style={{
+                                width: "20px",
+                                height: "20px",
+                                borderRadius: "50%",
+                              }}
+                            />
+                            <h6 className="font-size-4 text-gray font-weight-normal mt-3 ml-2">
+                              USDC{" "}
+                              {
+                                SUBSCRIPTION_PLANS_PRICES[
+                                  SUBSCRIPTION_PLANS_enum.SIXMONTHS
+                                ].price
+                              }
+                            </h6>
+                          </div>
                         </div>
-                        <h2 className="mt-11 text-dodger">
+                        <h2 className="mt-4 text-dodger font-size-6">
                           $
                           {(
                             SUBSCRIPTION_PLANS_PRICES[
@@ -263,9 +220,14 @@ export default function Pricing() {
                       </div>
                       {/* <!-- card-header end --> */}
                       {/* <!-- card-body start --> */}
-                      <div className="card-body px-0 pt-11 pb-6">
+                      <div
+                        className="card-body px-0 pt-4 pb-4 "
+                        style={{
+                          minHeight: "280px !important",
+                        }}
+                      >
                         <ul className="list-unstyled">
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                             Unlimited Job Postings ($
                             {
@@ -275,15 +237,15 @@ export default function Pricing() {
                             }
                             /job)
                           </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                             Unlimited View Applied Candidate's social
                           </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                             Job Alert Emails
                           </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                             *Plan valid for selected company
                           </li>
@@ -292,16 +254,140 @@ export default function Pricing() {
                       {/* <!-- card-body end --> */}
                       {/* <!-- card-footer end --> */}
                       <div className="card-footer bg-transparent border-0 px-0 py-0">
-                        <a
-                          className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase"
-                          onClick={() =>
-                            handlePaymentOfPlan(
-                              SUBSCRIPTION_PLANS_enum.SIXMONTHS
-                            )
+                        {planType === SUBSCRIPTION_PLANS_enum.SIXMONTHS ? (
+                          <button
+                            className="btn btn-gray btn-h-60 text-white rounded-5 btn-block text-uppercase"
+                            disabled={true}
+                            style={{
+                              cursor: "not-allowed",
+                            }}
+                          >
+                            Currently Active
+                          </button>
+                        ) : (
+                          <button
+                            className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase"
+                            onClick={() =>
+                              handlePaymentOfPlan(
+                                SUBSCRIPTION_PLANS_enum.SIXMONTHS
+                              )
+                            }
+                          >
+                            Start with six months
+                          </button>
+                        )}
+                      </div>
+                      {/* <!-- card-footer end --> */}
+                    </div>
+                    {/* <!-- card end --> */}
+                  </div>
+                  <div
+                    className="col-lg-4 col-md-6 col-xs-9"
+                    data-aos="fade-right"
+                    data-aos-duration="1000"
+                    data-aos-delay="500"
+                  >
+                    {/* <!-- card start --> */}
+                    <div className="card border-mercury rounded-8 mb-lg-3 mb-9 px-xl-12 px-lg-8 px-12 pb-12 hover-shadow-hitgray">
+                      {/* <!-- card-header start --> */}
+                      <div className="card-header bg-transparent border-hit-gray-opacity-5 text-center pt-11 pb-8">
+                        <div className="pricing-title text-center">
+                          <h5 className="font-weight-semibold font-size-6 text-black-2">
+                            Monthly Plan
+                          </h5>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                            }}
+                          >
+                            <img
+                              src={usdcLogo.src}
+                              alt=""
+                              style={{
+                                width: "20px",
+                                height: "20px",
+                                borderRadius: "50%",
+                              }}
+                            />
+                            <h6 className="font-size-4 text-gray font-weight-normal mt-3 ml-2">
+                              USDC{" "}
+                              {
+                                SUBSCRIPTION_PLANS_PRICES[
+                                  SUBSCRIPTION_PLANS_enum.MONTHLY
+                                ].price
+                              }
+                            </h6>
+                          </div>
+                        </div>
+                        <h2 className="mt-4 text-dodger font-size-6">
+                          $
+                          {
+                            SUBSCRIPTION_PLANS_PRICES[
+                              SUBSCRIPTION_PLANS_enum.MONTHLY
+                            ].price
                           }
-                        >
-                          Start with Six Monthly
-                        </a>
+                          <span className="font-size-4 text-smoke font-weight-normal">
+                            /month
+                          </span>
+                        </h2>
+                      </div>
+                      {/* <!-- card-header end --> */}
+                      {/* <!-- card-body start --> */}
+
+                      <div
+                        className="card-body px-0 pt-4 pb-4 "
+                        style={{
+                          minHeight: "240px !important",
+                        }}
+                      >
+                        <ul className="list-unstyled">
+                          <li className="mb-6 text-black-2 d-flex list-item">
+                            <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
+                            Unlimited Job Postings ($
+                            {
+                              SUBSCRIPTION_PLANS_PRICES[
+                                SUBSCRIPTION_PLANS_enum.MONTHLY
+                              ].job_posting_price
+                            }
+                            /job)
+                          </li>
+                          <li className="mb-6 text-black-2 d-flex list-item">
+                            <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
+                            Unlimited View Applied Candidate's social
+                          </li>
+                          <li className="mb-6 text-black-2 d-flex list-item">
+                            <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
+                            Job Alert Emails
+                          </li>
+                        </ul>
+                      </div>
+                      {/* <!-- card-body end --> */}
+                      {/* <!-- card-footer end --> */}
+                      <div className="card-footer bg-transparent border-0 px-0 py-0">
+                        {planType === SUBSCRIPTION_PLANS_enum.MONTHLY ? (
+                          <button
+                            className="btn btn-gray btn-h-60 text-white rounded-5 btn-block text-uppercase"
+                            disabled={true}
+                            style={{
+                              cursor: "not-allowed",
+                            }}
+                          >
+                            Currently Active
+                          </button>
+                        ) : (
+                          <button
+                            className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase"
+                            onClick={() =>
+                              handlePaymentOfPlan(
+                                SUBSCRIPTION_PLANS_enum.MONTHLY
+                              )
+                            }
+                          >
+                            Start with monthly
+                          </button>
+                        )}
                       </div>
                       {/* <!-- card-footer end --> */}
                     </div>
@@ -321,16 +407,33 @@ export default function Pricing() {
                           <h5 className="font-weight-semibold font-size-6 text-black-2">
                             Yearly Plan
                           </h5>
-                          <h6 className="font-size-4 text-gray font-weight-normal">
-                            $USDC{" "}
-                            {
-                              SUBSCRIPTION_PLANS_PRICES[
-                                SUBSCRIPTION_PLANS_enum.YEARLY
-                              ].price
-                            }
-                          </h6>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                            }}
+                          >
+                            <img
+                              src={usdcLogo.src}
+                              alt=""
+                              style={{
+                                width: "20px",
+                                height: "20px",
+                                borderRadius: "50%",
+                              }}
+                            />
+                            <h6 className="font-size-4 text-gray font-weight-normal mt-3 ml-2">
+                              USDC{" "}
+                              {
+                                SUBSCRIPTION_PLANS_PRICES[
+                                  SUBSCRIPTION_PLANS_enum.YEARLY
+                                ].price
+                              }
+                            </h6>
+                          </div>
                         </div>
-                        <h2 className="mt-11 text-dodger">
+                        <h2 className="mt-4 text-dodger font-size-6">
                           $
                           {(
                             SUBSCRIPTION_PLANS_PRICES[
@@ -344,47 +447,67 @@ export default function Pricing() {
                       </div>
                       {/* <!-- card-header end --> */}
                       {/* <!-- card-body start --> */}
-                      <div className="card-body px-0 pt-11 pb-6">
+
+                      <div
+                        className="card-body px-0 pt-4 pb-4 "
+                        style={{
+                          minHeight: "330px !important",
+                        }}
+                      >
                         <ul className="list-unstyled">
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                             Unlimited Job Postings ($
                             {
                               SUBSCRIPTION_PLANS_PRICES[
-                                SUBSCRIPTION_PLANS_enum.YEARLY
-                              ].price
+                                SUBSCRIPTION_PLANS_enum.SIXMONTHS
+                              ].job_posting_price
                             }
                             /job)
                           </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                             Unlimited View Applied Candidate's social
                           </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                             Job Alert Emails
                           </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                             Access to all the Applicants in the platform
                           </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
-                            *Plan valid for selected company
+                            Access to all the Applicants in the platform
                           </li>
                         </ul>
                       </div>
                       {/* <!-- card-body end --> */}
                       {/* <!-- card-footer end --> */}
                       <div className="card-footer bg-transparent border-0 px-0 py-0">
-                        <a
-                          className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase"
-                          onClick={() =>
-                            handlePaymentOfPlan(SUBSCRIPTION_PLANS_enum.YEARLY)
-                          }
-                        >
-                          Start with Yearly
-                        </a>
+                        {planType === SUBSCRIPTION_PLANS_enum.YEARLY ? (
+                          <button
+                            className="btn btn-gray btn-h-60 text-white rounded-5 btn-block text-uppercase"
+                            disabled={true}
+                            style={{
+                              cursor: "not-allowed",
+                            }}
+                          >
+                            Currently Active
+                          </button>
+                        ) : (
+                          <button
+                            className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase"
+                            onClick={() =>
+                              handlePaymentOfPlan(
+                                SUBSCRIPTION_PLANS_enum.YEARLY
+                              )
+                            }
+                          >
+                            Start with yearly
+                          </button>
+                        )}
                       </div>
                       {/* <!-- card-footer end --> */}
                     </div>
@@ -404,54 +527,97 @@ export default function Pricing() {
                           <h5 className="font-weight-semibold font-size-6 text-black-2">
                             Forever Plan
                           </h5>
-                          <h6 className="font-size-4 text-gray font-weight-normal">
-                            $USDC{" "}
-                            {
-                              SUBSCRIPTION_PLANS_PRICES[
-                                SUBSCRIPTION_PLANS_enum.FOREVER
-                              ].price
-                            }
-                          </h6>
+                          <div>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              <img
+                                src={usdcLogo.src}
+                                alt=""
+                                style={{
+                                  width: "20px",
+                                  height: "20px",
+                                  borderRadius: "50%",
+                                }}
+                              />
+                              <h6 className="font-size-4 text-gray font-weight-normal mt-3 ml-2">
+                                USDC{" "}
+                                {
+                                  SUBSCRIPTION_PLANS_PRICES[
+                                    SUBSCRIPTION_PLANS_enum.FOREVER
+                                  ].price
+                                }
+                              </h6>
+                            </div>
+                          </div>
                         </div>
-                        <h3 className="mt-11 text-dodger">Forever Free</h3>
+                        <h3 className="mt-4 text-dodger font-size-6">
+                          Forever Free
+                        </h3>
                       </div>
                       {/* <!-- card-header end --> */}
                       {/* <!-- card-body start --> */}
-                      <div className="card-body px-0 pt-11 pb-6">
+
+                      <div
+                        className="card-body px-0 pt-4 pb-4 "
+                        style={{
+                          minHeight: "330px !important",
+                        }}
+                      >
                         <ul className="list-unstyled">
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
-                            Unlimited Job Postings
+                            Unlimited Job Postings ($
+                            {
+                              SUBSCRIPTION_PLANS_PRICES[
+                                SUBSCRIPTION_PLANS_enum.FOREVER
+                              ].job_posting_price
+                            }
+                            /job)
                           </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                             Unlimited View Applied Candidate's social
                           </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                             Job Alert Emails
                           </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
+                          <li className="mb-6 text-black-2 d-flex list-item">
                             <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
                             Access to all the Applicants in the platform
-                          </li>
-                          <li className="mb-6 text-black-2 d-flex font-size-4">
-                            <i className="fas fa-check font-size-3 text-black-2 mr-3"></i>{" "}
-                            *Plan valid for selected company
                           </li>
                         </ul>
                       </div>
                       {/* <!-- card-body end --> */}
                       {/* <!-- card-footer end --> */}
                       <div className="card-footer bg-transparent border-0 px-0 py-0">
-                        <a
-                          className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase"
-                          onClick={() =>
-                            handlePaymentOfPlan(SUBSCRIPTION_PLANS_enum.FOREVER)
-                          }
-                        >
-                          Go for Forever Plan
-                        </a>
+                        {planType === SUBSCRIPTION_PLANS_enum.FOREVER ? (
+                          <button
+                            className="btn btn-gray btn-h-60 text-white rounded-5 btn-block text-uppercase"
+                            disabled={true}
+                            style={{
+                              cursor: "not-allowed",
+                            }}
+                          >
+                            Currently Active
+                          </button>
+                        ) : (
+                          <button
+                            className="btn btn-green btn-h-60 text-white rounded-5 btn-block text-uppercase"
+                            onClick={() =>
+                              handlePaymentOfPlan(
+                                SUBSCRIPTION_PLANS_enum.FOREVER
+                              )
+                            }
+                          >
+                            Start with forever
+                          </button>
+                        )}
                       </div>
                       {/* <!-- card-footer end --> */}
                     </div>

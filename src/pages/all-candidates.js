@@ -1,21 +1,16 @@
-import React, { useContext, useEffect, useState } from "react";
-import Link from "next/link";
-import imgF1 from "../assets/image/l1/png/feature-brand-1.png";
-
-import { toast } from "react-toastify";
+import React, { useContext, useEffect } from "react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import GlobalContext from "../context/GlobalContext";
 import Loader from "../components/Loader";
+import Link from "next/link";
 
 const AllCandidates = () => {
   const gContext = useContext(GlobalContext);
 
   const { allCandidates, loading } = gContext;
 
-  console.log(allCandidates, "allCandidates");
-
   const { connection } = useConnection();
-
+  console.log(allCandidates, "allCandidates");
   useEffect(() => {
     if (!connection) return;
 
@@ -29,8 +24,6 @@ const AllCandidates = () => {
   //   if(!allCandidates || !allCandidates.length) return;
 
   // },[allCandidates])
-
-  console.log(allCandidates, "allCandidates");
 
   return (
     <>
@@ -96,29 +89,32 @@ const AllCandidates = () => {
                         }}
                       >
                         <th scope="row" className="pl-6 border-0 py-7 pr-0">
-                          <a
-                            className="media min-width-px-235 align-items-center"
-                            onClick={() => viewCandidateProfile(item)}
-                            style={{
-                              cursor: "pointer",
-                            }}
+                          <Link
+                            href={`/candidate-profile/${applicant.owner_pubkey}`}
                           >
-                            <div className="circle-36 mr-6">
-                              <img
-                                src={applicant?.image_uri}
-                                alt=""
-                                style={{
-                                  width: "40px",
-                                  height: "40px",
-                                  objectFit: "cover",
-                                  borderRadius: "50%",
-                                }}
-                              />
-                            </div>
-                            <h4 className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                              {applicant?.name}
-                            </h4>
-                          </a>
+                            <a
+                              className="media min-width-px-235 align-items-center"
+                              style={{
+                                cursor: "pointer",
+                              }}
+                            >
+                              <div className="circle-36 mr-6">
+                                <img
+                                  src={applicant?.image_uri}
+                                  alt=""
+                                  style={{
+                                    width: "40px",
+                                    height: "40px",
+                                    objectFit: "cover",
+                                    borderRadius: "50%",
+                                  }}
+                                />
+                              </div>
+                              <h4 className="font-size-4 mb-0 font-weight-semibold text-black-2">
+                                {applicant?.name}
+                              </h4>
+                            </a>
+                          </Link>
                         </th>
                         <td className="table-y-middle py-7 min-width-px-235 pr-0">
                           <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
@@ -175,7 +171,7 @@ const AllCandidates = () => {
                         background: "#eee",
                       }}
                     >
-                      No Applicants yet
+                      No applicants found
                     </div>
                   )}
                 </tbody>
