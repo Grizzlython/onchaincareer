@@ -199,7 +199,6 @@ export const getContactInfoByUserAccount = async (
   let contactInfoExists = await connection.getAccountInfo(
     contact_info_state_account[0]
   );
-  console.log("contactInfoExists ", contactInfoExists);
 
   if (!contactInfoExists) {
     return null;
@@ -645,6 +644,9 @@ export const getCompanyInfo = async (company_info_account, connection) => {
   const companyStateInfo = CompanyInfoState.deserialize(
     companyInfoAccountExists.data
   );
+  if (companyStateInfo) {
+    companyStateInfo.pubkey = company_info_account;
+  }
   return companyStateInfo;
 };
 
@@ -2138,7 +2140,7 @@ export const add_jobpost_info = async (
   provider,
   owner,
   jobPostInfo,
-  company_seq_number,
+  selectedCompanyPubkey,
   connection,
   signTransaction
 ) => {
@@ -2164,14 +2166,8 @@ export const add_jobpost_info = async (
       applicant_info_state_account[0].toBase58()
     );
 
-    const company_info_account = await PublicKey.findProgramAddress(
-      [
-        Buffer.from(COMPANY_STATE_ACCOUNT_PREFIX),
-        Buffer.from(company_seq_number),
-        applicant_info_state_account[0].toBuffer(),
-      ],
-      JobsOnChain_Company_Info_ID
-    );
+    const company_info_account = [new PublicKey(selectedCompanyPubkey)];
+
     const company_info_account_exists = await connection.getAccountInfo(
       company_info_account[0]
     );
@@ -2313,7 +2309,7 @@ export const add_jobpost_info = async (
 export const update_jobpost_info = async (
   owner,
   jobPostInfo,
-  company_seq_number,
+  selectedCompanyPubkey,
   connection,
   signTransaction
 ) => {
@@ -2361,14 +2357,17 @@ export const update_jobpost_info = async (
       applicant_info_state_account[0].toBase58()
     );
 
-    const company_info_account = await PublicKey.findProgramAddress(
-      [
-        Buffer.from(COMPANY_STATE_ACCOUNT_PREFIX),
-        Buffer.from(company_seq_number),
-        applicant_info_state_account[0].toBuffer(),
-      ],
-      JobsOnChain_Company_Info_ID
-    );
+    // const company_info_account = await PublicKey.findProgramAddress(
+    //   [
+    //     Buffer.from(COMPANY_STATE_ACCOUNT_PREFIX),
+    //     Buffer.from(company_seq_number),
+    //     applicant_info_state_account[0].toBuffer(),
+    //   ],
+    //   JobsOnChain_Company_Info_ID
+    // );
+
+    const company_info_account = [selectedCompanyPubkey];
+
     const company_info_account_exists = await connection.getAccountInfo(
       company_info_account[0]
     );
@@ -2464,7 +2463,7 @@ export const update_jobpost_info = async (
 export const update_jobpost_long_description = async (
   owner,
   jobPostInfo,
-  company_seq_number,
+  selectedCompanyPubkey,
   connection,
   signTransaction
 ) => {
@@ -2497,14 +2496,7 @@ export const update_jobpost_long_description = async (
       applicant_info_state_account[0].toBase58()
     );
 
-    const company_info_account = await PublicKey.findProgramAddress(
-      [
-        Buffer.from(COMPANY_STATE_ACCOUNT_PREFIX),
-        Buffer.from(company_seq_number),
-        applicant_info_state_account[0].toBuffer(),
-      ],
-      JobsOnChain_Company_Info_ID
-    );
+    const company_info_account = [selectedCompanyPubkey];
     const company_info_account_exists = await connection.getAccountInfo(
       company_info_account[0]
     );
@@ -3914,6 +3906,8 @@ export const fetchUserInfoAccount = async (
       ],
       JobsOnChain_User_Info_ID
     );
+
+    console.log("user_info_state_account => ", user_info_state_account);
 
     const user_info_state_account_exists = await connection.getAccountInfo(
       user_info_state_account[0]

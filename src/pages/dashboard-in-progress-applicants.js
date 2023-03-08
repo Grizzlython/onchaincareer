@@ -169,7 +169,9 @@ export default function DashboardApplicants() {
                 </div>
                 <div className="col-lg-6">
                   <div className="d-flex flex-wrap align-items-center justify-content-lg-end">
-                    <p className="font-size-4 mb-0 mr-6 py-2">Filter by Job:</p>
+                    <p className="font-size-4 mb-0 mr-6 py-2">
+                      Filter by name and title:
+                    </p>
                     <div className="h-px-48">
                       {/* <Select
                         options={jobTitles}

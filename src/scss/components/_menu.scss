@@ -40,7 +40,7 @@
 }
   &>li{
     &>.nav-link{
-      color: var(--color-headings)!important;
+      color: var(--color-headings);
       font-size: 13px;
       font-weight: 700;
       text-transform: uppercase;

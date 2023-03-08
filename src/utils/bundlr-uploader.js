@@ -6,6 +6,7 @@ import {
   SOLANA_RPC_NETWORK,
 } from "./constants";
 import { WebBundlr } from "@bundlr-network/client";
+import { toast } from "react-toastify";
 
 export const getStorageCost = async (bundlr, size) => {
   if (size) {
@@ -139,30 +140,38 @@ export const parseInput = (bundlr, input) => {
 };
 
 export const checkForBalance = async (bundlr, size) => {
-  let price = await getStorageCost(bundlr, size); //price in BigNumber format
+  try{
+    let price = await getStorageCost(bundlr, size); //price in BigNumber format
   let convertedPriceInUnits = bundlr.utils.unitConverter(price); //returns price in terms of lamports (1 SOL = 1,000,000,000 lamports) in BigNumber format
 
   let bundlrWalletBalance = await bundlr.getLoadedBalance(); //balance in BigNumber format
   let convertedWalletbalanceInUnits =
     bundlr.utils.unitConverter(bundlrWalletBalance);
 
-  console.log(
-    convertedWalletbalanceInUnits,
-    convertedPriceInUnits,
-    "convertedWalletbalanceInUnits, convertedPriceInUnits"
-  );
-  console.log(
-    convertedWalletbalanceInUnits.toString(),
-    convertedPriceInUnits,
-    "convertedWalletbalanceInUnits, convertedPriceInUnits"
-  );
-
   if (convertedWalletbalanceInUnits.isLessThan(convertedPriceInUnits)) {
-    console.log("No wallet found or balance is zero");
+    toast.info("No wallet found or balance is zero. Recharging the wallet");
     //No arweave wallet found, create one
     let amountToFund = parseInput(bundlr, convertedPriceInUnits.toString());
-    if (!amountToFund) return;
+    if (!amountToFund) {
+      return {
+        status: false,
+        error: "Value too small to recharge the wallet. Please try again with a higher image size"
+      }
+    };
     await bundlr.fund(amountToFund);
     await sleep(2_000);
+    return {
+      status: true,
+      error: null
+    }
   }
+
+  }catch(err){
+    console.log(err,' err in checkForBalance')
+    return {
+      status: false,
+      error: err && err.message || "Failed to get balance or recharge the wallet. Please try again",
+    }
+  }
+  
 };

@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Select } from "../Core";
+import Loader from "../Loader";
 
 const educationSchema = {
   school_name: "",
@@ -33,7 +34,9 @@ const ModalEducation = (props) => {
   const gContext = useContext(GlobalContext);
   const eductions = gContext.educations;
   const currentEducationNumber = gContext.currentEducationNumber;
-  console.log(currentEducationNumber, "currentEducationNumber");
+
+  const { loading } = gContext;
+
   const [candidateEducation, setCandidateEducation] = useState(educationSchema);
 
   // const handleToggleofArchive = async (e, index) => {
@@ -88,10 +91,7 @@ const ModalEducation = (props) => {
         return;
       }
       const educationInfo = { ...candidateEducation };
-      console.log(
-        educationInfo,
-        "educationInfo in handleOrUpdateCandidateEducation"
-      );
+
       if (educationInfo.start_date) {
         educationInfo.start_date = new Date(educationInfo.start_date)
           .getTime()
@@ -190,320 +190,325 @@ const ModalEducation = (props) => {
           <i className="fas fa-times"></i>
         </button>
         <div className="mt-12" id="dashboard-body">
-          <div className="container">
-            <div className="mb-12 mb-lg-23">
-              <div className="row">
-                <div className="col-xxxl-9 px-lg-13 px-6">
-                  <h5 className="font-size-6 font-weight-semibold mb-11">
-                    {currentEducationNumber ? "Update " : "Add "} Education
-                  </h5>
-                  <div
-                    className="contact-form bg-white shadow-8 rounded-4 pl-sm-10 pl-4 pr-sm-11 pr-4 pt-15 pb-13"
-                    style={{
-                      border: "1px solid #e5e5e5",
-                    }}
-                  >
-                    <form action="/">
-                      <fieldset>
-                        {candidateEducation && (
-                          <>
-                            <div className="row">
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weCname"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    School Name
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weCompanyName"
-                                    className="form-control h-px-48"
-                                    id="weCname"
-                                    placeholder="eg. Oxford"
-                                    value={candidateEducation.school_name}
-                                    onChange={(e) =>
-                                      handleEducation(e, "school_name")
-                                    }
-                                  />
+          {loading ? (
+            <Loader />
+          ) : (
+            <div className="container">
+              <div className="mb-12 mb-lg-23">
+                <div className="row">
+                  <div className="col-xxxl-9 px-lg-13 px-6">
+                    <h5 className="font-size-6 font-weight-semibold mb-11">
+                      {currentEducationNumber ? "Update " : "Add "} Education
+                    </h5>
+                    <div
+                      className="contact-form bg-white shadow-8 rounded-4 pl-sm-10 pl-4 pr-sm-11 pr-4 pt-15 pb-13"
+                      style={{
+                        border: "1px solid #e5e5e5",
+                      }}
+                    >
+                      <form action="/">
+                        <fieldset>
+                          {candidateEducation && (
+                            <>
+                              <div className="row">
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weCname"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      School Name
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="weCompanyName"
+                                      className="form-control h-px-48"
+                                      id="weCname"
+                                      placeholder="eg. Oxford"
+                                      value={candidateEducation.school_name}
+                                      onChange={(e) =>
+                                        handleEducation(e, "school_name")
+                                      }
+                                    />
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weDesignation"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Degree
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weDesignation"
-                                    className="form-control h-px-48"
-                                    id="weDesignation"
-                                    placeholder="eg. B.tech"
-                                    value={candidateEducation.degree}
-                                    onChange={(e) =>
-                                      handleEducation(e, "degree")
-                                    }
-                                  />
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weDesignation"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Degree
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="weDesignation"
+                                      className="form-control h-px-48"
+                                      id="weDesignation"
+                                      placeholder="eg. B.tech"
+                                      value={candidateEducation.degree}
+                                      onChange={(e) =>
+                                        handleEducation(e, "degree")
+                                      }
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weFs"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Field of study
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="weStartDate"
+                                      className="form-control h-px-48"
+                                      id="weFs"
+                                      placeholder="eg. Computer Science"
+                                      value={candidateEducation.field_of_study}
+                                      onChange={(e) =>
+                                        handleEducation(e, "field_of_study")
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="sDate"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Start date
+                                    </label>
+                                    <input
+                                      type="date"
+                                      name="weEndDate"
+                                      className="form-control h-px-48"
+                                      id="sDate"
+                                      placeholder="eg. School start date"
+                                      value={
+                                        candidateEducation.start_date
+                                        // &&
+                                        // new Date(
+                                        //   Number(candidateEducation.start_date)
+                                        // )
+                                        //   .toISOString()
+                                        //   .slice(0, 10)
+                                      }
+                                      onChange={(e) =>
+                                        handleEducation(e, "start_date")
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="eDate"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      End date
+                                    </label>
+                                    <input
+                                      type="date"
+                                      name="weEndDate"
+                                      className="form-control h-px-48"
+                                      id="eDate"
+                                      placeholder="eg. School end date"
+                                      value={
+                                        candidateEducation.end_date
+                                        // &&
+                                        // new Date(
+                                        //   Number(candidateEducation.end_date)
+                                        // )
+                                        //   .toISOString()
+                                        //   .slice(0, 10)
+                                      }
+                                      onChange={(e) =>
+                                        handleEducation(e, "end_date")
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weDescription"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Grade
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="weDescription"
+                                      className="form-control h-px-48"
+                                      id="weDescription"
+                                      placeholder="eg. Grade"
+                                      value={candidateEducation.grade}
+                                      onChange={(e) =>
+                                        handleEducation(e, "grade")
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weDescription"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Activities (Comma seperated)
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="weDescription"
+                                      className="form-control h-px-48"
+                                      id="weDescription"
+                                      placeholder="eg. Class representative"
+                                      value={candidateEducation.activities}
+                                      onChange={(e) =>
+                                        handleEducation(e, "activities")
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weDescription"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Subjects (Comma seperated)
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="weDescription"
+                                      className="form-control h-px-48"
+                                      id="weDescription"
+                                      placeholder="eg. Maths"
+                                      value={candidateEducation.subjects}
+                                      onChange={(e) =>
+                                        handleEducation(e, "subjects")
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weDescription"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Is College ?
+                                    </label>
+
+                                    <Select
+                                      options={[
+                                        {
+                                          value: true,
+                                          label: "Yes",
+                                        },
+                                        {
+                                          value: false,
+                                          label: "No",
+                                        },
+                                      ]}
+                                      value={{
+                                        value: candidateEducation.is_college,
+                                        label: candidateEducation.is_college
+                                          ? "Yes"
+                                          : "No",
+                                      }}
+                                      placeholder="Select"
+                                      onChange={(e) =>
+                                        handleEducation(e, "is_college")
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weDescription"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Is Studying ?
+                                    </label>
+
+                                    <Select
+                                      options={[
+                                        {
+                                          value: true,
+                                          label: "Yes",
+                                        },
+                                        {
+                                          value: false,
+                                          label: "No",
+                                        },
+                                      ]}
+                                      value={{
+                                        value: candidateEducation.is_studying,
+                                        label: candidateEducation.is_studying
+                                          ? "Yes"
+                                          : "No",
+                                      }}
+                                      placeholder="Select"
+                                      onChange={(e) =>
+                                        handleEducation(e, "is_studying")
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-md-12">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weDescription"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Certificate urls
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="weDescription"
+                                      className="form-control h-px-48"
+                                      id="weDescription"
+                                      placeholder="eg. https://udemy.com/certifcate/yfgiabweq"
+                                      value={
+                                        candidateEducation.certificate_uris
+                                      }
+                                      onChange={(e) =>
+                                        handleEducation(e, "certificate_uris")
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-md-12">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weDescription"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Description
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="weDescription"
+                                      className="form-control h-px-48"
+                                      id="weDescription"
+                                      placeholder="eg. Description"
+                                      value={candidateEducation.description}
+                                      onChange={(e) =>
+                                        handleEducation(e, "description")
+                                      }
+                                    />
+                                  </div>
                                 </div>
                               </div>
 
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weFs"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Field of study
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weStartDate"
-                                    className="form-control h-px-48"
-                                    id="weFs"
-                                    placeholder="eg. Computer Science"
-                                    value={candidateEducation.field_of_study}
-                                    onChange={(e) =>
-                                      handleEducation(e, "field_of_study")
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="sDate"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Start date
-                                  </label>
-                                  <input
-                                    type="date"
-                                    name="weEndDate"
-                                    className="form-control h-px-48"
-                                    id="sDate"
-                                    placeholder="eg. School start date"
-                                    value={
-                                      candidateEducation.start_date
-                                      // &&
-                                      // new Date(
-                                      //   Number(candidateEducation.start_date)
-                                      // )
-                                      //   .toISOString()
-                                      //   .slice(0, 10)
-                                    }
-                                    onChange={(e) =>
-                                      handleEducation(e, "start_date")
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="eDate"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    End date
-                                  </label>
-                                  <input
-                                    type="date"
-                                    name="weEndDate"
-                                    className="form-control h-px-48"
-                                    id="eDate"
-                                    placeholder="eg. School end date"
-                                    value={
-                                      candidateEducation.end_date
-                                      // &&
-                                      // new Date(
-                                      //   Number(candidateEducation.end_date)
-                                      // )
-                                      //   .toISOString()
-                                      //   .slice(0, 10)
-                                    }
-                                    onChange={(e) =>
-                                      handleEducation(e, "end_date")
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weDescription"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Grade
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weDescription"
-                                    className="form-control h-px-48"
-                                    id="weDescription"
-                                    placeholder="eg. Grade"
-                                    value={candidateEducation.grade}
-                                    onChange={(e) =>
-                                      handleEducation(e, "grade")
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weDescription"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Activities (Comma seperated)
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weDescription"
-                                    className="form-control h-px-48"
-                                    id="weDescription"
-                                    placeholder="eg. Class representative"
-                                    value={candidateEducation.activities}
-                                    onChange={(e) =>
-                                      handleEducation(e, "activities")
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weDescription"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Subjects (Comma seperated)
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weDescription"
-                                    className="form-control h-px-48"
-                                    id="weDescription"
-                                    placeholder="eg. Maths"
-                                    value={candidateEducation.subjects}
-                                    onChange={(e) =>
-                                      handleEducation(e, "subjects")
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weDescription"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Is College ?
-                                  </label>
-
-                                  <Select
-                                    options={[
-                                      {
-                                        value: true,
-                                        label: "Yes",
-                                      },
-                                      {
-                                        value: false,
-                                        label: "No",
-                                      },
-                                    ]}
-                                    value={{
-                                      value: candidateEducation.is_college,
-                                      label: candidateEducation.is_college
-                                        ? "Yes"
-                                        : "No",
-                                    }}
-                                    placeholder="Select"
-                                    onChange={(e) =>
-                                      handleEducation(e, "is_college")
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weDescription"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Is Studying ?
-                                  </label>
-
-                                  <Select
-                                    options={[
-                                      {
-                                        value: true,
-                                        label: "Yes",
-                                      },
-                                      {
-                                        value: false,
-                                        label: "No",
-                                      },
-                                    ]}
-                                    value={{
-                                      value: candidateEducation.is_studying,
-                                      label: candidateEducation.is_studying
-                                        ? "Yes"
-                                        : "No",
-                                    }}
-                                    placeholder="Select"
-                                    onChange={(e) =>
-                                      handleEducation(e, "is_studying")
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-md-12">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weDescription"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Certificate urls
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weDescription"
-                                    className="form-control h-px-48"
-                                    id="weDescription"
-                                    placeholder="eg. https://udemy.com/certifcate/yfgiabweq"
-                                    value={candidateEducation.certificate_uris}
-                                    onChange={(e) =>
-                                      handleEducation(e, "certificate_uris")
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-md-12">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weDescription"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Description
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weDescription"
-                                    className="form-control h-px-48"
-                                    id="weDescription"
-                                    placeholder="eg. Description"
-                                    value={candidateEducation.description}
-                                    onChange={(e) =>
-                                      handleEducation(e, "description")
-                                    }
-                                  />
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* <a
+                              {/* <a
                               className="btn btn-outline-red text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
                               onClick={(e) => handleToggleofArchive(e)}
                             >
@@ -512,26 +517,27 @@ const ModalEducation = (props) => {
                                 ? "Archive"
                                 : "Unarchive"}
                             </a> */}
-                          </>
-                        )}
-                        <pre>{JSON.stringify(candidateEducation)}</pre>
-                        <div className="row">
-                          <div className="col-md-12">
-                            <input
-                              type="button"
-                              value="Submit"
-                              className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
-                              onClick={handleOrUpdateCandidateEducation}
-                            />
+                            </>
+                          )}
+                          <pre>{JSON.stringify(candidateEducation)}</pre>
+                          <div className="row">
+                            <div className="col-md-12">
+                              <input
+                                type="button"
+                                value="Submit"
+                                className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
+                                onClick={handleOrUpdateCandidateEducation}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </fieldset>
-                    </form>
+                        </fieldset>
+                      </form>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </Modal.Body>
     </ModalStyled>

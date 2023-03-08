@@ -158,7 +158,7 @@ const ModalCandidateProfile = (props) => {
         address: location,
         image_uri: "",
         bio: about,
-        skills: skills && skills.length > 0 ? skills.split(",") : "",
+        skills: skills && skills.length > 0 ? skills.split(",") : [],
         designation: designation,
         current_employment_status:
           currentEmploymentStatusState &&

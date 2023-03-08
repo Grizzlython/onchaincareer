@@ -30,13 +30,13 @@ export default function CandidateProfile() {
   const { connection } = useConnection();
   const [candidateProfile, setCandidateProfile] = React.useState({});
 
-  useEffect(() => {
+  // useEffect(() => {
     // if (!publicKey) return;
     // const applicantStateAccount = new PublicKey(userName);
     // gContext.getCandidateProfileByUsername(applicantStateAccount, connection);
     // gContext.fetchAndSetWorkExperience(applicantStateAccount, connection);
     // gContext.fetchAndSetProjects(applicantStateAccount, connection);
-  }, [userName]);
+  // }, [userName]);
 
   // const handleSocials = () => {
   //   gContext.setCandidateInfoAction("edit");
@@ -45,6 +45,7 @@ export default function CandidateProfile() {
   // const candidateProfile = gContext.candidateProfile;
 
   useEffect(() => {
+    if (!userName) return;
     if (!workflowSelectedToView || !Object.keys(workflowSelectedToView).length)
       return;
     setCandidateProfile(workflowSelectedToView.applicantInfo);
@@ -54,7 +55,7 @@ export default function CandidateProfile() {
     getCandidateProfileByUsername(applicantStateAccount, connection);
     fetchAndSetWorkExperience(applicantStateAccount, connection);
     fetchAndSetProjects(applicantStateAccount, connection);
-  }, [workflowSelectedToView]);
+  }, [workflowSelectedToView, userName]);
 
   return (
     <>

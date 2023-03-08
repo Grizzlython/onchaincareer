@@ -34,6 +34,7 @@ import {
   update_education_info,
   getWorkflowInfo,
   fetchAllUsers,
+  update_jobpost_long_description,
 } from "../utils/web3/web3_functions";
 import { WORKFLOW_STATUSES } from "../utils/web3/struct_decoders/jobsonchain_constants_enum";
 import { PublicKey } from "@solana/web3.js";
@@ -109,6 +110,8 @@ const GlobalProvider = ({ children }) => {
 
   const [userTypeModalVisible, setUserTypeModalVisible] = useState(false);
   const [showSelectCompanyModal, setShowSelectCompanyModal] = useState(false);
+
+  const [recruiterProfileModal, setRecruiterProfileModal] = useState(false);
 
   const [currentWorkflowSequenceNumber, setCurrentWorkflowSequenceNumber] =
     useState(0);
@@ -189,6 +192,10 @@ const GlobalProvider = ({ children }) => {
     setShowSelectCompanyModal(!showSelectCompanyModal);
   };
 
+  const toggleRecruiterProfileModal = () => {
+    setRecruiterProfileModal(!recruiterProfileModal);
+  };
+
   // custom functions for the application
   const signUpUser = async (payload) => {
     try {
@@ -211,6 +218,15 @@ const GlobalProvider = ({ children }) => {
     } catch (error) {
       console.log(error);
       toast.error("User creation failed");
+    }
+  };
+
+  const setRecruiterUser = (user) => {
+    try {
+      setUser(user);
+    } catch (error) {
+      console.log(error);
+      toast.error("Setting user failed");
     }
   };
 
@@ -475,7 +491,7 @@ const GlobalProvider = ({ children }) => {
     provider,
     owner,
     jobPostInfo,
-    company_seq_number,
+    selectedCompanyPubkey,
     connection,
     signTransaction
   ) => {
@@ -489,13 +505,21 @@ const GlobalProvider = ({ children }) => {
         provider,
         owner,
         jobPostInfo,
-        company_seq_number,
+        selectedCompanyPubkey,
         connection,
         signTransaction
       );
-      setJobPost(response.data?.data);
+      setJobPost(response);
+
+      console.log(response, "addJobPost_response");
+      await fetchAndSetCompanyPostedJobs(
+        selectedCompanyPubkey,
+        connection,
+        false
+      );
       setLoading(false);
       toast.success("😃 Job post created successfully");
+      return response;
     } catch (error) {
       toast.error("⚠️ Error creating job post");
       setLoading(false);
@@ -503,10 +527,38 @@ const GlobalProvider = ({ children }) => {
     }
   };
 
+  const updateJobPostLongDescription = async (
+    owner,
+    jobPostInfo,
+    selectedCompanyPubkey,
+    connection,
+    signTransaction
+  ) => {
+    try {
+      setLoading(true);
+      const response = await update_jobpost_long_description(
+        owner,
+        jobPostInfo,
+        selectedCompanyPubkey,
+        connection,
+        signTransaction
+      );
+
+      console.log(response, "updateJobPostLongDescription_response");
+      // toast.success("😃 Job post updated successfully");
+      setLoading(false);
+      return response;
+    } catch (error) {
+      setLoading(false);
+      toast.error("⚠️ Error updating job post");
+      throw Error(error.message);
+    }
+  };
+
   const updateJobPost = async (
     owner,
     jobPostInfo,
-    company_seq_number,
+    selectedCompanyPubkey,
     connection,
     signTransaction
   ) => {
@@ -519,7 +571,7 @@ const GlobalProvider = ({ children }) => {
       const response = await update_jobpost_info(
         owner,
         jobPostInfo,
-        company_seq_number,
+        selectedCompanyPubkey,
         connection,
         signTransaction
       );
@@ -1042,8 +1094,6 @@ const GlobalProvider = ({ children }) => {
     user_info_state_account = ""
   ) => {
     try {
-      setLoading(true);
-      console.log(publicKey, "publicKey in context socials");
       const res = await getContactInfoByUserAccount(
         publicKey,
         connection,
@@ -1051,9 +1101,7 @@ const GlobalProvider = ({ children }) => {
       );
       console.log(res, "res in context socials");
       setCandidateSocials(res);
-      setLoading(false);
     } catch (error) {
-      setLoading(false);
       toast.error("⚠️ Error while fetching socials");
     }
   };
@@ -1528,6 +1576,10 @@ const GlobalProvider = ({ children }) => {
         fetchAndSetAllUsers,
         isUserApplicant,
         isPremiumCompanyOwner,
+        recruiterProfileModal,
+        toggleRecruiterProfileModal,
+        setRecruiterUser,
+        updateJobPostLongDescription,
       }}
     >
       {children}

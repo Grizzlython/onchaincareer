@@ -1,23 +1,49 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { Select } from "../../components/Core";
 import imgH from "../../assets/image/l1/png/hero-image-man.png";
 import imgP from "../../assets/image/patterns/hero-pattern.png";
 import Link from "next/link";
 import { countries } from "../../staticData";
+import ParticleArea from "./ParticleArea";
+import Typed from 'react-typed';
+import { useConnection } from "@solana/wallet-adapter-react";
+import GlobalContext from "../../context/GlobalContext";
 
 const Hero = () => {
   const [jobTitle, setJobTitle] = React.useState("");
   const [country, setCountry] = React.useState(countries[0]);
+  const { connection } = useConnection();
+  const gContext = React.useContext(GlobalContext);
+  useEffect(() => {
+    if (connection) {
+      (async () => {
+        await gContext.fetchAndSetAllListedCompanies(connection);
+        await gContext.fetchAndSetAllJobListings(connection);
+        // await fetchAllUsers("applicant",connection);
+        // await gContext.fetchAndSetAllListedCompanies(connection);
+      })();
+    }
+  }, [connection]);
   return (
     <>
       {/* <!-- Hero Area --> */}
-      <div className="bg-gradient-1 pt-26 pt-md-32 pt-lg-33 pt-xl-35 position-relative z-index-1 overflow-hidden">
+      <div className="bg-gradient-1 pt-26 pt-md-32 pt-lg-33 pt-xl-35 position-relative z-index-1 overflow-hidden" style={{
+        paddingTop: "21rem !important"
+      }}>
         {/* <!-- .Hero pattern --> */}
         <div className="pos-abs-tr w-50 z-index-n2">
           <img src={imgP.src} alt="" className="gr-opacity-1" />
         </div>
         {/* <!-- ./Hero pattern --> */}
+        <div style={{
+              position: "absolute",
+              width: "100%",
+              height: "100%",
+              top: 100,
+        }}>
+        <ParticleArea></ParticleArea>
+        </div>
         <div className="container">
           <div className="row position-relative align-items-center">
             <div
@@ -26,9 +52,26 @@ const Hero = () => {
               data-aos-duration="1000"
               data-aos-delay="500"
             >
-              <h1 className="font-size-11 mb-12 pr-md-30 pr-lg-0">
-                Find the perfect job that you deserve.
-              </h1>
+              <h4 className="font-size-7 mb-12 pr-md-30 pr-lg-0">
+                Find the &nbsp;
+                <Typed
+                    typedRef={(typed) => { return typed }}
+                    strings={["Perfect","Suitable","High Paying"]}
+                    typeSpeed={40}
+                    backSpeed={50}
+                    backDelay={700}
+                    showCursor={false}
+                    style={{
+                      background:"#33b073",
+                      padding:"0px 10px",
+                      color: "white",
+                      fontSize:"2rem"
+                    
+                    }}
+                    loop >
+                      {/* <span>{animatedText}</span> */}
+                </Typed> job that you deserve.
+              </h4>
               <div className="">
                 {/* <!-- .search-form --> */}
                 <form action="/" className="search-form shadow-6">
@@ -79,7 +122,7 @@ const Hero = () => {
                 {/* <!-- ./search-form --> */}
                 <p className="heading-default-color font-size-3 pt-7">
                   <span className="text-smoke">Search keywords e.g.</span>{" "}
-                  Product Designer
+                  Blockchain Developer
                 </p>
               </div>
             </div>
@@ -89,9 +132,14 @@ const Hero = () => {
               data-aos="fade-left"
               data-aos-duration="1000"
               data-aos-delay="500"
+              style={{
+                zIndex: 0,
+              }}
             >
               <div className=" ml-xxl-23 ml-xl-12 ml-md-7">
-                <img src={imgH.src} alt="" className="w-100" />
+                <img src={imgH.src} alt="" className="w-100" style={{
+                  maxWidth: "90%",
+                }} />
               </div>
             </div>
             {/* <!-- ./Hero Right Image --> */}

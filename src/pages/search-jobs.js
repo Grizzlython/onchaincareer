@@ -9,13 +9,8 @@ import { useEffect } from "react";
 import { countries } from "../staticData";
 import { categoryOptions, sortTypes } from "../utils/constants";
 import GlobalContext from "../context/GlobalContext";
-
-const defaultExpLevels = [
-  { value: "entry", label: "Entry" },
-  { value: "jn", label: "Junior" },
-  { value: "mid", label: "Mid Level" },
-  { value: "sr", label: "Sinior" },
-];
+import { publicKey } from "@project-serum/borsh";
+import { useConnection } from "@solana/wallet-adapter-react";
 
 const defaultJobTypes = [
   { value: "all", label: "All Types" },
@@ -34,7 +29,9 @@ export default function SearchListTwo() {
 
   const gContext = useContext(GlobalContext);
 
-  const { allListedJobs } = gContext;
+  const { allListedJobs, fetchAndSetAllJobListings } = gContext;
+
+  const { connection } = useConnection();
 
   const { query } = useRouter();
   useEffect(() => {
@@ -51,6 +48,12 @@ export default function SearchListTwo() {
       setJobTitle(query.jobTitle);
     }
   }, [query]);
+
+  useEffect(() => {
+    async () => {
+      await fetchAndSetAllJobListings(connection);
+    };
+  }, [connection]);
   return (
     <>
       <PageWrapper>

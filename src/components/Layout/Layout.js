@@ -30,6 +30,7 @@ import ModalCandidateSocials from "../ModalCandidateSocials";
 import ModalUserType from "../ModalUserType/ModalUserType";
 import ModalEducation from "../ModalEducation";
 import ModalCompaniesSlider from "../ModalCompaniesSlider";
+import ModalRecruiterProfile from "../ModalRecruiterProfile";
 
 const Loader = styled.div`
   position: fixed;
@@ -120,6 +121,7 @@ const Layout = ({ children, pageContext }) => {
           <ModalJobPost />
           <ModalEducation />
           <ModalCompaniesSlider />
+          <ModalRecruiterProfile />
         </div>
       </ThemeProvider>
     );
@@ -152,15 +154,16 @@ const Layout = ({ children, pageContext }) => {
             {children}
           </div>
 
-          <ModalVideo />
-          <ModalApplication />
-          <ModalSignIn />
-          <ModalSignUp />
+          {/* <ModalVideo /> */}
+          {/* <ModalApplication /> */}
+          {/* <ModalSignIn /> */}
+          {/* <ModalSignUp /> */}
           <ModalProjects />
           <ModalJobPost />
           <ModalUserType />
           <ModalEducation />
           <ModalCompaniesSlider />
+          <ModalRecruiterProfile />
         </div>
       </ThemeProvider>
     );
@@ -187,10 +190,10 @@ const Layout = ({ children, pageContext }) => {
             <Footer isDark={gContext.footerDark} />
           </div>
 
-          <ModalVideo />
-          <ModalApplication />
-          <ModalSignIn />
-          <ModalSignUp />
+          {/* <ModalVideo /> */}
+          {/* <ModalApplication /> */}
+          {/* <ModalSignIn /> */}
+          {/* <ModalSignUp /> */}
           <ModalCompanyProfile />
           <ModalCandidateProfile />
           <ModalProjects />
@@ -200,6 +203,7 @@ const Layout = ({ children, pageContext }) => {
           <ModalJobPost />
           <ModalEducation />
           <ModalCompaniesSlider />
+          <ModalRecruiterProfile />
         </div>
       </ThemeProvider>
     </>

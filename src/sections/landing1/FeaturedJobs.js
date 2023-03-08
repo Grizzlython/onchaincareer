@@ -1,15 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import imgF1 from "../../assets/image/l1/png/feature-brand-1.png";
-import imgF2 from "../../assets/image/l1/png/feature-brand-2.png";
-import imgF3 from "../../assets/image/l1/png/feature-brand-3.png";
-import imgF4 from "../../assets/image/l1/png/feature-brand-4.png";
-import imgF5 from "../../assets/image/l1/png/feature-brand-5.png";
-import imgF6 from "../../assets/image/l1/png/feature-brand-6.png";
 
 import GlobalContext from "../../context/GlobalContext";
-import { toast } from "react-toastify";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import Loader from "../../components/Loader";
 
 const FeaturedJobs = () => {
@@ -30,7 +23,7 @@ const FeaturedJobs = () => {
               <div className="col-12 col-xl-6 col-lg-6">
                 <div className="text-center text-lg-left mb-13 mb-lg-0">
                   <h2 className="font-size-9 font-weight-bold">
-                    Featured Jobs
+                    Recently Added Jobs
                   </h2>
                 </div>
               </div>
@@ -48,7 +41,7 @@ const FeaturedJobs = () => {
             </div>
             {/* <!-- End Section Top --> */}
 
-            <div className="row justify-content-center">
+            <div className="row justify-content-start">
               {allListedJobs &&
                 allListedJobs.length > 0 &&
                 allListedJobs.slice(0, 6).map((jobListing, index) => (
@@ -67,7 +60,10 @@ const FeaturedJobs = () => {
                         <Link href="/#">
                           <a>
                             <img
-                              src={jobListing.logo || imgF1.src}
+                              src={
+                                jobListing.parsedInfo?.company_info?.logo_uri ||
+                                imgF1.src
+                              }
                               alt=""
                               style={{
                                 width: "75px",
@@ -87,7 +83,7 @@ const FeaturedJobs = () => {
                       <h2 className="mt-n4">
                         {/* <Link href="/#"> */}
                         <a className="font-size-7 text-black-2 font-weight-bold mb-4">
-                          {jobListing.parsedInfo.job_title}
+                          {jobListing.parsedInfo?.job_title}
                         </a>
                         {/* </Link> */}
                       </h2>
@@ -96,7 +92,7 @@ const FeaturedJobs = () => {
                           {/* <Link href="/#"> */}
                           <a className="bg-regent-opacity-15 text-denim font-size-3 rounded-3">
                             <i className="icon icon-pin-3 mr-2 font-weight-bold"></i>{" "}
-                            {jobListing.parsedInfo.job_location_type ===
+                            {jobListing.parsedInfo?.job_location_type ===
                             "remote"
                               ? "Remote"
                               : `${jobListing.parsedInfo.city}, ${jobListing.parsedInfo.country}`}
@@ -122,7 +118,14 @@ const FeaturedJobs = () => {
                           {/* </Link> */}
                         </li>
                       </ul>
-                      <p className="mb-7 font-size-4 text-gray">
+                      <p
+                        className="mb-7 font-size-4 text-gray"
+                        style={{
+                          maxHeight: "80px",
+                          minHeight: "80px",
+                          overflow: "auto",
+                        }}
+                      >
                         {jobListing.parsedInfo.short_description}
                       </p>
                       <div className="card-btn-group">

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import PageWrapper from "../components/PageWrapper";
 import { Select } from "../components/Core";
@@ -25,6 +25,9 @@ export default function DashboardJobs() {
     companySelectedByUser,
     selectedCompanyInfo: selectedCompanyInfoContext,
     loading,
+    getJobDetails,
+    getAllWorkflowsOfJob,
+    toggleJobPostModal,
   } = gContext;
 
   // const [postedJobs, setPostedJobs] = useState([]);
@@ -35,7 +38,7 @@ export default function DashboardJobs() {
   // }, [companySelectedByUser, companyPostedJobs]);
 
   const getAllJobWorkflows = async (jobpost_info_account) => {
-    const jobWorkflows = await gContext.getAllWorkflowsOfJob(
+    const jobWorkflows = await getAllWorkflowsOfJob(
       jobpost_info_account,
       connection
     );
@@ -44,12 +47,28 @@ export default function DashboardJobs() {
 
   const handleEditJobPost = async (jobpost_info_account) => {
     try {
-      await gContext.getJobDetails(jobpost_info_account, connection);
-      gContext.toggleJobPostModal();
+      await getJobDetails(jobpost_info_account, connection);
+      toggleJobPostModal();
     } catch (error) {
       console.log(error);
     }
   };
+
+  const [filter, setFilter] = useState("");
+  const [filteredJobs, setFilteredJobs] = useState([]);
+  useEffect(() => {
+    if (!companyPostedJobs || !companyPostedJobs.length > 0) return;
+    if (filter && filter.length > 0) {
+      const filterRegex = new RegExp(filter, "i");
+      const filteredJobs = companyPostedJobs.filter((job) => {
+        return filterRegex.test(job?.parsedInfo?.job_title);
+      });
+      setFilteredJobs(filteredJobs);
+    } else {
+      setFilteredJobs(companyPostedJobs);
+    }
+  }, [filter, companyPostedJobs]);
+
   return (
     <>
       <PageWrapper
@@ -74,10 +93,13 @@ export default function DashboardJobs() {
                   <div className="d-flex flex-wrap align-items-center justify-content-lg-end">
                     <p className="font-size-4 mb-0 mr-6 py-2">Filter by Job:</p>
                     <div className="h-px-48">
-                      <Select
-                        options={defaultJobs}
-                        className="pl-0 h-100 arrow-3 arrow-3-black min-width-px-273  text-black-2 d-flex align-items-center w-100"
-                        border={false}
+                      <input
+                        type="text"
+                        className="form-control h-px-48"
+                        id="namedash"
+                        placeholder="eg. Frontend Developer"
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
                       />
                     </div>
                   </div>
@@ -138,20 +160,20 @@ export default function DashboardJobs() {
                         </tr>
                       </thead>
                       <tbody>
-                        {companyPostedJobs && companyPostedJobs.length > 0 ? (
-                          companyPostedJobs?.map((job, index) => (
+                        {filteredJobs && filteredJobs.length > 0 ? (
+                          filteredJobs?.map((job, index) => (
                             <tr className="border border-color-2" key={index}>
-                                <td className="table-y-middle py-7 min-width-px-235">
-                                  <Link
-                                    href={`
+                              <td className="table-y-middle py-7 min-width-px-235">
+                                <Link
+                                  href={`
                                    /job-details/${job?.pubkey.toString()}
                                   `}
-                                  >
-                                    <a className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                                      {job?.parsedInfo?.job_title}
-                                    </a>
-                                  </Link>
-                                  </td>
+                                >
+                                  <a className="font-size-4 mb-0 font-weight-semibold text-black-2">
+                                    {job?.parsedInfo?.job_title}
+                                  </a>
+                                </Link>
+                              </td>
                               <td className="table-y-middle py-7 min-width-px-135">
                                 <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
                                   {job?.parsedInfo?.job_type}
@@ -211,9 +233,7 @@ export default function DashboardJobs() {
                                   Edit Job
                                 </a>
                               </td>
-                              <td className="table-y-middle py-7 min-width-px-10">
-                                
-                              </td>
+                              <td className="table-y-middle py-7 min-width-px-10"></td>
                             </tr>
                           ))
                         ) : (

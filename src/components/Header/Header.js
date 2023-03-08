@@ -14,12 +14,12 @@ import { menuItems, userMenuItems } from "./menuItems";
 
 import imgP from "../../assets/image/header-profile.png";
 import { useEffect } from "react";
+import { useRouter } from "next/router";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { toast } from "react-toastify";
-import {
-  check_if_user_exists,
-} from "../../utils/web3/web3_functions";
+import { check_if_user_exists } from "../../utils/web3/web3_functions";
+import { userTypeEnum } from "../../utils/constants";
 
 const SiteHeader = styled.header`
   .dropdown-toggle::after {
@@ -60,9 +60,12 @@ const Header = () => {
   const [showScrolling, setShowScrolling] = useState(false);
   const [showReveal, setShowReveal] = useState(false);
   const [cMenuItems, setCMenuItems] = useState(menuItems);
+  const [activeMenuItem, setActiveMenuItem] = useState(null);
 
   const size = useWindowSize();
-
+  const router = useRouter();
+  const { pathname } = router;
+  const rootRouteName = pathname.split("/")[1];
   useScrollPosition(({ prevPos, currPos }) => {
     if (currPos.y < 0) {
       setShowScrolling(true);
@@ -79,9 +82,15 @@ const Header = () => {
   const { connection } = useConnection();
 
   useEffect(() => {
+    if (rootRouteName) {
+      setActiveMenuItem(rootRouteName);
+    }
+  }, [rootRouteName]);
+
+  useEffect(() => {
     if (publicKey) {
       if (gContext.user) {
-        if (gContext.user?.user_type === "recruiter") {
+        if (gContext.user?.user_type === userTypeEnum.RECRUITER) {
           setCMenuItems(menuItems);
         } else {
           setCMenuItems(userMenuItems);
@@ -117,17 +126,6 @@ const Header = () => {
       gContext.updateUserStateAccount(null);
     }
   }, [publicKey, connected]);
-
-  useEffect(() => {
-    if (connection) {
-      (async () => {
-        await gContext.fetchAndSetAllListedCompanies(connection);
-        await gContext.fetchAndSetAllJobListings(connection);
-        // await fetchAllUsers("applicant",connection);
-        // await gContext.fetchAndSetAllListedCompanies(connection);
-      })();
-    }
-  }, [connection]);
 
   // const WalletMultiButtonDynamic = dynamic(
   //   async () =>
@@ -269,7 +267,12 @@ const Header = () => {
                               </ul>
                             </li>
                           ) : (
-                            <li className="nav-item" {...rest}>
+                            <li
+                              className={`nav-item ${
+                                activeMenuItem === name ? "active-link" : ""
+                              }`}
+                              {...rest}
+                            >
                               {isExternal ? (
                                 <a
                                   className="nav-link"
@@ -282,9 +285,14 @@ const Header = () => {
                               ) : (
                                 <Link href={`/${name}`}>
                                   <a
-                                    className="nav-link"
+                                    className={`nav-link ${
+                                      activeMenuItem === name
+                                        ? "activeAnchorItem"
+                                        : ""
+                                    }`}
                                     role="button"
                                     aria-expanded="false"
+                                    onClick={(e) => setActiveMenuItem(name)}
                                   >
                                     {label}
                                   </a>
@@ -344,11 +352,11 @@ const Header = () => {
                             gContext.user?.username.slice(-5)}
                       </a>
 
-                      <Link href="/#">
+                      {/* <Link href="/#">
                         <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
                           Edit Profile
                         </a>
-                      </Link>
+                      </Link> */}
                       {/* <Link href="/#">
                           <a
                             className=" dropdown-item py-2 text-red font-size-3 font-weight-semibold line-height-1p2 text-uppercase"
@@ -384,10 +392,11 @@ const Header = () => {
                       >
                         <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
                           {gContext.user?.user_type === "recruiter"
-                            ? "View Company Dashboard"
+                            ? "View Dashboard"
                             : "View Profile"}
                         </a>
                       </Link>
+
                       {/* <Link href="/#">
                           <a
                             className=" dropdown-item py-2 text-red font-size-3 font-weight-semibold line-height-1p2 text-uppercase"

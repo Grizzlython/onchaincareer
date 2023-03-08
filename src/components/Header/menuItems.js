@@ -4,8 +4,12 @@ export const menuItems = [
     label: "Home",
   },
   {
-    name: "dashboard-main",
-    label: "Dashboard",
+    name: "search-jobs",
+    label: "View jobs",
+  },
+  {
+    name: "all-companies",
+    label: "All companies",
   },
   // {
   //   name: "pages",
@@ -47,7 +51,7 @@ export const menuItems = [
   // },
   { name: "all-candidates", label: "Candidates" },
   { name: "pricing", label: "Pricing" },
-  { name: "faq", label: "FAQ" },
+  // { name: "faq", label: "FAQ" },
 
   // { name: "contact", label: "Contact" },
 ];
@@ -59,7 +63,7 @@ export const userMenuItems = [
   },
   {
     name: "search-jobs",
-    label: "View all jobs",
+    label: "View jobs",
   },
   {
     name: "all-companies",

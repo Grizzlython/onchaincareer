@@ -12,6 +12,7 @@ import {
 } from "../utils/bundlr-uploader";
 import fileReaderStream from "filereader-stream";
 import Loader from "../components/Loader";
+import { toast } from "react-toastify";
 
 const defaultTypes = [
   { value: "Product-based", label: "Product based" },
@@ -25,18 +26,28 @@ const defaultEmployees = [
   { value: "500+", label: "500+" },
 ];
 
-export default function DashboardSettings() {
+export default function UpdateCompany() {
+  const [updatedLogo, setUpdatedLogo] = useState("");
+  const [updatedCover, setUpdatedCover] = useState("");
   const [name, setName] = useState("");
-  const [logo, setLogo] = useState("");
+  const [logoUri, setLogoUri] = useState("");
   const [domain, setDomain] = useState("");
-  const [type, setType] = useState("");
+  const [companyType, setCompanyType] = useState("");
+  const [companySize, setCompanySize] = useState(""); //"small, medium, large"
+  const [companyStage, setCompanyStage] = useState("");
+  const [fundingAmount, setFundingAmount] = useState("0");
+  const [fundingCurrency, setFundingCurrency] = useState("");
+  const [imageUri, setImageUri] = useState("");
+  const [coverImageUri, setCoverImageUri] = useState("");
   const [foundedIn, setFoundedIn] = useState("");
   const [employeeSize, setEmployeeSize] = useState("");
   const [location, setLocation] = useState("");
-  const [linkedinHandle, setLinkedinHandle] = useState("");
-  const [twitterHandle, setTwitterHandle] = useState("");
   const [description, setDescription] = useState("");
   const [website, setWebsite] = useState("");
+  const [linkedinHandle, setLinkedinHandle] = useState("");
+  const [twitterHandle, setTwitterHandle] = useState("");
+  const [facebookHandle, setFacebookHandle] = useState("");
+  const [instagramHandle, setInstagramHandle] = useState("");
   const [archived, setArchived] = useState(false);
   const handleChange = (e) => {
     setArchived(!archived);
@@ -52,25 +63,37 @@ export default function DashboardSettings() {
   const { selectedCompanyInfo, loading } = gContext;
 
   useEffect(() => {
-    if (!selectedCompanyInfo) return;
+    if (!selectedCompanyInfo) {
+      return;
+    }
 
     const company = selectedCompanyInfo;
 
     setName(company.name);
-    setLogo(company.logo_uri);
-    setDomain(company.domain);
-    setType({ value: company.company_type, label: company.company_type });
+    setLogoUri(company.logo_uri);
+    setCompanyType({
+      value: company.company_type,
+      label: company.company_type,
+    });
+    setCompanySize(company.company_size);
+    setCompanyStage(company.company_stage);
+    setFundingAmount(company.funding_amount);
+    setFundingCurrency(company.funding_currency);
+    setImageUri(company.image_uri);
+    setCoverImageUri(company.cover_image_uri);
     setFoundedIn(company.founded_in);
     setEmployeeSize({
       value: company.employee_size,
       label: company.employee_size,
     });
     setLocation(company.address);
-
-    setLinkedinHandle(company.linkedin);
-    setTwitterHandle(company.twitter);
     setDescription(company.description);
     setWebsite(company.website);
+    setLinkedinHandle(company.linkedin);
+    setTwitterHandle(company.twitter);
+    setFacebookHandle(company.facebook);
+    setInstagramHandle(company.instagram);
+    setArchived(company.archived);
   }, [selectedCompanyInfo]);
 
   const [selectedFile, setSelectedFile] = useState(null);
@@ -112,11 +135,33 @@ export default function DashboardSettings() {
       //   image: formData,
       // };
 
-      console.log(file, "imagefile");
-      setLogo(file);
-
+      console.log(file, "logo imagefile");
+      setUpdatedLogo(file);
       onSelectFile(e);
 
+      return;
+    } catch (error) {
+      console.log(error, "image upload error");
+    }
+  };
+
+  const handleCoverUpload = (e) => {
+    try {
+      e.preventDefault();
+      const file = e.target.files[0];
+
+      const formData = new FormData();
+
+      formData.append("file", file);
+
+      // const payload = {
+      //   imageType: type,
+      //   image: formData,
+      // };
+
+      console.log(file, "cover imagefile");
+      setUpdatedCover(file);
+      onSelectFile(e);
       return;
     } catch (error) {
       console.log(error, "image upload error");
@@ -126,24 +171,27 @@ export default function DashboardSettings() {
   const handleUpdateCompany = async () => {
     try {
       if (!publicKey) {
-        alert("Please login to add company profile");
+        toast.error("Please login to add company profile");
         return;
       }
 
-      if (!selectedCompanyInfo) return;
+      if (!selectedCompanyInfo) {
+        toast.error("Please select a company to update");
+        return;
+      }
 
       const companyInfo = {
         username: publicKey.toString(), //32
         name: name, //64
-        logo_uri: logo, //128
+        logo_uri: logoUri, //128
         domain: domain, //64
-        company_type: type.value, //8 "product, service, both"
-        company_size: employeeSize.value, //8 "small, medium, large"
-        company_stage: "company_stage", //32
-        funding_amount: "10000", //8
-        funding_currency: "SOLG", //8
-        image_uri: "image_uri", //128
-        cover_image_uri: "cover_image_uri", //128
+        company_type: companyType && companyType.value, //8 "product, service, both"
+        company_size: companySize, //8 "small, medium, large"
+        company_stage: companyStage, //32
+        funding_amount: fundingAmount, //8
+        funding_currency: fundingCurrency, //8
+        image_uri: imageUri, //128
+        cover_image_uri: coverImageUri, //128
         founded_in: foundedIn, //8
         employee_size: employeeSize.value, //8
         address: location, //512
@@ -151,8 +199,8 @@ export default function DashboardSettings() {
         website: website, //128
         linkedin: linkedinHandle, //128
         twitter: twitterHandle, //128
-        facebook: "facebook", //128
-        instagram: "instagram", //128
+        facebook: facebookHandle, //128
+        instagram: instagramHandle, //128
         company_seq_number: selectedCompanyInfo?.company_seq_number,
         archived: archived,
       };
@@ -162,50 +210,70 @@ export default function DashboardSettings() {
       const adapter = wallet?.adapter;
       const { bundlr } = await initiateBundlr(adapter);
 
-      console.log(bundlr, "bundlr");
-      console.log(logo, "logo");
       if (!bundlr) {
+        toast.error("Please connect your wallet or try refreshing the page");
         return;
       }
 
       let uploadedImageUri = "";
       // const symbol = "WEB3JOBS";
 
-      if (logo && logo.name) {
-        console.log("in here");
-        const fileType = logo.type;
-        const imageBuffer = fileReaderStream(logo);
-        // const imageBuffer = Buffer.from(logo, 'base64')
-        // const temp = await readAsArrayBuffer(logo)
-        // console.log(imageBuffer,'imageBuffer')
-        // const imageBuffer = Buffer.from(JSON.stringify(imageData));
-
-        await checkForBalance(bundlr, logo.size);
+      if (updatedLogo && updatedLogo.name) {
+        const fileType = updatedLogo.type;
+        const imageBuffer = fileReaderStream(updatedLogo);
+        const result = await checkForBalance(bundlr, updatedLogo.size);
+        if (!result.status) {
+          toast.error(result.error);
+          return;
+        }
         let uploadResult = await uploadViaBundlr(bundlr, imageBuffer, fileType);
         if (!uploadResult.status) {
-          return {
-            success: false,
-            error: uploadResult.error,
-          };
+          console.log(uploadResult.error, "uploadResult.error");
+          toast.error(uploadResult.error);
+          return;
         }
         uploadedImageUri = uploadResult.asset_address;
-        console.log(uploadedImageUri, "uploadedImageUri");
+        console.log(uploadedImageUri, "uploadedImageUri in update job post");
         companyInfo.logo_uri = uploadedImageUri;
+        companyInfo.image_uri = uploadedImageUri;
       }
 
-      // await gContext.updateCompanyProfile(
-      //   publicKey,
-      //   companyInfo,
-      //   connection,
-      //   signTransaction
-      // );
+      if (updatedCover && updatedCover.name) {
+        const fileType = updatedCover.type;
+        const imageBuffer = fileReaderStream(updatedCover);
+        const result = await checkForBalance(bundlr, updatedCover.size);
+        if (!result.status) {
+          toast.error(result.error);
+          return;
+        }
+        let uploadResult = await uploadViaBundlr(bundlr, imageBuffer, fileType);
+        if (!uploadResult.status) {
+          console.log(uploadResult.error, "uploadResult.error");
+          toast.error(uploadResult.error);
+          return;
+        }
+        let uploadedCoverUri = uploadResult.asset_address;
+        console.log(uploadedCoverUri, "updatedCover in update job post");
+        companyInfo.cover_image_uri = uploadedCoverUri;
+      }
+
+      console.log(companyInfo, "updateCompanyInfo");
+
+      await gContext.updateCompanyProfile(
+        publicKey,
+        companyInfo,
+        connection,
+        signTransaction
+      );
       router.push("/dashboard-main");
     } catch (error) {
       console.log(error);
+      toast.error((error && error.message) || "Something went wrong");
     }
   };
 
   const [editLogo, setEditLogo] = useState(false);
+  const [editCover, setEditCover] = useState(false);
   return (
     <>
       <PageWrapper
@@ -237,83 +305,170 @@ export default function DashboardSettings() {
                           border: "1px solid #e5e5e5",
                         }}
                       >
-                        <div className="upload-file mb-16 text-center">
-                          {selectedCompanyInfo?.logo_uri && !editLogo ? (
-                            <>
-                              <img
-                                src={selectedCompanyInfo?.logo_uri}
-                                alt=""
-                                className="img-fluid rounded-circle"
-                                style={{
-                                  width: "100px",
-                                  height: "100px",
-                                  objectFit: "cover",
-                                  borderRadius: "50%",
-                                }}
-                              />
-                              <br />
-                              <button
-                                onClick={() => setEditLogo(true)}
-                                className="mt-4"
-                              >
-                                Edit logo
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  // alignItems: "center",
-                                  justifyContent: "center",
-                                }}
-                              >
-                                <div>
-                                  <div
-                                    id="userActions"
-                                    className="square-144 m-auto px-6 mb-7"
-                                  >
-                                    <label
-                                      htmlFor="fileUpload"
-                                      className="mb-0 font-size-4 text-smoke"
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <div className="upload-file mb-16 text-center">
+                            {selectedCompanyInfo?.logo_uri && !editLogo ? (
+                              <>
+                                <img
+                                  src={selectedCompanyInfo?.logo_uri}
+                                  alt=""
+                                  className="img-fluid rounded-circle"
+                                  style={{
+                                    width: "100px",
+                                    height: "100px",
+                                    objectFit: "cover",
+                                    borderRadius: "50%",
+                                  }}
+                                />
+                                <br />
+                                <button
+                                  onClick={() => setEditLogo(true)}
+                                  className="mt-4"
+                                >
+                                  Edit logo
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    // alignItems: "center",
+                                    justifyContent: "center",
+                                  }}
+                                >
+                                  <div>
+                                    <div
+                                      id="userActions"
+                                      className="square-144 m-auto px-6 mb-7"
                                     >
-                                      Browse or Drag and Drop
-                                    </label>
+                                      <label
+                                        htmlFor="fileUpload"
+                                        className="mb-0 font-size-4 text-smoke"
+                                      >
+                                        Browse or Drag and Drop
+                                      </label>
 
-                                    <input
-                                      type="file"
-                                      id="fileUpload"
-                                      className="sr-only"
-                                      // value={}
-                                      onChange={(e) => handleUpload(e)}
-                                      accept="image/*"
-                                    />
+                                      <input
+                                        type="file"
+                                        id="fileUpload"
+                                        className="sr-only"
+                                        // value={}
+                                        onChange={(e) => handleUpload(e)}
+                                        accept="image/*"
+                                      />
+                                    </div>
+                                    <button
+                                      onClick={() => setEditLogo(false)}
+                                      className="mt-4"
+                                    >
+                                      Cancel edit
+                                    </button>
                                   </div>
-                                  <button
-                                    onClick={() => setEditLogo(false)}
-                                    className="mt-4"
-                                  >
-                                    Cancel edit
-                                  </button>
+                                  {preview && (
+                                    <div className="ml-10">
+                                      <p>Image preview</p>
+                                      <img
+                                        src={preview}
+                                        alt=""
+                                        style={{
+                                          width: "100px",
+                                          height: "100px",
+                                          objectFit: "cover",
+                                          borderRadius: "50%",
+                                        }}
+                                      />
+                                    </div>
+                                  )}
                                 </div>
-                                {preview && (
-                                  <div className="ml-10">
-                                    <p>Image preview</p>
-                                    <img
-                                      src={preview}
-                                      alt=""
-                                      style={{
-                                        width: "100px",
-                                        height: "100px",
-                                        objectFit: "cover",
-                                        borderRadius: "50%",
-                                      }}
-                                    />
+                              </>
+                            )}
+                          </div>
+                          <div className="upload-file mb-16 text-center ml-4">
+                            {selectedCompanyInfo?.cover_image_uri &&
+                            !editCover ? (
+                              <>
+                                <img
+                                  src={selectedCompanyInfo?.cover_image_uri}
+                                  alt=""
+                                  className="img-fluid rounded-circle"
+                                  style={{
+                                    width: "100px",
+                                    height: "100px",
+                                    objectFit: "cover",
+                                    borderRadius: "50%",
+                                  }}
+                                />
+                                <br />
+                                <button
+                                  onClick={() => setEditCover(true)}
+                                  className="mt-4"
+                                >
+                                  Edit cover image
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    // alignItems: "center",
+                                    justifyContent: "center",
+                                  }}
+                                >
+                                  <div>
+                                    <div
+                                      id="userActions"
+                                      className="square-144 m-auto px-6 mb-7"
+                                    >
+                                      <label
+                                        htmlFor="fileUpload"
+                                        className="mb-0 font-size-4 text-smoke"
+                                      >
+                                        Browse or Drag and Drop
+                                      </label>
+
+                                      <input
+                                        type="file"
+                                        id="fileUpload"
+                                        className="sr-only"
+                                        // value={}
+                                        onChange={(e) => handleCoverUpload(e)}
+                                        accept="image/*"
+                                      />
+                                    </div>
+                                    <button
+                                      onClick={() => setEditCover(false)}
+                                      className="mt-4"
+                                    >
+                                      Cancel edit
+                                    </button>
                                   </div>
-                                )}
-                              </div>
-                            </>
-                          )}
+                                  {preview && (
+                                    <div className="ml-10">
+                                      <p>Image preview</p>
+                                      <img
+                                        src={preview}
+                                        alt=""
+                                        style={{
+                                          width: "100px",
+                                          height: "100px",
+                                          objectFit: "cover",
+                                          borderRadius: "10px",
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </div>
                         </div>
                         <form action="/">
                           <fieldset>
@@ -369,8 +524,8 @@ export default function DashboardSettings() {
                                     options={defaultTypes}
                                     className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
                                     border={false}
-                                    value={type}
-                                    onChange={setType}
+                                    value={companyType}
+                                    onChange={setCompanyType}
                                   />
                                 </div>
                               </div>
@@ -474,6 +629,48 @@ export default function DashboardSettings() {
                                     value={twitterHandle}
                                     onChange={(e) =>
                                       setTwitterHandle(e.target.value)
+                                    }
+                                    maxLength={32}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-lg-6">
+                                <div className="form-group">
+                                  <label
+                                    htmlFor="twitter"
+                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                  >
+                                    Facebook handle
+                                  </label>
+                                  <input
+                                    type="text"
+                                    className="form-control h-px-48"
+                                    id="twitter"
+                                    placeholder="company link"
+                                    value={facebookHandle}
+                                    onChange={(e) =>
+                                      setFacebookHandle(e.target.value)
+                                    }
+                                    maxLength={32}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-lg-6">
+                                <div className="form-group">
+                                  <label
+                                    htmlFor="twitter"
+                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                  >
+                                    Instagram handle
+                                  </label>
+                                  <input
+                                    type="text"
+                                    className="form-control h-px-48"
+                                    id="twitter"
+                                    placeholder="company link"
+                                    value={instagramHandle}
+                                    onChange={(e) =>
+                                      setInstagramHandle(e.target.value)
                                     }
                                     maxLength={32}
                                   />

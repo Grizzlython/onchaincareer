@@ -25,7 +25,7 @@ const Companies = () => {
             <div className="col-12 col-xl-6 col-lg-6">
               <div className="text-center text-lg-left mb-13 mb-lg-0">
                 <h2 className="font-size-9 font-weight-bold">
-                  Featured Companies
+                  Recently Added Companies
                 </h2>
               </div>
             </div>
@@ -42,7 +42,7 @@ const Companies = () => {
             {/* <!-- Section Button End --> */}
           </div>
 
-          <div className="row justify-content-center">
+          <div className="row justify-content-start">
             {allListedCompanies &&
               allListedCompanies.length > 0 &&
               allListedCompanies.map((company, index) => (

@@ -5,14 +5,14 @@ import {coinList} from "./cryptoCurrency";
 export const currencies = [...currencyList, ...coinList];
 export const countries = countryList;
 export const defaultCategories = [
-  { value: "marketing", label: "Marketing" },
-  { value: "development", label: "Development" },
-  { value: "design", label: "Design" },
-  { value: "business_development", label: "Business Development" },
-  { value: "customer_service", label: "Customer service" },
-  { value: "sales_&_communication", label: "Sales & Communication" },
-  { value: "project_management", label: "Project Management" },
-  { value: "human_resource", label: "Human Resource" },
+  { value: "Marketing", label: "Marketing" },
+  { value: "Development", label: "Development" },
+  { value: "Design", label: "Design" },
+  { value: "Business Development", label: "Business Development" },
+  { value: "Customer service", label: "Customer service" },
+  { value: "sales_&Sales & Communication", label: "Sales & Communication" },
+  { value: "Project Management", label: "Project Management" },
+  { value: "Human Resource", label: "Human Resource" },
 ];
 
 export const jobPostJson = {
@@ -90,3 +90,38 @@ export const socialsJson = {
   behance: "string - max 32 characters",
   website: "string - max 32 characters",
 };
+
+export const defaultEmployees = [
+  { value: "10-50", label: "10-50" },
+  { value: "50-100", label: "50-100" },
+  { value: "100-500", label: "100-500" },
+  { value: "500+", label: "500+" },
+];
+
+export const defaultCompanyTypeOptions = [
+  { value: "Product-based", label: "Product based" },
+  { value: "Service-based", label: "Service based" },
+];
+
+export const jobTypes = [
+  { value: "Full-Time", label: "Full-Time" },
+  { value: "Part-Time", label: "Part-Time" },
+  { value: "Freelancer", label: "Freelancer" },
+  { value: "Internship", label: "Internship" },
+];
+
+export const defaultCurrencyTypes = [
+  { value: "fiat", label: "Fiat" },
+  { value: "crypto", label: "Crypto" },
+];
+
+export const remoteJobTypes = [
+  {
+    label: "Yes",
+    value: "remote",
+  },
+  {
+    label: "No",
+    value: "inOffice",
+  },
+]

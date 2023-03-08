@@ -2,107 +2,60 @@ import React from "react";
 
 import PageWrapper from "../components/PageWrapper";
 import { Select, Switch } from "../components/Core";
-import SidebarDashboard from "../components/SidebarDashboard";
 import { useContext } from "react";
 import GlobalContext from "../context/GlobalContext";
 import { useEffect } from "react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
-import { countries, currencies } from "../staticData";
+import {
+  countries,
+  currencies,
+  defaultCategories,
+  defaultCurrencyTypes,
+  remoteJobTypes,
+  jobTypes,
+} from "../staticData";
 import { BN } from "bn.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { Col, Form, Row } from "react-bootstrap";
-import { Steps, StepsProvider, useSteps } from "react-step-builder";
 
 import { Stepper } from "react-form-stepper";
-
-const defaultTypes = [
-  { value: "b2b", label: "B2B" },
-  { value: "saas", label: "SAAS" },
-  { value: "b2b", label: "b2b" },
-];
-
-const jobTypes = [
-  { value: "Full-Time", label: "Full-Time" },
-  { value: "Part-Time", label: "Part-Time" },
-  { value: "Freelancer", label: "Freelancer" },
-  { value: "Internship", label: "Internship" },
-];
-
-const defaultCategories = [
-  { value: "marketing", label: "Marketing" },
-  { value: "development", label: "Development" },
-  { value: "design", label: "Design" },
-  { value: "business_development", label: "Business Development" },
-  { value: "customer_service", label: "Customer service" },
-  { value: "sales_&_communication", label: "Sales & Communication" },
-  { value: "project_management", label: "Project Management" },
-  { value: "human_resource", label: "Human Resource" },
-];
-
-const defaultCurrencyTypes = [
-  { value: "fiat", label: "Fiat" },
-  { value: "crypto", label: "Crypto" },
-];
-
-const defaultJobLocationTypes = [
-  {
-    label: "Yes",
-    value: "remote",
-  },
-  {
-    label: "No",
-    value: "inOffice",
-  },
-];
 
 export default function DashboardJobPost() {
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [category, setCategory] = useState([defaultCategories[0]]);
-  const [location, setLocation] = useState("");
   const [jobType, setJobType] = useState(jobTypes[0]);
+  const [currencyType, setCurrencyType] = useState(defaultCurrencyTypes[0]);
+  const [currency, setCurrency] = useState(currencies[0]);
   const [minSalary, setMinSalary] = useState(0);
   const [maxSalary, setMaxSalary] = useState(0);
-  const [experience, setExperience] = useState("");
-  const [skills, setSkills] = useState("");
+  const [experience, setExperience] = useState(0);
+  const [skills, setSkills] = useState([]);
   const [qualification, setQualification] = useState("");
   const [description, setDescription] = useState("");
 
-  const [jobLocationType, setJobLocationType] = useState(
-    defaultJobLocationTypes[0]
-  );
-  const [country, setCountry] = useState("");
+  const [jobLocationType, setJobLocationType] = useState(remoteJobTypes[0]);
+  const [country, setCountry] = useState(countries[0]);
   const [city, setCity] = useState("");
-  const [currencyType, setCurrencyType] = useState("");
-  const [currency, setCurrency] = useState("");
 
   console.log(defaultCategories, "defaultCategories");
 
   const gContext = useContext(GlobalContext);
 
-  const { selectedCompanyInfo, addJobPost } = gContext;
+  const { selectedCompanyInfo, addJobPost, updateJobPostLongDescription } =
+    gContext;
 
-  // console.log(category, "category");
-
-  // console.log(skills.split(","), "skills");
-  // console.log(gContext.user, "gContext");
   const { publicKey, wallet, signTransaction } = useWallet();
   const { connection } = useConnection();
 
-  const user_info_state_account = gContext.userStateAccount;
   const router = useRouter();
 
   useEffect(() => {
-    // gContext.getCompanyProfileByUsername(gContext.user?.username);
-    if (
-      // !gContext.user?.isCompanyProfileComplete ||
-
-      !gContext.user?.userType === "recruiter"
-    ) {
-      Router.push("/");
+    if (!gContext.user?.userType === "recruiter") {
+      router.push("/");
       toast.error("Not allowed to view this page");
+      return;
     }
 
     // if (publicKey) {
@@ -115,9 +68,17 @@ export default function DashboardJobPost() {
     // }
   }, [publicKey]);
 
+  const [postedJobInfo, setPostedJobInfo] = useState(null);
+  const [activeStep, setActiveStep] = useState(0);
+
   const handleAddJobPost = async (e) => {
     try {
       e.preventDefault();
+
+      if (!selectedCompanyInfo) {
+        toast.error("Please select a company profile and try again");
+        return;
+      }
 
       let notFilledFields = "";
       if (!title) {
@@ -160,57 +121,91 @@ export default function DashboardJobPost() {
 
       if (notFilledFields && notFilledFields.length > 0) {
         toast.error(`Please fill ${notFilledFields} fields`, {
-          duration: 20000,
+          autoClose: 20000,
         });
         return;
       }
 
-      console.log(category, "category");
-
       const categories = [];
-      category.map((item) => categories.push(item.value));
+      if (category && category.length > 0)
+        category.map((item) => categories.push(item.value));
 
       const jobPostInfo = {
         job_title: title, //128
         short_description: shortDescription, //256
-        long_description: description, //1024
+        long_description: "", //1024
         category: categories, //32*4+10+10 //category is an array of job category like Frontend Developer
         job_type: jobType.value, //16 full-time, part-time, contract, internship",
-        currency_type: currencyType.value, //8 fiat, crypto
+        currency_type: currencyType.value, //8 fiat, crypto\
         currency: currency.value, //8 USD, ETH, BTC, etc
         min_salary: new BN(minSalary), //8 u64
         max_salary: new BN(maxSalary), //8 u64
         experience_in_months: new BN(experience), //8 u64
-        skills: skills.split(","), //64*10+10+10 // ReactJs, NodeJs, etc
+        skills: skills && skills.legnth > 0 ? skills.split(",") : [], //64*10+10+10 // ReactJs, NodeJs, etc
         qualification: qualification, //512
         job_location_type: jobLocationType.value, //32
-        country: jobLocationType.value === "remote" ? "" : country.value, //64
+        country: jobLocationType.value === "remote" ? "Any" : country.value, //64
         city: city, //64
       };
 
-      const company_seq_number = selectedCompanyInfo?.company_seq_number;
-
-      console.log(jobPostInfo, "payload-job-post");
-      console.log(selectedCompanyInfo, "companyName");
-
-      console.log(company_seq_number, "company_seq_number");
-
-      await addJobPost(
+      const res = await addJobPost(
         wallet.adapter,
         publicKey,
         jobPostInfo,
-        company_seq_number,
+        selectedCompanyInfo.pubkey,
         connection,
         signTransaction
       );
 
-      router.push("/dashboard-main");
+      setPostedJobInfo(res);
+
+      console.log(res, "res");
+
+      // router.push("/dashboard-main");
+      setActiveStep(1);
     } catch (error) {
       console.log(error, "error");
     }
   };
 
-  const [activeStep, setActiveStep] = useState(0);
+  const updateLongDescription = async (e) => {
+    try {
+      e.preventDefault();
+
+      if (!description && !description.length > 0) {
+        toast.error("Please enter description");
+        return;
+      }
+
+      if (!postedJobInfo && Object.keys(postedJobInfo).length === 0) {
+        toast.error("Please add job post first");
+        return;
+      }
+
+      const longDescriptionInfo = {
+        long_description:
+          description && description.length > 0 ? description : "", //1024
+        job_number: postedJobInfo.job_number,
+      };
+
+      const res = await updateJobPostLongDescription(
+        publicKey,
+        longDescriptionInfo,
+        selectedCompanyInfo.pubkey,
+        connection,
+        signTransaction
+      );
+
+      if (res.status && res.data) {
+        toast.success("Job post added successfully");
+        router.push("/dashboard-main");
+      }
+
+      console.log(res, "res");
+    } catch (error) {
+      console.log(error, "error");
+    }
+  };
 
   return (
     <>
@@ -230,7 +225,7 @@ export default function DashboardJobPost() {
             <div className="mb-15 mb-lg-23">
               <div className="row">
                 <div className="col-xxxl-9 px-lg-13 px-6">
-                  <h5 className="font-size-6 font-weight-semibold mb-11">
+                  <h5 className="font-size-6 font-weight-semibold mb-11 text-center">
                     Post a Job
                   </h5>
                   <Stepper
@@ -331,7 +326,7 @@ export default function DashboardJobPost() {
                                   Is remote job ?
                                 </label>
                                 <Select
-                                  options={defaultJobLocationTypes}
+                                  options={remoteJobTypes}
                                   className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
                                   border={false}
                                   placeholder="Select job location type"
@@ -570,7 +565,7 @@ export default function DashboardJobPost() {
 
                               <input
                                 type="button"
-                                value="Next"
+                                value="Submit basic info"
                                 className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
                                 onClick={handleAddJobPost}
                               />
@@ -621,7 +616,7 @@ export default function DashboardJobPost() {
                                   type="button"
                                   value="Post Job"
                                   className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
-                                  onClick={handleAddJobPost}
+                                  onClick={updateLongDescription}
                                 />
                               </div>
                             </div>

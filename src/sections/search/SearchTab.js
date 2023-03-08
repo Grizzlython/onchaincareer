@@ -184,8 +184,11 @@ const SearchTab = (props) => {
                                   <img src={imgF.src} alt="" />
                                 </div>
                                 <p className="font-weight-bold font-size-7 text-hit-gray mb-0">
+                                  <span className="text-primary mr-2">
+                                    {job?.parsedInfo?.currency}{" "}
+                                  </span>
                                   <span className="text-black-2">
-                                    {`${Number(job?.parsedInfo?.min_salary)} -
+                                    {` ${Number(job?.parsedInfo?.min_salary)} -
                                     ${Number(job?.parsedInfo?.max_salary)}`}
                                   </span>
                                 </p>
@@ -254,7 +257,16 @@ const SearchTab = (props) => {
                                   </span>
                                 </li>
                               </ul>
+                              <ul className="d-flex list-unstyled mr-n3 flex-wrap mr-n8 justify-content-md-end">
+                                <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
+                                  <span className="mr-4">Categories:</span>
+                                  <span className="font-weight-semibold">
+                                    {job?.parsedInfo?.category.join(",")}
+                                  </span>
+                                </li>
+                              </ul>
                             </div>
+                            {/* <div className="col-md-5"></div> */}
                           </div>
 
                           <div

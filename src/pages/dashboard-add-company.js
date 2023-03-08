@@ -6,37 +6,40 @@ import GlobalContext from "../context/GlobalContext";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
+import filereaderStream from "filereader-stream";
 import {
   checkForBalance,
   initiateBundlr,
   uploadViaBundlr,
 } from "../utils/bundlr-uploader";
-import filereaderStream from "filereader-stream";
 
-const defaultTypes = [
-  { value: "Product-based", label: "Product based" },
-  { value: "Service-based", label: "Service based" },
-];
+import {
+  currencies,
+  defaultCompanyTypeOptions,
+  defaultEmployees,
+} from "../staticData";
 
-const defaultEmployees = [
-  { value: "10-50", label: "10-50" },
-  { value: "50-100", label: "50-100" },
-  { value: "100-500", label: "100-500" },
-  { value: "500+", label: "500+" },
-];
-
-export default function DashboardAddCompany() {
+export default function AddCompany() {
+  const [updatedLogo, setUpdatedLogo] = useState(null);
+  const [updatedCover, setUpdatedCover] = useState(null);
   const [name, setName] = useState("");
-  const [logo, setLogo] = useState("https://www.solgames.fun/logo.png");
   const [domain, setDomain] = useState("");
-  const [type, setType] = useState(defaultTypes[0]);
+  const [companyType, setCompanyType] = useState(defaultCompanyTypeOptions[0]);
+  const [companySize, setCompanySize] = useState(""); //"small, medium, large"
+  const [companyStage, setCompanyStage] = useState("");
+  const [fundingAmount, setFundingAmount] = useState("0");
+  const [fundingCurrency, setFundingCurrency] = useState(currencies[0]);
+  const [imageUri, setImageUri] = useState("");
+  const [coverImageUri, setCoverImageUri] = useState("");
   const [foundedIn, setFoundedIn] = useState("");
   const [employeeSize, setEmployeeSize] = useState(defaultEmployees[0]);
   const [location, setLocation] = useState("");
-  const [linkedinHandle, setLinkedinHandle] = useState("");
-  const [twitterHandle, setTwitterHandle] = useState("");
   const [description, setDescription] = useState("");
   const [website, setWebsite] = useState("");
+  const [linkedinHandle, setLinkedinHandle] = useState("");
+  const [twitterHandle, setTwitterHandle] = useState("");
+  const [facebookHandle, setFacebookHandle] = useState("");
+  const [instagramHandle, setInstagramHandle] = useState("");
 
   const gContext = useContext(GlobalContext);
 
@@ -47,6 +50,7 @@ export default function DashboardAddCompany() {
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [coverPreview, setCoverPreview] = useState(null);
 
   useEffect(() => {
     if (!selectedFile) {
@@ -60,6 +64,19 @@ export default function DashboardAddCompany() {
     // free memory when ever this component is unmounted
     return () => URL.revokeObjectURL(objectUrl);
   }, [selectedFile]);
+
+  // useEffect(() => {
+  //   if (!setUpdatedCover) {
+  //     setCoverPreview(undefined);
+  //     return;
+  //   }
+
+  //   const objectUrl = URL.createObjectURL(selectedFile);
+  //   setCoverPreview(objectUrl);
+
+  //   // free memory when ever this component is unmounted
+  //   return () => URL.revokeObjectURL(objectUrl);
+  // }, [setUpdatedCover]);
 
   const onSelectFile = (e) => {
     if (!e.target.files || e.target.files.length === 0) {
@@ -75,20 +92,36 @@ export default function DashboardAddCompany() {
       e.preventDefault();
       const file = e.target.files[0];
 
-      const formData = new FormData();
+      // const formData = new FormData();
 
-      formData.append("file", file);
+      // formData.append("file", file);
+
+      setUpdatedLogo(file);
+
+      onSelectFile(e);
+      return;
+    } catch (error) {
+      console.log(error, "image upload error");
+    }
+  };
+
+  const handleCoverUpload = (e) => {
+    try {
+      e.preventDefault();
+      const file = e.target.files[0];
+
+      // const formData = new FormData();
+
+      // formData.append("file", file);
 
       // const payload = {
       //   imageType: type,
       //   image: formData,
       // };
 
-      console.log(file, "imagefile");
-      setLogo(file);
-
+      console.log(file, "cover imagefile");
+      setUpdatedCover(file);
       onSelectFile(e);
-
       return;
     } catch (error) {
       console.log(error, "image upload error");
@@ -98,7 +131,7 @@ export default function DashboardAddCompany() {
   const handleAddCompany = async () => {
     try {
       if (!publicKey) {
-        alert("Please login to add company profile");
+        toast.error("Please login to add company profile");
         return;
       }
 
@@ -109,7 +142,7 @@ export default function DashboardAddCompany() {
       if (!domain) {
         notFilledFields += "Domain, \n";
       }
-      if (!type) {
+      if (!companyType) {
         notFilledFields += "Company type, \n";
       }
       if (!foundedIn) {
@@ -150,68 +183,97 @@ export default function DashboardAddCompany() {
       const companyInfo = {
         username: publicKey.toString(), //32
         name: name, //64
-        logo_uri: logo, //128
+        logo_uri: updatedLogo, //128
         domain: domain, //64
-        company_type: type.value, //8 "product, service, both"
-        company_size: employeeSize.value, //8 "small, medium, large"
-        company_stage: "company_stage", //32
-        funding_amount: "10000", //8
-        funding_currency: "SOLG", //8
-        image_uri: "image_uri", //128
-        cover_image_uri: "cover_image_uri", //128
+        company_type:
+          companyType && companyType.value.length > 0 ? companyType.value : "", //8 "product, service, both"
+        company_size: companyStage, //8 "small, medium, large"
+        company_stage: companyStage, //32
+        funding_amount: fundingAmount, //8
+        funding_currency:
+          fundingCurrency && fundingCurrency.label.length > 0
+            ? fundingCurrency.label
+            : "", //8
+        image_uri: imageUri, //128
+        cover_image_uri: coverImageUri, //128
         founded_in: foundedIn, //8
-        employee_size: employeeSize.value, //8
+        employee_size:
+          employeeSize && employeeSize.value.length > 0
+            ? employeeSize.value
+            : "", //8
         address: location, //512
         description: description, // 1024
         website: website, //128
         linkedin: linkedinHandle, //128
         twitter: twitterHandle, //128
-        facebook: "facebook", //128
-        instagram: "instagram", //128
+        facebook: facebookHandle, //128
+        instagram: instagramHandle, //128
       };
+
+      console.log(companyInfo, "companyInfo");
 
       const adapter = wallet?.adapter;
       const { bundlr } = await initiateBundlr(adapter);
 
-      console.log(bundlr, "bundlr");
-      console.log(logo, "logo");
       if (!bundlr) {
+        toast.error("Please connect your wallet or try refreshing the page");
         return;
       }
 
       let uploadedImageUri = "";
       // const symbol = "WEB3JOBS";
 
-      if (logo && logo.name) {
-        console.log("in here");
-        const fileType = logo.type;
-        const imageBuffer = filereaderStream(logo);
+      if (updatedLogo && updatedLogo.name) {
+        const fileType = updatedLogo.type;
+        const imageBuffer = filereaderStream(updatedLogo);
 
-        await checkForBalance(bundlr, logo.size);
+        const result = await checkForBalance(bundlr, updatedLogo.size);
+        if (!result.status) {
+          toast.error(result.error);
+          return;
+        }
         let uploadResult = await uploadViaBundlr(bundlr, imageBuffer, fileType);
         if (!uploadResult.status) {
-          return {
-            success: false,
-            error: uploadResult.error,
-          };
+          toast.error(uploadResult.error);
+          return;
         }
         uploadedImageUri = uploadResult.asset_address;
-        console.log(uploadedImageUri, "uploadedImageUri");
+        console.log(uploadedImageUri, "uploadedImageUri in add job post");
         companyInfo.logo_uri = uploadedImageUri;
+        companyInfo.image_uri = uploadedImageUri;
       }
 
-      console.log(companyInfo, "companyInfo");
+      if (updatedCover && updatedCover.name) {
+        const fileType = updatedCover.type;
+        const imageBuffer = filereaderStream(updatedCover);
+        const result = await checkForBalance(bundlr, updatedCover.size);
+        if (!result.status) {
+          toast.error(result.error);
+          return;
+        }
+        let uploadResult = await uploadViaBundlr(bundlr, imageBuffer, fileType);
+        if (!uploadResult.status) {
+          console.log(uploadResult.error, "uploadResult.error");
+          toast.error(uploadResult.error);
+          return;
+        }
+        let uploadedCoverUri = uploadResult.asset_address;
+        console.log(uploadedCoverUri, "updatedCover in add job post");
+        companyInfo.cover_image_uri = uploadedCoverUri;
+      }
 
-      // await gContext.addCompanyProfile(
-      //   publicKey,
-      //   companyInfo,
-      //   connection,
-      //   signTransaction
-      // );
-      toast.success("Company profile added successfully");
+      console.log(companyInfo, "addCompanyInfo");
+
+      await gContext.addCompanyProfile(
+        publicKey,
+        companyInfo,
+        connection,
+        signTransaction
+      );
       router.push("/dashboard-main");
     } catch (error) {
       console.log(error);
+      toast.error((error && error.message) || "Something went wrong");
     }
   };
   return (
@@ -257,13 +319,40 @@ export default function DashboardAddCompany() {
                               htmlFor="fileUpload"
                               className="mb-0 font-size-4 text-smoke"
                             >
-                              Browse or Drag and Drop
+                              {updatedLogo
+                                ? updatedLogo.name
+                                : "Browse or Drag and Drop your logo here"}
                             </label>
                             <input
                               type="file"
                               id="fileUpload"
                               className="sr-only"
                               onChange={(e) => handleUpload(e)}
+                              accept="image/*"
+                            />
+                          </div>
+                        </div>
+                        <div
+                          className="upload-
+                        file mb-16 text-center ml-4"
+                        >
+                          <div
+                            id="userActions"
+                            className="square-144 m-auto px-6 mb-7"
+                          >
+                            <label
+                              htmlFor="coverUpload"
+                              className="mb-0 font-size-4 text-smoke"
+                            >
+                              {updatedCover
+                                ? updatedCover.name
+                                : "Browse or Drag and Drop your cover image here"}
+                            </label>
+                            <input
+                              type="file"
+                              id="coverUpload"
+                              className="sr-only"
+                              onChange={(e) => handleCoverUpload(e)}
                               accept="image/*"
                             />
                           </div>
@@ -278,7 +367,7 @@ export default function DashboardAddCompany() {
                                 width: "100px",
                                 height: "100px",
                                 objectFit: "cover",
-                                borderRadius: "50%",
+                                borderRadius: "10px",
                               }}
                             />
                           </div>
@@ -336,11 +425,11 @@ export default function DashboardAddCompany() {
                                 </label>
 
                                 <Select
-                                  options={defaultTypes}
+                                  options={defaultCompanyTypeOptions}
                                   className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
                                   border={false}
-                                  value={type}
-                                  onChange={setType}
+                                  value={companyType}
+                                  onChange={setCompanyType}
                                 />
                               </div>
                             </div>
@@ -415,7 +504,7 @@ export default function DashboardAddCompany() {
                                   type="text"
                                   className="form-control h-px-48"
                                   id="linkedin"
-                                  placeholder="eg. https://www.linkedin.com/company/solgames-fun/"
+                                  placeholder="LinkedIn handle"
                                   value={linkedinHandle}
                                   onChange={(e) =>
                                     setLinkedinHandle(e.target.value)
@@ -436,10 +525,52 @@ export default function DashboardAddCompany() {
                                   type="text"
                                   className="form-control h-px-48"
                                   id="twitter"
-                                  placeholder="eg. https://twitter.com/solgames_fun"
+                                  placeholder="Twitter handle"
                                   value={twitterHandle}
                                   onChange={(e) =>
                                     setTwitterHandle(e.target.value)
+                                  }
+                                  maxLength={32}
+                                />
+                              </div>
+                            </div>
+                            <div className="col-lg-6">
+                              <div className="form-group">
+                                <label
+                                  htmlFor="twitter"
+                                  className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                >
+                                  Facebook handle
+                                </label>
+                                <input
+                                  type="text"
+                                  className="form-control h-px-48"
+                                  id="twitter"
+                                  placeholder="Facebook handle"
+                                  value={facebookHandle}
+                                  onChange={(e) =>
+                                    setFacebookHandle(e.target.value)
+                                  }
+                                  maxLength={32}
+                                />
+                              </div>
+                            </div>
+                            <div className="col-lg-6">
+                              <div className="form-group">
+                                <label
+                                  htmlFor="twitter"
+                                  className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                >
+                                  Instagram handle
+                                </label>
+                                <input
+                                  type="text"
+                                  className="form-control h-px-48"
+                                  id="twitter"
+                                  placeholder="Instagram handle"
+                                  value={instagramHandle}
+                                  onChange={(e) =>
+                                    setInstagramHandle(e.target.value)
                                   }
                                   maxLength={32}
                                 />

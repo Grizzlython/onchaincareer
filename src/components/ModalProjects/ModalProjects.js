@@ -6,6 +6,7 @@ import GlobalContext from "../../context/GlobalContext";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import Loader from "../Loader";
 
 const projectSchema = {
   archived: "",
@@ -30,7 +31,9 @@ const ModalProjects = (props) => {
   const gContext = useContext(GlobalContext);
   const projects = gContext.projects;
   const currentProjectNumber = gContext.currentProjectNumber;
-  console.log(currentProjectNumber, "currentProjectNumber");
+
+  const { loading } = gContext;
+
   const [candidateProject, setCandidateProject] = useState(projectSchema);
   const [archived, setArchived] = useState(false);
   const handleChange = (e) => {
@@ -156,133 +159,140 @@ const ModalProjects = (props) => {
           <i className="fas fa-times"></i>
         </button>
         <div className="mt-12" id="dashboard-body">
-          <div className="container">
-            <div className="mb-12 mb-lg-23">
-              <div className="row">
-                <div className="col-xxxl-9 px-lg-13 px-6">
-                  <h5 className="font-size-6 font-weight-semibold mb-11">
-                    {currentProjectNumber ? "Update " : "Add "} project
-                  </h5>
-                  <div
-                    className="contact-form bg-white shadow-8 rounded-4 pl-sm-10 pl-4 pr-sm-11 pr-4 pt-15 pb-13"
-                    style={{
-                      border: "1px solid #e5e5e5",
-                    }}
-                  >
-                    <form action="/">
-                      <fieldset>
-                        {candidateProject && (
-                          <>
-                            <div className="row">
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weCname"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Project Name
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weCompanyName"
-                                    className="form-control h-px-48"
-                                    id="weCname"
-                                    placeholder="eg. Music player app"
-                                    value={candidateProject.project_name}
-                                    onChange={(e) =>
-                                      handleProjects(e, "project_name")
-                                    }
-                                  />
+          {loading ? (
+            <Loader />
+          ) : (
+            <div className="container">
+              <div className="mb-12 mb-lg-23">
+                <div className="row">
+                  <div className="col-xxxl-9 px-lg-13 px-6">
+                    <h5 className="font-size-6 font-weight-semibold mb-11">
+                      {currentProjectNumber ? "Update " : "Add "} project
+                    </h5>
+                    <div
+                      className="contact-form bg-white shadow-8 rounded-4 pl-sm-10 pl-4 pr-sm-11 pr-4 pt-15 pb-13"
+                      style={{
+                        border: "1px solid #e5e5e5",
+                      }}
+                    >
+                      <form action="/">
+                        <fieldset>
+                          {candidateProject && (
+                            <>
+                              <div className="row">
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weCname"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Project Name
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="weCompanyName"
+                                      className="form-control h-px-48"
+                                      id="weCname"
+                                      placeholder="eg. Music player app"
+                                      value={candidateProject.project_name}
+                                      onChange={(e) =>
+                                        handleProjects(e, "project_name")
+                                      }
+                                    />
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weDesignation"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Project Description
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weDesignation"
-                                    className="form-control h-px-48"
-                                    id="weDesignation"
-                                    placeholder="eg. Brief description"
-                                    value={candidateProject.project_description}
-                                    onChange={(e) =>
-                                      handleProjects(e, "project_description")
-                                    }
-                                  />
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weDesignation"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Project Description
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="weDesignation"
+                                      className="form-control h-px-48"
+                                      id="weDesignation"
+                                      placeholder="eg. Brief description"
+                                      value={
+                                        candidateProject.project_description
+                                      }
+                                      onChange={(e) =>
+                                        handleProjects(e, "project_description")
+                                      }
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weSdate"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Project Start Date
+                                    </label>
+                                    <input
+                                      type="date"
+                                      name="weStartDate"
+                                      className="form-control h-px-48"
+                                      id="weSdate"
+                                      placeholder="eg. Project Start Date"
+                                      value={
+                                        candidateProject.project_start_date
+                                      }
+                                      onChange={(e) =>
+                                        handleProjects(e, "project_start_date")
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-lg-6">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="eDate"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Project End Date
+                                    </label>
+                                    <input
+                                      type="date"
+                                      name="weEndDate"
+                                      className="form-control h-px-48"
+                                      id="eDate"
+                                      placeholder="eg. Project end date"
+                                      value={candidateProject.project_end_date}
+                                      onChange={(e) =>
+                                        handleProjects(e, "project_end_date")
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-md-12">
+                                  <div className="form-group">
+                                    <label
+                                      htmlFor="weDescription"
+                                      className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                    >
+                                      Project Link
+                                    </label>
+                                    <input
+                                      type="text"
+                                      name="weDescription"
+                                      className="form-control h-px-48"
+                                      id="weDescription"
+                                      placeholder="eg. Project Link"
+                                      value={candidateProject.project_link}
+                                      onChange={(e) =>
+                                        handleProjects(e, "project_link")
+                                      }
+                                    />
+                                  </div>
                                 </div>
                               </div>
 
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weSdate"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Project Start Date
-                                  </label>
-                                  <input
-                                    type="date"
-                                    name="weStartDate"
-                                    className="form-control h-px-48"
-                                    id="weSdate"
-                                    placeholder="eg. Project Start Date"
-                                    value={candidateProject.project_start_date}
-                                    onChange={(e) =>
-                                      handleProjects(e, "project_start_date")
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-lg-6">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="eDate"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Project End Date
-                                  </label>
-                                  <input
-                                    type="date"
-                                    name="weEndDate"
-                                    className="form-control h-px-48"
-                                    id="eDate"
-                                    placeholder="eg. Project end date"
-                                    value={candidateProject.project_end_date}
-                                    onChange={(e) =>
-                                      handleProjects(e, "project_end_date")
-                                    }
-                                  />
-                                </div>
-                              </div>
-                              <div className="col-md-12">
-                                <div className="form-group">
-                                  <label
-                                    htmlFor="weDescription"
-                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                                  >
-                                    Project Link
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="weDescription"
-                                    className="form-control h-px-48"
-                                    id="weDescription"
-                                    placeholder="eg. Project Link"
-                                    value={candidateProject.project_link}
-                                    onChange={(e) =>
-                                      handleProjects(e, "project_link")
-                                    }
-                                  />
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* <a
+                              {/* <a
                               className="btn btn-outline-red text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
                               onClick={(e) => handleToggleofArchive(e)}
                             >
@@ -291,51 +301,52 @@ const ModalProjects = (props) => {
                                 ? "Archive"
                                 : "Unarchive"}
                             </a> */}
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                marginBottom: "20px",
-                              }}
-                            >
-                              <h5 className="text-black-2 font-size-4 font-weight-semibold mb-4">
-                                Archive ?
-                              </h5>
-                              <label
-                                class="switch"
+                              <div
                                 style={{
-                                  marginLeft: "10px",
-                                  marginTop: "10px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  marginBottom: "20px",
                                 }}
                               >
-                                <input
-                                  type="checkbox"
-                                  id="switchArchive"
-                                  onChange={handleChange}
-                                />
-                                <span class="slider round"></span>
-                              </label>
+                                <h5 className="text-black-2 font-size-4 font-weight-semibold mb-4">
+                                  Archive ?
+                                </h5>
+                                <label
+                                  class="switch"
+                                  style={{
+                                    marginLeft: "10px",
+                                    marginTop: "10px",
+                                  }}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    id="switchArchive"
+                                    onChange={handleChange}
+                                  />
+                                  <span class="slider round"></span>
+                                </label>
+                              </div>
+                            </>
+                          )}
+                          <pre>{JSON.stringify(candidateProject)}</pre>
+                          <div className="row">
+                            <div className="col-md-12">
+                              <input
+                                type="button"
+                                value="Submit"
+                                className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
+                                onClick={handleOrUpdateCandidateProject}
+                              />
                             </div>
-                          </>
-                        )}
-                        <pre>{JSON.stringify(candidateProject)}</pre>
-                        <div className="row">
-                          <div className="col-md-12">
-                            <input
-                              type="button"
-                              value="Submit"
-                              className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
-                              onClick={handleOrUpdateCandidateProject}
-                            />
                           </div>
-                        </div>
-                      </fieldset>
-                    </form>
+                        </fieldset>
+                      </form>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </Modal.Body>
     </ModalStyled>

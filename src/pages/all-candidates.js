@@ -12,8 +12,6 @@ const AllCandidates = () => {
 
   const { allCandidates, loading } = gContext;
 
-  console.log(allCandidates, "allCandidates");
-
   const { connection } = useConnection();
 
   useEffect(() => {
@@ -29,8 +27,6 @@ const AllCandidates = () => {
   //   if(!allCandidates || !allCandidates.length) return;
 
   // },[allCandidates])
-
-  console.log(allCandidates, "allCandidates");
 
   return (
     <>

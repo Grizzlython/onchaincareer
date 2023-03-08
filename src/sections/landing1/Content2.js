@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 
-import imgC from "../../assets/image/l1/jpg/content-1-img2.jpg";
+import hiringImg from "../../assets/image/l1/png/Hiring Manager.png";
 import imgM1 from "../../assets/image/l1/png/media-img-1.png";
 import imgM2 from "../../assets/image/l1/png/media-img-2.png";
 import imgM3 from "../../assets/image/l1/png/media-img-3.png";
@@ -42,75 +42,10 @@ const Content = () => {
             >
               <div className="position-relative pr-lg-20 pr-md-15 pr-9">
                 {/* <!-- content img start --> */}
-                <img src={imgC.src} alt="" className="w-100 rounded-4" />
+                <img src={hiringImg.src} alt="" className="w-100 rounded-4" />
                 {/* <!-- content img end --> */}
                 {/* <!-- abs-content start --> */}
-                <div className="pos-abs-br mb-10 ">
-                  <div className="card bg-white shadow-2 border-0">
-                    <div className="card-header bg-dodger-2 text-white text-center border-0">
-                      Applicants List
-                    </div>
-                    <div className="card-body mb-n5">
-                      {/* <!-- media start --> */}
-                      <div className="media mb-5 pr-9">
-                        {/* <!-- media img start --> */}
-                        <div className="mr-3 mt-2">
-                          <img src={imgM1.src} className="circle-40" alt="" />
-                        </div>
-                        {/* <!-- media img start --> */}
-                        {/* <!-- media body start --> */}
-                        <div className="media-body pl-4">
-                          <h6 className="mb-0 font-size-4 text-black-2">
-                            Davir Mark
-                          </h6>
-                          <p className="mb-0 font-size-3 text-gray">
-                            Product Designer
-                          </p>
-                        </div>
-                        {/* <!-- media body start --> */}
-                      </div>
-                      {/* <!-- media end --> */}
-                      {/* <!-- media start --> */}
-                      <div className="media mb-5 pr-9">
-                        {/* <!-- media img start --> */}
-                        <div className="mr-3 mt-2">
-                          <img src={imgM2.src} className="circle-40" alt="" />
-                        </div>
-                        {/* <!-- media img start --> */}
-                        {/* <!-- media body start --> */}
-                        <div className="media-body pl-4">
-                          <h6 className="mb-0 font-size-4 text-black-2">
-                            Asley Jonshon
-                          </h6>
-                          <p className="mb-0 font-size-3 text-gray">
-                            Web Developer
-                          </p>
-                        </div>
-                        {/* <!-- media body start --> */}
-                      </div>
-                      {/* <!-- media end --> */}
-                      {/* <!-- media start --> */}
-                      <div className="media mb-5 pr-9">
-                        {/* <!-- media img start --> */}
-                        <div className="mr-3 mt-2">
-                          <img src={imgM3.src} className="circle-40" alt="" />
-                        </div>
-                        {/* <!-- media img start --> */}
-                        {/* <!-- media body start --> */}
-                        <div className="media-body pl-4">
-                          <h6 className="mb-0 font-size-4 text-black-2">
-                            Richar Henricks
-                          </h6>
-                          <p className="mb-0 font-size-3 text-gray">
-                            UI Designer
-                          </p>
-                        </div>
-                        {/* <!-- media body start --> */}
-                      </div>
-                      {/* <!-- media end --> */}
-                    </div>
-                  </div>
-                </div>
+               
                 {/* <!-- abs-content end --> */}
               </div>
             </div>

@@ -4,6 +4,8 @@ import PageWrapper from "../../components/PageWrapper";
 
 import imgF1 from "../../assets/image/l2/png/featured-job-logo-1.png";
 import iconD from "../../assets/image/svg/icon-dolor.svg";
+import imgF from "../../assets/image/svg/icon-fire-rounded.svg";
+
 import iconB from "../../assets/image/svg/icon-briefcase.svg";
 import iconL from "../../assets/image/svg/icon-location.svg";
 import iconS from "../../assets/image/svg/icon-suitecase.svg";
@@ -456,13 +458,17 @@ export default function JobDetails() {
                               <div className="row mb-7">
                                 <div className="col-md-4 mb-md-0 mb-6">
                                   <div className="media justify-content-md-start">
-                                    <div className="image mr-5">
-                                      <img src={iconD.src} alt="" />
-                                    </div>
+                                    {/* <div className="image mr-5">
+                                      <img src={imgF.src} alt="" />
+                                    </div> */}
                                     <p className="font-weight-semibold font-size-5 text-black-2 mb-0">
-                                      {Number(jobDetails?.min_salary) +
-                                        "-" +
-                                        Number(gContext.jobDetails?.max_salary)}
+                                      <span className="text-primary mr-2">
+                                        {jobDetails?.currency}{" "}
+                                      </span>
+                                      <span className="text-black-2">
+                                        {` ${Number(jobDetails?.min_salary)} -
+                                    ${Number(jobDetails?.max_salary)}`}
+                                      </span>
                                     </p>
                                   </div>
                                 </div>
@@ -472,7 +478,7 @@ export default function JobDetails() {
                                       <img src={iconB.src} alt="" />
                                     </div>
                                     <p className="font-weight-semibold font-size-5 text-black-2 mb-0">
-                                      {gContext.jobDetails?.job_type}
+                                      {jobDetails?.job_type}
                                     </p>
                                   </div>
                                 </div>
@@ -482,10 +488,9 @@ export default function JobDetails() {
                                       <img src={iconL.src} alt="" />
                                     </div>
                                     <p className="font-size-5 text-gray mb-0">
-                                      {gContext.jobDetails?.jobLocationType ===
-                                      "remote"
+                                      {jobDetails?.jobLocationType === "remote"
                                         ? "Remote"
-                                        : `${gContext.jobDetails?.city} , ${gContext.jobDetails?.country}`}
+                                        : `${jobDetails?.city} , ${jobDetails?.country}`}
                                     </p>
                                   </div>
                                 </div>
@@ -497,7 +502,7 @@ export default function JobDetails() {
                                       Career Level
                                     </span>
                                     <h6 className="font-size-5 text-black-2 font-weight-semibold mb-9">
-                                      {gContext.jobDetails?.category}
+                                      {jobDetails?.category}
                                     </h6>
                                   </div>
                                   {/* <div className="tags">
@@ -622,8 +627,8 @@ export default function JobDetails() {
                                         onClick={() =>
                                           // !gContext.hasCandidateAppliedForJob &&
                                           applyForJob(
-                                            gContext.jobDetails?.pubkey,
-                                            gContext.jobDetails?.company_pubkey
+                                            jobDetails?.pubkey,
+                                            jobDetails?.company_pubkey
                                           )
                                         }
                                       >
@@ -659,7 +664,10 @@ export default function JobDetails() {
                                       <div className="media align-items-center">
                                         <div className="square-72 d-block mr-8">
                                           <img
-                                            src={job.logo}
+                                            src={
+                                              job?.parsedInfo?.company_info
+                                                ?.logo_uri
+                                            }
                                             alt=""
                                             style={{
                                               width: "75px",
@@ -680,14 +688,17 @@ export default function JobDetails() {
                                     <div className="col-md-6 text-right pt-7 pt-md-5">
                                       <div className="media justify-content-md-end">
                                         <div className="image mr-5 mt-2">
-                                          <img src={imgF1.src} alt="" />
+                                          <img src={imgF.src} alt="" />
                                         </div>
                                         <p className="font-weight-bold font-size-7 text-hit-gray mb-0">
+                                          <span className="text-primary mr-2">
+                                            {job?.parsedInfo?.currency}{" "}
+                                          </span>
                                           <span className="text-black-2">
-                                            {`${Number(
+                                            {` ${Number(
                                               job?.parsedInfo?.min_salary
                                             )} -
-                                      ${Number(job?.parsedInfo?.max_salary)}`}
+                                    ${Number(job?.parsedInfo?.max_salary)}`}
                                           </span>
                                         </p>
                                       </div>
@@ -756,10 +767,27 @@ export default function JobDetails() {
                                           </span>
                                         </li>
                                       </ul>
+                                      <ul className="d-flex list-unstyled mr-n3 flex-wrap mr-n8 justify-content-md-end">
+                                        <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
+                                          <span className="mr-4">
+                                            Categories:
+                                          </span>
+                                          <span className="font-weight-semibold">
+                                            {job?.parsedInfo?.category.join(
+                                              ","
+                                            )}
+                                          </span>
+                                        </li>
+                                      </ul>
                                     </div>
                                   </div>
 
-                                  <div className="card-btn-group mt-3">
+                                  <div
+                                    className="card-btn-group mt-3"
+                                    style={{
+                                      display: "flex",
+                                    }}
+                                  >
                                     <Link
                                       href={`/job-details/${job?.pubkey?.toString()}`}
                                     >
@@ -767,6 +795,14 @@ export default function JobDetails() {
                                         View Job
                                       </a>
                                     </Link>
+                                    <a
+                                      className="btn btn-outline-gray text-black text-uppercase btn-medium rounded-3 ml-3"
+                                      href={`https://explorer.solana.com/address/${job?.pubkey?.toString()}?cluster=devnet`}
+                                      target="_blank"
+                                    >
+                                      <i className="fa fa-globe mr-3"></i>
+                                      View on chain
+                                    </a>
                                   </div>
                                 </div>
                               ))

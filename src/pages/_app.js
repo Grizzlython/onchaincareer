@@ -35,26 +35,6 @@ const MyApp = ({ Component, pageProps, router }) => {
   );
 };
 const Content = ({ Component, pageProps, router }) => {
-  // const { connection } = useConnection();
-  // const connection = new Connection("http://localhost:8899")
-
-  // const onClick = useCallback(async () => {
-  //   if (!publicKey) {
-  //     throw new WalletNotConnectedError()
-  //     return
-  //   }
-  //   const transaction = new Transaction().add(
-  //     SystemProgram.transfer({
-  //       fromPubkey: publicKey,
-  //       toPubkey: new PublicKey('G5vTuiduXEgj1oGyM29XoZ8uGPkR36oMwFXKQ5EW8Z9a'),
-  //       lamports: 100000,
-  //     })
-  //   );
-
-  //   const signature = await sendTransaction(transaction, connection);
-
-  //   const result = await connection.confirmTransaction(signature, 'processed');
-  // }, [publicKey, sendTransaction, connection]);
 
   if (router.pathname.match(/404/)) {
     return (
