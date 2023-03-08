@@ -13,8 +13,12 @@ import { toast } from "react-toastify";
 
 const Sidebar = (props) => {
   const gContext = useContext(GlobalContext);
-  const { candidateSocials, fetchAndSetCandidateSocials, isPremiumCompanyOwner } = gContext;
-  console.log(isPremiumCompanyOwner,'isPremiumCompanyOwner')
+  const {
+    candidateSocials,
+    fetchAndSetCandidateSocials,
+    isPremiumCompanyOwner,
+  } = gContext;
+  console.log(isPremiumCompanyOwner, "isPremiumCompanyOwner");
   const { publicKey, wallet, connected } = useWallet();
   const { connection } = useConnection();
 
@@ -61,44 +65,43 @@ const Sidebar = (props) => {
     setCandidateProfile(workflow.applicantInfo);
   }, [workflow]);
 
-  useEffect(()=>{
-    if(!fromAllCandidatesPage) return;
+  useEffect(() => {
+    if (!fromAllCandidatesPage) return;
     (async () => {
       setCandidateProfile(candidateInfo);
     })();
-  },[fromAllCandidatesPage])
+  }, [fromAllCandidatesPage]);
 
   useEffect(() => {
     if (!candidateInfo) return;
     (async () => {
       setCandidateProfile(candidateInfo);
 
-      if(fromAllCandidatesPage && !isPremiumCompanyOwner){
+      if (fromAllCandidatesPage && !isPremiumCompanyOwner) {
         setPaidForSoccial(false);
         return;
-      }else if(fromAllCandidatesPage && isPremiumCompanyOwner){
+      } else if (fromAllCandidatesPage && isPremiumCompanyOwner) {
         setPaidForSoccial(true);
-      }else{
+      } else {
         await fetchAndSetCandidateSocials(
           publicKey,
           connection,
           candidateInfo.pubkey
         );
       }
-
     })();
   }, [candidateInfo]);
 
   useEffect(() => {
-    if(fromAllCandidatesPage && isPremiumCompanyOwner && candidateInfo){
-      if(!publicKey || !connection) return;
-      (async()=>{
+    if (fromAllCandidatesPage && isPremiumCompanyOwner && candidateInfo) {
+      if (!publicKey || !connection) return;
+      (async () => {
         await fetchAndSetCandidateSocials(
           publicKey,
           connection,
           candidateInfo.pubkey
         );
-      })()
+      })();
     }
     if (paidForSoccial && workflow && workflow.user_pubkey) {
       (async () => {
@@ -114,10 +117,10 @@ const Sidebar = (props) => {
   useEffect(() => {
     if (!candidateSocials) {
       setViewSocials(false);
-      setCandidateSocialsContext(null)
+      setCandidateSocialsContext(null);
       return;
     }
-    console.log(candidateSocials, "candidateSocials")
+    console.log(candidateSocials, "candidateSocials");
     setViewSocials(true);
     setCandidateSocialsContext(candidateSocials);
   }, [candidateSocials]);
@@ -155,7 +158,17 @@ const Sidebar = (props) => {
             <div className="py-11 text-center border-bottom border-mercury">
               {/* <Link href="/#"> */}
               <a className="">
-                <img className="circle-54" src={imgP.src} alt="" />
+                <img
+                  className="circle-54"
+                  src={
+                    candidateProfile &&
+                    candidateProfile.image_uri &&
+                    candidateProfile.image_uri.length > 0
+                      ? candidateProfile.image_uri
+                      : imgP.src
+                  }
+                  alt=""
+                />
               </a>
               {/* </Link> */}
               <h4 className="mb-0">
@@ -183,7 +196,8 @@ const Sidebar = (props) => {
                   </a>
                 </p>
               )}
-              {(!workflow && !fromAllCandidatesPage) &&
+              {!workflow &&
+                !fromAllCandidatesPage &&
                 (!candidateSocialsContext ? (
                   <p className="mb-8">
                     <a
@@ -329,12 +343,10 @@ const Sidebar = (props) => {
                 <p className="font-size-4 mb-0">Location</p>
                 <h5 className="font-size-4 font-weight-semibold mb-0 text-black-2 text-break">
                   {viewSocials ? (
-                    (
-                      <>
-                        <i class="fa fa-location-arrow mr-2"></i>{" "}
-                        candidateProfile{" "}
-                      </>
-                    )?.address
+                    <>
+                      <i className="fa fa-location-arrow mr-2"></i>{" "}
+                      {candidateProfile?.address}
+                    </>
                   ) : (
                     <>
                       <i className="fa fa-lock mr-2"></i> Locked{" "}

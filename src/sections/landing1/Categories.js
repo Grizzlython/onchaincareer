@@ -38,7 +38,6 @@ const Categories = () => {
                 <Link href="/search-jobs">
                   <a
                     className="btn btn-outline-green text-uppercase"
-                    onClick={() => gContext.toggleCandidateProfileModal()}
                   >
                     Explore All
                   </a>

@@ -384,12 +384,14 @@ export const findAllCompanyInfosOfUser = async (
     const companyInfos = [];
     let isPremiumCompanyOwner = false;
     for (let i = 0; i < companyInfosOfUser.length; i++) {
-
       const companyInfo = CompanyInfoState.deserialize(
         companyInfosOfUser[i].account.data
       );
 
-      if(companyInfo.subscription_plan != SUBSCRIPTION_PLANS_enum.PAYNUSE && companyInfo.subscription_valid_till > Date.now()){
+      if (
+        companyInfo.subscription_plan != SUBSCRIPTION_PLANS_enum.PAYNUSE &&
+        companyInfo.subscription_valid_till > Date.now()
+      ) {
         isPremiumCompanyOwner = true;
       }
 
@@ -404,7 +406,7 @@ export const findAllCompanyInfosOfUser = async (
     return {
       status: true,
       data: companyInfos,
-      isPremiumCompanyOwner
+      isPremiumCompanyOwner,
     };
   } catch (err) {
     console.log(err);
@@ -466,7 +468,7 @@ export const findAllJobsOfCompany = async (
         dataSize: JobPostInfoState_SIZE,
       },
     ];
-    console.log(company_info_account, "---company_info_account---")
+    console.log(company_info_account, "---company_info_account---");
     //if company_info_account is not null, then filter by company_info_account else return all jobs
     if (company_info_account) {
       filters.push({
@@ -2459,6 +2461,138 @@ export const update_jobpost_info = async (
   }
 };
 
+export const update_jobpost_long_description = async (
+  owner,
+  jobPostInfo,
+  company_seq_number,
+  connection,
+  signTransaction
+) => {
+  try {
+    // const jobPostInfo = {
+    //   long_description: "long_description", //1024
+    //   job_number: "JP1",
+    // };
+
+    // const company_seq_number = "CP1";
+
+    const applicant_info_state_account = await PublicKey.findProgramAddress(
+      [
+        Buffer.from(APPLICANT_STATE_ACCOUNT_PREFIX),
+        new PublicKey(owner).toBuffer(),
+      ],
+      JobsOnChain_User_Info_ID
+    );
+
+    const applicant_info_state_account_exists = await connection.getAccountInfo(
+      applicant_info_state_account[0]
+    );
+
+    if (!applicant_info_state_account_exists) {
+      console.log("applicant_info_state_account not found");
+      return;
+    }
+    console.log(
+      " applicant_info_state_account => ",
+      applicant_info_state_account[0].toBase58()
+    );
+
+    const company_info_account = await PublicKey.findProgramAddress(
+      [
+        Buffer.from(COMPANY_STATE_ACCOUNT_PREFIX),
+        Buffer.from(company_seq_number),
+        applicant_info_state_account[0].toBuffer(),
+      ],
+      JobsOnChain_Company_Info_ID
+    );
+    const company_info_account_exists = await connection.getAccountInfo(
+      company_info_account[0]
+    );
+    if (!company_info_account_exists) {
+      console.log("company_info_account do not exists");
+      return;
+    }
+    console.log(
+      " company_info_account => ",
+      company_info_account[0].toBase58()
+    );
+
+    // const allJobsOfCompany = await findAllJobsOfCompany(company_info_account[0], connection);
+    // if(allJobsOfCompany && allJobsOfCompany.length > 0){
+    //   jobPostInfo.job_number = 'JP'+(allJobsOfCompany.length+1);
+    // }else{
+    //   jobPostInfo.job_number = 'JP1';
+    // }
+
+    const jobpost_info_account = await PublicKey.findProgramAddress(
+      [
+        Buffer.from(JOBPOST_STATE_ACCOUNT_PREFIX),
+        Buffer.from(jobPostInfo.job_number),
+        company_info_account[0].toBuffer(),
+      ],
+      JobsOnChain_JobPost_Info_ID
+    );
+    const jobpost_info_account_exists = await connection.getAccountInfo(
+      jobpost_info_account[0]
+    );
+    if (!jobpost_info_account_exists) {
+      console.log("jobpost_info_account do not exists");
+      return;
+    }
+
+    const updateJobPostDescription = new JobPostInfoState({
+      ...jobPostInfo,
+    });
+
+    const buffer =
+      JobPostInfoState.serializeUpdateJobPostLongDescriptionInstruction(
+        updateJobPostDescription
+      );
+
+    const update_jobpost_info_ins = new TransactionInstruction({
+      programId: JobsOnChain_JobPost_Info_ID,
+      keys: [
+        { pubkey: owner, isSigner: true, isWritable: false },
+        { pubkey: company_info_account[0], isSigner: false, isWritable: false },
+        {
+          pubkey: applicant_info_state_account[0],
+          isSigner: false,
+          isWritable: false,
+        },
+        { pubkey: jobpost_info_account[0], isSigner: false, isWritable: true },
+        {
+          pubkey: JobsOnChain_User_Info_ID,
+          isSigner: false,
+          isWritable: false,
+        },
+        {
+          pubkey: JobsOnChain_Company_Info_ID,
+          isSigner: false,
+          isWritable: false,
+        },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: true },
+      ],
+      data: Buffer.from(Uint8Array.of(2, ...buffer)),
+    });
+    await sendTxUsingExternalSignature(
+      [update_jobpost_info_ins],
+      connection,
+      null,
+      [],
+      new PublicKey(owner),
+      signTransaction
+    );
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    return {
+      jobpost_info_account: jobpost_info_account[0].toBase58(),
+      status: true,
+    };
+  } catch (err) {
+    console.log("err => ", err);
+    throw err;
+  }
+};
+
 export const add_job_workflow_info = async (
   owner,
   connection,
@@ -2671,9 +2805,10 @@ export const update_job_workflow_info = async (
     //   company_info_account[0].toBase58()
     // );
 
-    const jobpost_info_account = [jobInfoAccount];
+    const jobpost_info_account = jobInfoAccount;
+    console.log("jobpost_info_account => ", jobpost_info_account);
     const jobpost_info_account_exists = await connection.getAccountInfo(
-      jobpost_info_account[0]
+      jobpost_info_account
     );
     if (!jobpost_info_account_exists) {
       console.log("jobpost_info_account do not exists");
@@ -2692,10 +2827,15 @@ export const update_job_workflow_info = async (
     const workflow_info_account = await PublicKey.findProgramAddress(
       [
         Buffer.from(WORKFLOW_STATE_ACCOUNT_PREFIX),
-        jobpost_info_account[0].toBuffer(),
+        jobpost_info_account.toBuffer(),
         applicant_info_state_account[0].toBuffer(),
       ],
       JobsOnChain_Workflow_Info_ID
+    );
+
+    console.log(
+      "workflow_info_account => ",
+      workflow_info_account[0].toBase58()
     );
 
     const workflow_info_account_exists = await connection.getAccountInfo(

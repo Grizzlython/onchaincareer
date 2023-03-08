@@ -76,6 +76,16 @@
   }
 }
 
+.sidebar-menu-selected {
+  color: $primary !important;
+  &:before {
+    transform: scaleY(1);
+  }
+  > i {
+    color: $primary !important;
+  }
+}
+
 .sidebar-mobile-button {
   min-height: 30px;
   position: fixed;

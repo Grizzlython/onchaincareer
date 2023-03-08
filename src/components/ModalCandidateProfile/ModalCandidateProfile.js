@@ -12,6 +12,12 @@ import {
   check_if_user_exists,
   update_applicant_info,
 } from "../../utils/web3/web3_functions";
+import {
+  checkForBalance,
+  initiateBundlr,
+  uploadViaBundlr,
+} from "../../utils/bundlr-uploader";
+import filereaderStream from "filereader-stream";
 
 const currentEmploymentStatusOptions = [
   { value: "employed", label: "Employed" },
@@ -49,9 +55,61 @@ const ModalCandidateProfile = (props) => {
     useState(defaultEmpStatus);
   const [canJoinInState, setCanJoinInState] = useState(0);
   const [about, setAbout] = useState("");
+  const [image, setImage] = useState(null);
+  const [editImage, setEditImage] = useState(false);
 
-  const { publicKey, signTransaction } = useWallet();
+  const { publicKey, signTransaction, wallet } = useWallet();
   const { connection } = useConnection();
+
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreview(undefined);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(selectedFile);
+    setPreview(objectUrl);
+
+    // free memory when ever this component is unmounted
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedFile]);
+
+  const onSelectFile = (e) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      setSelectedFile(undefined);
+      return;
+    }
+
+    setSelectedFile(e.target.files[0]);
+  };
+
+  const handleUpload = (e) => {
+    try {
+      e.preventDefault();
+      const file = e.target.files[0];
+
+      const formData = new FormData();
+
+      formData.append("file", file);
+
+      // const payload = {
+      //   imageType: type,
+      //   image: formData,
+      // };
+
+      console.log(file, "imagefile");
+      setImage(file);
+
+      onSelectFile(e);
+
+      return;
+    } catch (error) {
+      console.log(error, "image upload error");
+    }
+  };
 
   const updateApplicantInfo = async (e) => {
     try {
@@ -64,7 +122,7 @@ const ModalCandidateProfile = (props) => {
       console.log(currentEmploymentStatusState, "currentEmploymentStatusState");
       console.log(canJoinInState, "canJoinInState");
 
-      let notFilledFields;
+      let notFilledFields = "";
       if (!name) {
         notFilledFields = "Name,";
       }
@@ -98,12 +156,19 @@ const ModalCandidateProfile = (props) => {
         username: publicKey.toString(),
         name: name,
         address: location,
-        image_uri: "https://dummy.org/",
+        image_uri: "",
         bio: about,
-        skills: skills.split(","),
+        skills: skills && skills.length > 0 ? skills.split(",") : "",
         designation: designation,
-        current_employment_status: currentEmploymentStatusState.value,
-        can_join_in: canJoinInState.value,
+        current_employment_status:
+          currentEmploymentStatusState &&
+          currentEmploymentStatusState.value.length > 0
+            ? currentEmploymentStatusState.value
+            : "",
+        can_join_in:
+          canJoinInState && canJoinInState.value.length > 0
+            ? canJoinInState.value
+            : "",
         user_type: "applicant",
         is_company_profile_complete: false,
         is_overview_complete: true,
@@ -112,6 +177,39 @@ const ModalCandidateProfile = (props) => {
         is_education_complete: false,
         is_work_experience_complete: false,
       };
+
+      console.log(applicantInfo, "applicantInfo");
+
+      const adapter = wallet?.adapter;
+      const { bundlr } = await initiateBundlr(adapter);
+
+      console.log(bundlr, "bundlr");
+      console.log(image, "image");
+      if (!bundlr) {
+        return;
+      }
+
+      let uploadedImageUri = "";
+      // const symbol = "WEB3JOBS";
+
+      if (image && image.name) {
+        console.log("in here");
+        const fileType = image.type;
+        const imageBuffer = filereaderStream(image);
+
+        await checkForBalance(bundlr, image.size);
+        let uploadResult = await uploadViaBundlr(bundlr, imageBuffer, fileType);
+        if (!uploadResult.status) {
+          return {
+            success: false,
+            error: uploadResult.error,
+          };
+        }
+        uploadedImageUri = uploadResult.asset_address;
+        console.log(uploadedImageUri, "uploadedImageUri");
+        applicantInfo.image_uri = uploadedImageUri;
+      }
+
       const updateApplicantInfo = await update_applicant_info(
         publicKey,
         applicantInfo,
@@ -158,8 +256,15 @@ const ModalCandidateProfile = (props) => {
           (option) => option.value === userInfo.can_join_in
         )[0]
       );
+      setImage(userInfo.image_uri);
     }
   }, [userInfo]);
+
+  console.log(userInfo, "userInfo-inj");
+
+  const handleClose = () => {
+    gContext.toggleCandidateProfileModal();
+  };
 
   return (
     <ModalStyled
@@ -176,13 +281,13 @@ const ModalCandidateProfile = (props) => {
         //   backgroundColor: "#e5e5e5",
         // }}
       >
-        {/* <button
+        <button
           type="button"
           className="circle-32 btn-reset bg-white pos-abs-tr mt-md-n6 mr-lg-n6 focus-reset z-index-supper"
           onClick={handleClose}
         >
           <i className="fas fa-times"></i>
-        </button> */}
+        </button>
         <div className="mt-12" id="dashboard-body">
           <div className="container">
             <div className="mb-12 mb-lg-23">
@@ -197,24 +302,82 @@ const ModalCandidateProfile = (props) => {
                       border: "1px solid #e5e5e5",
                     }}
                   >
-                    <div className="upload-file mb-16 text-center">
+                    {image && image.length > 0 && !editImage ? (
+                      <>
+                        <div className="upload-file mb-16 text-center">
+                          <img
+                            src={image}
+                            alt=""
+                            className="img-fluid rounded-circle"
+                            style={{
+                              width: "100px",
+                              height: "100px",
+                              objectFit: "cover",
+                              borderRadius: "50%",
+                            }}
+                          />
+                          <br />
+                          <button
+                            onClick={() => setEditImage(true)}
+                            className="mt-4"
+                          >
+                            Edit image
+                          </button>
+                        </div>
+                      </>
+                    ) : (
                       <div
-                        id="userActions"
-                        className="square-144 m-auto px-6 mb-7"
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                        }}
                       >
-                        <label
-                          htmlFor="fileUpload"
-                          className="mb-0 font-size-4 text-smoke"
-                        >
-                          Browse or Drag and Drop your image
-                        </label>
-                        <input
-                          type="file"
-                          id="fileUpload"
-                          className="sr-only"
-                        />
+                        <div className="upload-file mb-16 text-center">
+                          <div
+                            id="userActions"
+                            className="square-144 m-auto px-6 mb-7"
+                          >
+                            <label
+                              htmlFor="fileUpload"
+                              className="mb-0 font-size-4 text-smoke"
+                            >
+                              Browse or Drag and Drop your image
+                            </label>
+                            <input
+                              type="file"
+                              id="fileUpload"
+                              className="sr-only"
+                              onChange={(e) => handleUpload(e)}
+                              accept="image/*"
+                            />
+                          </div>
+                          {editImage && (
+                            <button
+                              onClick={() => setEditImage(false)}
+                              className="mt-4"
+                            >
+                              Cancel edit
+                            </button>
+                          )}
+                        </div>
+                        {preview && (
+                          <div className="ml-10">
+                            <p>Image preview</p>
+                            <img
+                              src={preview}
+                              alt=""
+                              style={{
+                                width: "100px",
+                                height: "100px",
+                                objectFit: "cover",
+                                borderRadius: "50%",
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
-                    </div>
+                    )}
+
                     <form action="/">
                       <fieldset>
                         <div className="row mb-xl-1 mb-9">

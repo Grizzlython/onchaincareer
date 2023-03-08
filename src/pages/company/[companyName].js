@@ -81,15 +81,19 @@ export default function Company() {
               <div className="row justify-content-center">
                 <div className="col-12 mt-13 dark-mode-texts">
                   <div className="mb-9">
-                    <a className="d-flex align-items-center ml-4" onClick={() => router.back()} style={{
-                      cursor: "pointer"
-                    }}>
+                    <a
+                      className="d-flex align-items-center ml-4"
+                      onClick={() => router.back()}
+                      style={{
+                        cursor: "pointer",
+                      }}
+                    >
                       <i className="icon icon-small-left bg-white circle-40 mr-5 font-size-7 text-black font-weight-bold shadow-8"></i>
                       <span className="text-uppercase font-size-3 font-weight-bold text-gray">
                         Back
                       </span>
                     </a>
-                </div>
+                  </div>
                 </div>
               </div>
               {/* <!-- back Button End --> */}
@@ -123,7 +127,7 @@ export default function Company() {
                             <a className="mr-xs-7 mb-5 mb-xs-0 mt-4">
                               <img
                                 className="square-72 rounded-6"
-                                src={selectedCompanyInfo?.logo || imgF1.src}
+                                src={selectedCompanyInfo?.logo_uri || imgF1.src}
                                 alt=""
                                 // style={{
                                 //   transform: "translateY(-10%)",

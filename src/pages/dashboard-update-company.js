@@ -73,6 +73,31 @@ export default function DashboardSettings() {
     setWebsite(company.website);
   }, [selectedCompanyInfo]);
 
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreview(undefined);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(selectedFile);
+    setPreview(objectUrl);
+
+    // free memory when ever this component is unmounted
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedFile]);
+
+  const onSelectFile = (e) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      setSelectedFile(undefined);
+      return;
+    }
+
+    setSelectedFile(e.target.files[0]);
+  };
+
   const handleUpload = (e) => {
     try {
       e.preventDefault();
@@ -89,6 +114,8 @@ export default function DashboardSettings() {
 
       console.log(file, "imagefile");
       setLogo(file);
+
+      onSelectFile(e);
 
       return;
     } catch (error) {
@@ -132,50 +159,53 @@ export default function DashboardSettings() {
 
       console.log(companyInfo, "companyInfo in react");
 
-      // const adapter = wallet?.adapter;
-      // const { bundlr } = await initiateBundlr(adapter);
+      const adapter = wallet?.adapter;
+      const { bundlr } = await initiateBundlr(adapter);
 
-      // console.log(bundlr, "bundlr");
-      // console.log(logo, "logo");
-      // if (!bundlr) {
-      //   return;
-      // }
+      console.log(bundlr, "bundlr");
+      console.log(logo, "logo");
+      if (!bundlr) {
+        return;
+      }
 
-      // let uploadedImageUri = "";
-      // // const symbol = "WEB3JOBS";
+      let uploadedImageUri = "";
+      // const symbol = "WEB3JOBS";
 
-      // if (logo) {
-      //   console.log("in here");
-      //   const fileType = logo.type;
-      //   const imageBuffer = fileReaderStream(logo);
-      //   // const imageBuffer = Buffer.from(logo, 'base64')
-      //   // const temp = await readAsArrayBuffer(logo)
-      //   // console.log(imageBuffer,'imageBuffer')
-      //   // const imageBuffer = Buffer.from(JSON.stringify(imageData));
+      if (logo && logo.name) {
+        console.log("in here");
+        const fileType = logo.type;
+        const imageBuffer = fileReaderStream(logo);
+        // const imageBuffer = Buffer.from(logo, 'base64')
+        // const temp = await readAsArrayBuffer(logo)
+        // console.log(imageBuffer,'imageBuffer')
+        // const imageBuffer = Buffer.from(JSON.stringify(imageData));
 
-      //   await checkForBalance(bundlr, logo.size);
-      //   let uploadResult = await uploadViaBundlr(bundlr, imageBuffer, fileType);
-      //   if (!uploadResult.status) {
-      //     return {
-      //       success: false,
-      //       error: uploadResult.error,
-      //     };
-      //   }
-      //   uploadedImageUri = uploadResult.asset_address;
-      //   payload.logo_uri = uploadedImageUri;
-      // }
+        await checkForBalance(bundlr, logo.size);
+        let uploadResult = await uploadViaBundlr(bundlr, imageBuffer, fileType);
+        if (!uploadResult.status) {
+          return {
+            success: false,
+            error: uploadResult.error,
+          };
+        }
+        uploadedImageUri = uploadResult.asset_address;
+        console.log(uploadedImageUri, "uploadedImageUri");
+        companyInfo.logo_uri = uploadedImageUri;
+      }
 
-      await gContext.updateCompanyProfile(
-        publicKey,
-        companyInfo,
-        connection,
-        signTransaction
-      );
+      // await gContext.updateCompanyProfile(
+      //   publicKey,
+      //   companyInfo,
+      //   connection,
+      //   signTransaction
+      // );
       router.push("/dashboard-main");
     } catch (error) {
       console.log(error);
     }
   };
+
+  const [editLogo, setEditLogo] = useState(false);
   return (
     <>
       <PageWrapper
@@ -208,24 +238,82 @@ export default function DashboardSettings() {
                         }}
                       >
                         <div className="upload-file mb-16 text-center">
-                          <div
-                            id="userActions"
-                            className="square-144 m-auto px-6 mb-7"
-                          >
-                            <label
-                              htmlFor="fileUpload"
-                              className="mb-0 font-size-4 text-smoke"
-                            >
-                              Browse or Drag and Drop
-                            </label>
-                            <input
-                              type="file"
-                              id="fileUpload"
-                              className="sr-only"
-                              // value={}
-                              onChange={handleUpload}
-                            />
-                          </div>
+                          {selectedCompanyInfo?.logo_uri && !editLogo ? (
+                            <>
+                              <img
+                                src={selectedCompanyInfo?.logo_uri}
+                                alt=""
+                                className="img-fluid rounded-circle"
+                                style={{
+                                  width: "100px",
+                                  height: "100px",
+                                  objectFit: "cover",
+                                  borderRadius: "50%",
+                                }}
+                              />
+                              <br />
+                              <button
+                                onClick={() => setEditLogo(true)}
+                                className="mt-4"
+                              >
+                                Edit logo
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  // alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <div>
+                                  <div
+                                    id="userActions"
+                                    className="square-144 m-auto px-6 mb-7"
+                                  >
+                                    <label
+                                      htmlFor="fileUpload"
+                                      className="mb-0 font-size-4 text-smoke"
+                                    >
+                                      Browse or Drag and Drop
+                                    </label>
+
+                                    <input
+                                      type="file"
+                                      id="fileUpload"
+                                      className="sr-only"
+                                      // value={}
+                                      onChange={(e) => handleUpload(e)}
+                                      accept="image/*"
+                                    />
+                                  </div>
+                                  <button
+                                    onClick={() => setEditLogo(false)}
+                                    className="mt-4"
+                                  >
+                                    Cancel edit
+                                  </button>
+                                </div>
+                                {preview && (
+                                  <div className="ml-10">
+                                    <p>Image preview</p>
+                                    <img
+                                      src={preview}
+                                      alt=""
+                                      style={{
+                                        width: "100px",
+                                        height: "100px",
+                                        objectFit: "cover",
+                                        borderRadius: "50%",
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            </>
+                          )}
                         </div>
                         <form action="/">
                           <fieldset>

@@ -57,6 +57,9 @@ const FeaturedJobs = () => {
                     data-aos="fade-up"
                     data-aos-duration="800"
                     key={index}
+                    // style={{
+                    //   minHeight: "300px",
+                    // }}
                   >
                     {/* <!-- Start Feature One --> */}
                     <div className="bg-white px-8 pt-9 pb-7 rounded-4 mb-9 feature-cardOne-adjustments">

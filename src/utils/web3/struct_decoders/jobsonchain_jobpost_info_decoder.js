@@ -115,7 +115,6 @@ export class JobPostInfoState {
     const saveAccountInstructionSchema = borsh.struct([
       borsh.str("job_title"),
       borsh.str("short_description"),
-      borsh.str("long_description"),
       borsh.vec(borsh.str(), "category"),
       borsh.str("job_type"),
       borsh.str("currency_type"),
@@ -144,7 +143,6 @@ export class JobPostInfoState {
       borsh.bool("archived"),
       borsh.str("job_title"),
       borsh.str("short_description"),
-      borsh.str("long_description"),
       borsh.vec(borsh.str(), "category"),
       borsh.str("job_type"),
       borsh.str("currency_type"),
@@ -157,6 +155,18 @@ export class JobPostInfoState {
       borsh.str("job_location_type"),
       borsh.str("country"),
       borsh.str("city"),
+    ]);
+
+    const buffer = Buffer.alloc(JobPostInfoState_SIZE);
+    const updateInfoData = {
+      ...updatedObj,
+    };
+    updateAccountInstructionSchema.encode({ ...updateInfoData }, buffer);
+    return buffer.slice(0, updateAccountInstructionSchema.getSpan(buffer));
+  }
+  static serializeUpdateJobPostLongDescriptionInstruction(updatedObj /*Buffer*/) {
+    const updateAccountInstructionSchema = borsh.struct([
+      borsh.str("long_description"),
     ]);
 
     const buffer = Buffer.alloc(JobPostInfoState_SIZE);

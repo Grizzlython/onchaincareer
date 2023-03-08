@@ -5,12 +5,15 @@ import GlobalContext from "../../context/GlobalContext";
 import imgL from "../../assets/image/logo-main-black.png";
 import { Select } from "../Core";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { toast } from "react-toastify";
+import Logo from "../Logo";
 
 const Sidebar = () => {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
   const [selectedCompanyState, setSelectedCompanyState] = useState({});
   const [companyOptions, setCompanyOptions] = useState([]);
+  const [selectedMenu, setSelectedMenu] = useState("dashboard");
   const gContext = useContext(GlobalContext);
   const {
     allListedCompaniesByUser,
@@ -27,19 +30,13 @@ const Sidebar = () => {
   useEffect(() => {
     if (!companySelectedByUser && !connection) return;
 
-    console.log("I am rendered after change");
-
-    console.log(companySelectedByUser, "companySelectedByUser");
-
     (async () => {
       console.log("In async");
+
       await fetchAndSetCompanyPostedJobs(
         companySelectedByUser.value,
-        connection
-      );
-      await fetchAndSetAllAppliedApplicants(
         connection,
-        companySelectedByUser?.value
+        true
       );
     })();
   }, [companySelectedByUser]);
@@ -82,12 +79,10 @@ const Sidebar = () => {
 
   const handleSelectCompany = async (e) => {
     try {
-      console.log(e, "sidebar e");
-
       setCompanySelectedByUser({ ...e });
     } catch (err) {
       console.log(err);
-      throw Error("Error in handleSelectCompany");
+      toast.error("Error in handleSelectCompany");
     }
   };
 
@@ -96,11 +91,7 @@ const Sidebar = () => {
       <Collapse in={gContext.showSidebarDashboard}>
         <div className="dashboard-sidebar-wrapper pt-11" id="sidebar">
           <div className="brand-logo px-11">
-            <Link href="/">
-              <a>
-                <img src={imgL.src} alt="" />
-              </a>
-            </Link>
+            <Logo white={gContext.header.theme === "dark"} />
           </div>
 
           <ul className="list-unstyled dashboard-layout-sidebar">
@@ -134,7 +125,15 @@ const Sidebar = () => {
 
             <li className="">
               <Link href="/dashboard-main">
-                <a className="px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center">
+                <a
+                  className={`px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center ${
+                    selectedMenu &&
+                    selectedMenu.length > 0 &&
+                    selectedMenu === "dashboard" &&
+                    "sidebar-menu-selected"
+                  }`}
+                  onClick={() => setSelectedMenu("dashboard")}
+                >
                   <i className="icon icon-layout-11 mr-7"></i>Dashboard
                 </a>
               </Link>
@@ -142,7 +141,15 @@ const Sidebar = () => {
             {companySelectedByUser && (
               <li className="">
                 <Link href={`/company/${companySelectedByUser?.value}`}>
-                  <a className="px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center">
+                  <a
+                    className={`px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center ${
+                      selectedMenu &&
+                      selectedMenu.length > 0 &&
+                      selectedMenu === "company-profile" &&
+                      "sidebar-menu-selected"
+                    }`}
+                    onClick={() => setSelectedMenu("company-profile")}
+                  >
                     <i className="fas fa-user mr-7"></i>Company Profile
                   </a>
                 </Link>
@@ -150,14 +157,30 @@ const Sidebar = () => {
             )}
             <li className="">
               <Link href="/dashboard-jobs">
-                <a className="px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center">
+                <a
+                  className={`px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center ${
+                    selectedMenu &&
+                    selectedMenu.length > 0 &&
+                    selectedMenu === "posted-jobs" &&
+                    "sidebar-menu-selected"
+                  }`}
+                  onClick={() => setSelectedMenu("posted-jobs")}
+                >
                   <i className="fas fa-briefcase mr-7"></i>Posted Jobs
                 </a>
               </Link>
             </li>
             <li className="">
               <Link href="/dashboard-applicants">
-                <a className="px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center">
+                <a
+                  className={`px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center ${
+                    selectedMenu &&
+                    selectedMenu.length > 0 &&
+                    selectedMenu === "applicants" &&
+                    "sidebar-menu-selected"
+                  }`}
+                  onClick={() => setSelectedMenu("applicants")}
+                >
                   <i className="fas fa-user mr-7"></i>Applicants{" "}
                   {/* <span className="ml-auto px-1 h-1 bg-dodger text-white font-size-3 rounded-5 max-height-px-18 flex-all-center">
                     14
@@ -167,8 +190,24 @@ const Sidebar = () => {
             </li>
             <li className="">
               <Link href="/dashboard-in-progress-applicants">
-                <a className="px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center">
-                  <i className="fas fa-user mr-7"></i>In Progress Applicants
+                <a
+                  className={`px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center ${
+                    selectedMenu &&
+                    selectedMenu.length > 0 &&
+                    selectedMenu === "in-progress" &&
+                    "sidebar-menu-selected"
+                  }`}
+                  onClick={() => setSelectedMenu("in-progress")}
+                >
+                  <i
+                    className={`fas fa-user mr-7 ${
+                      selectedMenu &&
+                      selectedMenu.length > 0 &&
+                      selectedMenu === "in-progress" &&
+                      "sidebar-menu-selected"
+                    }`}
+                  ></i>
+                  In Progress Applicants
                   {/* <span className="ml-auto px-1 h-1 bg-dodger text-white font-size-3 rounded-5 max-height-px-18 flex-all-center">
                     14
                   </span> */}
@@ -177,8 +216,24 @@ const Sidebar = () => {
             </li>
             <li className="">
               <Link href="/dashboard-accepted">
-                <a className="px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center">
-                  <i className="fas fa-user mr-7"></i>Accepted{" "}
+                <a
+                  className={`px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center ${
+                    selectedMenu &&
+                    selectedMenu.length > 0 &&
+                    selectedMenu === "accepted" &&
+                    "sidebar-menu-selected"
+                  }}`}
+                  onClick={() => setSelectedMenu("accepted")}
+                >
+                  <i
+                    className={`fas fa-user mr-7 ${
+                      selectedMenu &&
+                      selectedMenu.length > 0 &&
+                      selectedMenu === "accepted" &&
+                      "sidebar-menu-selected"
+                    }`}
+                  ></i>
+                  Accepted{" "}
                   {/* <span className="ml-auto px-1 h-1 bg-dodger text-white font-size-3 rounded-5 max-height-px-18 flex-all-center">
                     14
                   </span> */}
@@ -187,8 +242,24 @@ const Sidebar = () => {
             </li>
             <li className="">
               <Link href="/dashboard-rejected">
-                <a className="px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center">
-                  <i className="fas fa-user mr-7"></i>Rejected{" "}
+                <a
+                  className={`px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center ${
+                    selectedMenu &&
+                    selectedMenu.length > 0 &&
+                    selectedMenu === "rejected" &&
+                    "sidebar-menu-selected"
+                  }`}
+                  onClick={() => setSelectedMenu("rejected")}
+                >
+                  <i
+                    className={`fas fa-user mr-7 ${
+                      selectedMenu &&
+                      selectedMenu.length > 0 &&
+                      selectedMenu === "rejected" &&
+                      "sidebar-menu-selected"
+                    }`}
+                  ></i>
+                  Rejected{" "}
                   {/* <span className="ml-auto px-1 h-1 bg-dodger text-white font-size-3 rounded-5 max-height-px-18 flex-all-center">
                     14
                   </span> */}
@@ -197,15 +268,47 @@ const Sidebar = () => {
             </li>
             <li className="">
               <Link href="/dashboard-update-company">
-                <a className="px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center">
-                  <i className="fas fa-cog mr-7"></i>Update company profile
+                <a
+                  className={`px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center ${
+                    selectedMenu &&
+                    selectedMenu.length > 0 &&
+                    selectedMenu === "update-company" &&
+                    "sidebar-menu-selected"
+                  }`}
+                  onClick={() => setSelectedMenu("update-company")}
+                >
+                  <i
+                    className={`fas fa-cog mr-7 ${
+                      selectedMenu &&
+                      selectedMenu.length > 0 &&
+                      selectedMenu === "update-company" &&
+                      "sidebar-menu-selected"
+                    }`}
+                  ></i>
+                  Update company profile
                 </a>
               </Link>
             </li>
             <li className="">
               <Link href="/dashboard-add-company">
-                <a className="px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center">
-                  <i className="fas fa-plus mr-7"></i>Add company
+                <a
+                  className={`px-10 py-1 my-5 font-size-4 font-weight-semibold flex-y-center ${
+                    selectedMenu &&
+                    selectedMenu.length > 0 &&
+                    selectedMenu === "add-company" &&
+                    "sidebar-menu-selected"
+                  }`}
+                  onClick={() => setSelectedMenu("add-company")}
+                >
+                  <i
+                    className={`fas fa-plus mr-7 ${
+                      selectedMenu &&
+                      selectedMenu.length > 0 &&
+                      selectedMenu === "add-company" &&
+                      "sidebar-menu-selected"
+                    }`}
+                  ></i>
+                  Add company
                 </a>
               </Link>
             </li>

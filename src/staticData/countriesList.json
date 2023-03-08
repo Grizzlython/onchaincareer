@@ -1,6 +1,6 @@
 [
+  { "label": "Any", "value": "any" },
   { "label": "Afghanistan", "value": "AF" },
-  { "label": "land Islands", "value": "AX" },
   { "label": "Albania", "value": "AL" },
   { "label": "Algeria", "value": "DZ" },
   { "label": "American Samoa", "value": "AS" },

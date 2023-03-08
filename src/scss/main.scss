@@ -214,3 +214,13 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
+
+.selectedTableRow{
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+  :hover{
+    text-decoration: underline;
+    font-weight: 500;
+    text-underline-offset: 5px;
+  }
+}

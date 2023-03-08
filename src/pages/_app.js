@@ -1,16 +1,4 @@
 // import App from 'next/app'
-import { useMemo, ReactNode, FC } from "react";
-import {
-  ConnectionProvider,
-  WalletProvider,
-  useWallet,
-} from "@solana/wallet-adapter-react";
-import {
-  PhantomWalletAdapter,
-  SolletWalletAdapter,
-} from "@solana/wallet-adapter-wallets";
-import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import { clusterApiUrl } from "@solana/web3.js";
 
 import "@solana/wallet-adapter-react-ui/styles.css";
 
@@ -37,39 +25,13 @@ import "../scss/main.scss";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "tippy.js/dist/tippy.css";
 
 const MyApp = ({ Component, pageProps, router }) => {
   return (
     <WalletConnectProvider>
       <Content Component={Component} pageProps={pageProps} router={router} />
     </WalletConnectProvider>
-  );
-};
-
-const Context = ({ children }) => {
-  // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
-  const network = "devnet";
-  // "https://wider-necessary-morning.solana-mainnet.discover.quiknode.pro/a37be890809d96297d14465d9dc1c05efb52c51f/";
-
-  // You can also provide a custom RPC endpoint.
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-
-  // const endpoint = network
-
-  // @solana/wallet-adapter-wallets includes all the adapters but supports tree shaking and lazy loading --
-  // Only the wallets you configure here will be compiled into your application, and only the dependencies
-  // of wallets that your users connect to will be loaded.
-  const wallets = useMemo(
-    () => [new PhantomWalletAdapter(), new SolletWalletAdapter()],
-    []
-  );
-
-  return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect={false}>
-        <WalletModalProvider>{children}</WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
   );
 };
 const Content = ({ Component, pageProps, router }) => {

@@ -54,8 +54,6 @@ export default function JobDetails() {
     loading,
   } = gContext;
 
-  
-
   useEffect(() => {
     if (!jobId) return;
     const jobPubKey = new PublicKey(jobId);
@@ -63,7 +61,7 @@ export default function JobDetails() {
     (async () => {
       // await gContext.getUserAppliedJobs(publicKey, connection);
       await getJobDetails(jobPubKey, connection);
-      if(user?.user_type === userTypeEnum.APPLICANT && publicKey) {
+      if (user?.user_type === userTypeEnum.APPLICANT && publicKey) {
         const res = await findAllWorkflowOfJobPost(
           connection,
           jobPubKey,
@@ -87,7 +85,13 @@ export default function JobDetails() {
     if (!jobDetails) return;
 
     (async () => {
-      if(user?.user_type === userTypeEnum.RECRUITER && publicKey && jobDetails.companyInfo && jobDetails.companyInfo?.user_info_state_account_pubkey?.toBase58() === userStateAccount.toBase58()) {
+      if (
+        user?.user_type === userTypeEnum.RECRUITER &&
+        publicKey &&
+        jobDetails.companyInfo &&
+        jobDetails.companyInfo?.user_info_state_account_pubkey?.toBase58() ===
+          userStateAccount.toBase58()
+      ) {
         setCanEdit(true);
       }
 
@@ -119,8 +123,8 @@ export default function JobDetails() {
 
     const jobWorkflowInfo = {
       status: WORKFLOW_STATUSES_enum.APPLIED, //16 => 'saved' or 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
-      job_applied_at: new BN(new Date().getTime()), //8 => timestamp in unix format
-      last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
+      // job_applied_at: new BN(new Date().getTime()), //8 => timestamp in unix format
+      // last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
     };
 
     console.log(jobWorkflowInfo, "jobWorkflowInfo");
@@ -179,7 +183,7 @@ export default function JobDetails() {
         archived: false, //1 => true or false
         is_saved: !workflow.is_saved, //1 => true or false
         status: workflow.status, //16 => 'saved' or 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
-        last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
+        // last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
       };
 
       await updateJobApplication(
@@ -215,7 +219,7 @@ export default function JobDetails() {
         archived: false, //1 => true or false
         is_saved: workflow.is_saved, //1 => true or false
         status: WORKFLOW_STATUSES_enum.WITHDRAW, //16 => 'saved' or 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
-        last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
+        // last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
       };
 
       await updateJobApplication(
@@ -271,7 +275,9 @@ export default function JobDetails() {
                             {/* <!-- media logo start --> */}
                             <div className="square-72 d-block mr-8">
                               <img
-                                src={imgF1.src}
+                                src={
+                                  jobDetails?.companyInfo?.logo_uri || imgF1.src
+                                }
                                 alt=""
                                 style={{
                                   width: "75px",
@@ -411,9 +417,7 @@ export default function JobDetails() {
                             </div>
                           ) : (
                             <></>
-                          )
-                          
-                          }
+                          )}
 
                           {/* <!-- card-btn-group end --> */}
                         </div>
@@ -523,7 +527,7 @@ export default function JobDetails() {
                                   </div> */}
                                   <div className="tags">
                                     <p className="font-size-4 text-gray mb-2">
-                                      Required Skills 
+                                      Required Skills
                                     </p>
                                     <ul className="d-flex list-unstyled flex-wrap pr-sm-25 pr-md-0">
                                       {gContext.jobDetails?.skills?.map(
@@ -558,7 +562,6 @@ export default function JobDetails() {
                                       ) + "+ Years"}
                                     </h6>
                                   </div>
-                                  
                                 </div>
                                 {/* <div className="col-md-4 pl-lg-0">
                         <div className="">
@@ -628,11 +631,9 @@ export default function JobDetails() {
                                           ? "Applied"
                                           : "Apply to this job"}
                                       </a>
-                                    ):(
+                                    ) : (
                                       <></>
-                                    )
-                                  
-                                  }
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -770,15 +771,20 @@ export default function JobDetails() {
                                 </div>
                               ))
                           ) : (
-                            <h5 className="pl-9" style={{
-                              color: "#808080",
-                              fontWeight: "normal",
-                              justifyContent: "center",
-                              display: "flex",
-                              alignItems: "center",
-                              height: "300px",
-                              textTransform: "uppercase"
-                            }}>No other jobs</h5>
+                            <h5
+                              className="pl-9"
+                              style={{
+                                color: "#808080",
+                                fontWeight: "normal",
+                                justifyContent: "center",
+                                display: "flex",
+                                alignItems: "center",
+                                height: "300px",
+                                textTransform: "uppercase",
+                              }}
+                            >
+                              No other jobs
+                            </h5>
                           )}
 
                           {!companyPostedJobs && <h5>No jobs found</h5>}

@@ -54,7 +54,8 @@ const SelectStyled = (
     accentColor = "success",
     name = "item",
     indicator = true,
-    options = defaultOptions,
+    options = options,
+
     ...rest
   },
   props
@@ -62,12 +63,13 @@ const SelectStyled = (
   return (
     <Select
       styles={getCustomStyles(theme, accentColor, bg, border, indicator)}
-      defaultValue={options[1]}
+      // defaultValue={options[0]}
       name={name}
       options={options}
       instanceId="inId"
       isMulti={props.isMulti}
       value={props.value}
+      // zIndex={1000}
       {...rest}
     />
   );

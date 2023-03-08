@@ -18,14 +18,8 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { toast } from "react-toastify";
 import {
-  add_user_info,
   check_if_user_exists,
-  fetchAllUsers,
 } from "../../utils/web3/web3_functions";
-import { Connection } from "@solana/web3.js";
-import dynamic from "next/dynamic";
-import ConnectToPhantom from "../ConnectToPhantom";
-import { userTypeEnum } from "../../utils/constants";
 
 const SiteHeader = styled.header`
   .dropdown-toggle::after {
@@ -324,7 +318,16 @@ const Header = () => {
                     className="proile media ml-7 flex-y-center"
                   >
                     <div className="circle-40">
-                      <img src={imgP.src} alt="" />
+                      <img
+                        src={gContext.user?.image_uri || imgP.src}
+                        alt=""
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                        }}
+                      />
                     </div>
                     <i className="fas fa-chevron-down heading-default-color ml-6"></i>
                   </Dropdown.Toggle>

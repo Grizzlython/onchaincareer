@@ -1,27 +1,29 @@
 import React, { useContext, useState } from "react";
 import Link from "next/link";
-import PageWrapper from "../components/PageWrapper";
-import { Select } from "../components/Core";
-import GlobalContext from "../context/GlobalContext";
+import PageWrapper from "../../components/PageWrapper";
+import { Select } from "../../components/Core";
+import GlobalContext from "../../context/GlobalContext";
 
-import imgP1 from "../assets/image/table-one-profile-image-1.png";
-import inProgress from "../assets/image/svg/in-progress.svg";
-import accept from "../assets/image/svg/accept.svg";
-import reject from "../assets/image/svg/reject.svg";
+import imgP1 from "../../assets/image/table-one-profile-image-1.png";
+import inProgress from "../../assets/image/svg/in-progress.svg";
+import accept from "../../assets/image/svg/accept.svg";
+import reject from "../../assets/image/svg/reject.svg";
 import moment from "moment";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { WORKFLOW_STATUSES_enum } from "../utils/web3/struct_decoders/jobsonchain_constants_enum";
+import { WORKFLOW_STATUSES_enum } from "../../utils/web3/struct_decoders/jobsonchain_constants_enum";
 import { BN } from "bn.js";
 import Tippy from "@tippyjs/react";
-import Loader from "../components/Loader";
+import Loader from "../../components/Loader";
 import { PublicKey } from "@solana/web3.js";
 
 export default function DashboardApplicants() {
   const router = useRouter();
   const gContext = useContext(GlobalContext);
+
+  const { applicantStatusParam } = router.query;
 
   const [appliedCandidates, setAppliedCandidates] = useState([]);
   const [filter, setFilter] = useState("");
@@ -67,11 +69,26 @@ export default function DashboardApplicants() {
 
   useEffect(() => {
     if (allAppliedApplicants) {
-      setAppliedCandidates(
-        allAppliedApplicants[WORKFLOW_STATUSES_enum.ACCEPTED]
-      );
+      if (applicantStatusParam === "applied") {
+        setAppliedCandidates(
+          allAppliedApplicants[WORKFLOW_STATUSES_enum.APPLIED]
+        );
+      } else if (applicantStatusParam === "in-progress") {
+        setAppliedCandidates(
+          allAppliedApplicants[WORKFLOW_STATUSES_enum.IN_PROGRESS]
+        );
+      } else if (applicantStatusParam === "accepted") {
+        setAppliedCandidates(
+          allAppliedApplicants[WORKFLOW_STATUSES_enum.ACCEPTED]
+        );
+      } else if (applicantStatusParam === "rejected") {
+        setAppliedCandidates(
+          allAppliedApplicants[WORKFLOW_STATUSES_enum.REJECTED]
+        );
+      }
     }
-  }, [allAppliedApplicants]);
+  }, [allAppliedApplicants, applicantStatusParam]);
+  console.log("allAppliedApplicants", appliedCandidates);
 
   const jobTitles = gContext.companyPostedJobs?.map((job) => {
     return {
@@ -119,9 +136,7 @@ export default function DashboardApplicants() {
   useEffect(() => {
     if (filter && filter.length > 0) {
       const filterRegex = new RegExp(filter, "i");
-      const filteredApplicants = allAppliedApplicants[
-        WORKFLOW_STATUSES_enum.ACCEPTED
-      ].filter((applicant) => {
+      const filteredApplicants = appliedCandidates.filter((applicant) => {
         console.log("applicant_in_regex", applicant);
         return (
           filterRegex.test(applicant?.applicantInfo?.name) ||
@@ -131,22 +146,16 @@ export default function DashboardApplicants() {
       console.log("filteredApplicants", filteredApplicants);
       setFilteredApplicants(filteredApplicants);
     } else {
-      setFilteredApplicants(
-        allAppliedApplicants[WORKFLOW_STATUSES_enum.ACCEPTED]
-      );
+      setFilteredApplicants(appliedCandidates);
     }
   }, [filter]);
 
   const [pages, setPages] = useState(0);
   useEffect(() => {
-    if (allAppliedApplicants) {
-      setPages(
-        Math.ceil(
-          allAppliedApplicants[WORKFLOW_STATUSES_enum.ACCEPTED].length / 10
-        )
-      );
+    if (appliedCandidates) {
+      setPages(Math.ceil(appliedCandidates.length / 10));
     }
-  }, [allAppliedApplicants]);
+  }, [appliedCandidates]);
 
   return (
     <>
@@ -164,7 +173,7 @@ export default function DashboardApplicants() {
               <div className="row mb-11 align-items-center">
                 <div className="col-lg-6 mb-lg-0 mb-4">
                   <h3 className="font-size-6 mb-0">
-                    Accepted applicants list ({appliedCandidates?.length})
+                    Applicants List ({appliedCandidates?.length})
                   </h3>
                 </div>
                 <div className="col-lg-6">
@@ -189,60 +198,45 @@ export default function DashboardApplicants() {
                   </div>
                 </div>
               </div>
-              <div
-                className="bg-white shadow-8 pt-7 rounded pb-8"
-                style={{
-                  padding: "25px !important",
-                }}
-              >
-                <div
-                  className="table-responsive"
-                  style={{
-                    padding: "20px",
-                    paddingBottom: "160px",
-                  }}
-                >
+              <div className="bg-white shadow-8 pt-7 rounded pb-8 px-11">
+                <div className="table-responsive">
                   {loading ? (
                     <Loader />
                   ) : (
                     <table className="table table-striped">
                       <thead>
-                        <tr
-                          style={{
-                            backgroundColor: "#000000b8",
-                          }}
-                        >
+                        <tr>
                           <th
                             scope="col"
-                            className="pl-0  border-0 font-size-4 font-weight-normal pl-6 text-white"
+                            className="pl-0  border-0 font-size-4 font-weight-normal"
                           >
-                            Candidate Name
+                            Name
                           </th>
                           <th
                             scope="col"
-                            className="border-0 font-size-4 font-weight-normal text-white"
+                            className="border-0 font-size-4 font-weight-normal"
                           >
                             Job Title
                           </th>
                           <th
                             scope="col"
-                            className="border-0 font-size-4 font-weight-normal text-white"
+                            className="border-0 font-size-4 font-weight-normal"
                           >
                             Applied On
                           </th>
                           <th
                             scope="col"
-                            className="border-0 font-size-4 font-weight-normal text-white"
+                            className="border-0 font-size-4 font-weight-normal"
                           >
-                            Change Applicant Status
+                            Change applicant Status
                           </th>
                           <th
                             scope="col"
-                            className="border-0 font-size-4 font-weight-normal text-white"
+                            className="border-0 font-size-4 font-weight-normal"
                           ></th>
                           <th
                             scope="col"
-                            className="border-0 font-size-4 font-weight-normal text-white"
+                            className="border-0 font-size-4 font-weight-normal"
                           ></th>
                         </tr>
                       </thead>
@@ -252,15 +246,15 @@ export default function DashboardApplicants() {
                             ?.slice(offset, limit)
                             ?.map((item, index) => (
                               <tr
-                                className="border-bottom"
+                                className="border border-color-2"
                                 key={index}
                                 style={{
-                                  border: "0px !important",
+                                  minHeight: "1000px",
                                 }}
                               >
                                 <th
                                   scope="row"
-                                  className="pl-6 border-0 py-7 pr-0 border-0 selectedTableRow"
+                                  className="pl-6 border-0 py-7 pr-0"
                                 >
                                   <a
                                     className="media min-width-px-235 align-items-center"
@@ -268,20 +262,9 @@ export default function DashboardApplicants() {
                                   >
                                     <div className="circle-36 mr-6">
                                       <img
-                                        src={
-                                          item?.applicantInfo?.image_uri &&
-                                          item?.applicantInfo?.image_uri
-                                            ?.length > 0
-                                            ? item?.applicantInfo?.image_uri
-                                            : imgP1.src
-                                        }
+                                        src={imgP1.src}
                                         alt=""
-                                        style={{
-                                          height: "40px",
-                                          width: "40px",
-                                          objectFit: "cover",
-                                          borderRadius: "50%",
-                                        }}
+                                        className="w-100"
                                       />
                                     </div>
                                     <h4 className="font-size-4 mb-0 font-weight-semibold text-black-2">
@@ -289,19 +272,70 @@ export default function DashboardApplicants() {
                                     </h4>
                                   </a>
                                 </th>
-                                <td className="table-y-middle py-7 min-width-px-235 pr-0 border-0">
+                                <td className="table-y-middle py-7 min-width-px-235 pr-0">
                                   <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
                                     {item?.jobInfo?.job_title}
                                   </h3>
                                 </td>
-                                <td className="table-y-middle py-7 min-width-px-170 pr-0 border-0">
+                                <td className="table-y-middle py-7 min-width-px-170 pr-0">
                                   <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
                                     {moment(
                                       new Date(Number(item?.job_applied_at))
                                     ).format("DD MMM YYYY")}
                                   </h3>
                                 </td>
-                                <td className="table-y-middle py-5 min-width-px-100 pr-0 border-0">
+                                <td className="table-y-middle py-5 min-width-px-100 pr-0">
+                                  {/* <div
+                                  style={{
+                                    display: "flex",
+                                  }}
+                                >
+                                  <Tippy content="In Progress">
+                                    <i
+                                      className="fa fa-spinner"
+                                      aria-hidden="true"
+                                      style={{
+                                        color: "blue",
+                                        cursor: "pointer",
+                                        marginRight: "10px",
+                                        fontSize: "32px",
+                                      }}
+                                      onClick={() =>
+                                        handleChangeApplicantStatus(
+                                          item?.jobInfo?.job_number,
+                                          item?.company_pubkey,
+                                          WORKFLOW_STATUSES_enum.IN_PROGRESS
+                                        )
+                                      }
+                                    />
+                                  </Tippy>
+                                  <Tippy content="Accept">
+                                    <i
+                                      className="fa fa-check-circle"
+                                      aria-hidden="true"
+                                      style={{
+                                        color: "green",
+                                        cursor: "pointer",
+                                        marginRight: "10px",
+                                        fontSize: "32px",
+                                      }}
+                                      onClick={() => alert("accept")}
+                                    />
+                                  </Tippy>
+                                  <Tippy content="Reject">
+                                    <i
+                                      className="fa fa-times-circle"
+                                      aria-hidden="true"
+                                      style={{
+                                        color: "red",
+                                        cursor: "pointer",
+                                        fontSize: "32px",
+                                      }}
+                                      onClick={() => alert("reject")}
+                                    />
+                                  </Tippy>
+                                  
+                                </div> */}
                                   <Select
                                     options={[
                                       {
@@ -335,35 +369,22 @@ export default function DashboardApplicants() {
                                     }
                                   />
                                 </td>
-                                <td
-                                  className="table-y-middle py-7 min-width-px-170 pl-10 border-0 selectedTableRow"
-                                  style={{
-                                    paddingLeft: "20px !important",
-                                    cursor: "pointer",
-                                  }}
-                                >
+                                <td className="table-y-middle py-7 min-width-px-170 pr-0">
                                   <div className="">
                                     <a
-                                      className="font-size-4 font-weight-semi-bold text-black-2 text-capitalize"
+                                      className="font-size-3 font-weight-bold text-black-2 text-uppercase"
                                       onClick={() => viewCandidateProfile(item)}
                                     >
                                       View Applicant
                                     </a>
                                   </div>
                                 </td>
-                                <td
-                                  className="table-y-middle py-7 min-width-px-110 border-0 selectedTableRow"
-                                  style={{
-                                    paddingRight: "10px !important",
-                                    cursor: "pointer",
-                                    minWidth: "140px !important",
-                                  }}
-                                >
-                                  <div>
+                                <td className="table-y-middle py-7 min-width-px-110 pr-0">
+                                  <div className="">
                                     <Link
                                       href={`/job-details/${item?.job_pubkey.toString()}`}
                                     >
-                                      <a className="font-size-4 font-weight-semi-bold text-green text-capitalize">
+                                      <a className="font-size-3 font-weight-bold text-green text-uppercase">
                                         View Job Post
                                       </a>
                                     </Link>
@@ -373,24 +394,24 @@ export default function DashboardApplicants() {
                             ))
                         ) : (
                           // <tr className="border border-color-2">
-                          //   <td className="table-y-middle py-7 min-width-px-235 pr-0 border-0">
+                          //   <td className="table-y-middle py-7 min-width-px-235 pr-0">
                           //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
                           //   </td>
-                          //   <td className="table-y-full py-7 pr-0 border-0">
+                          //   <td className="table-y-full py-7 pr-0">
                           //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
                           //       No Applicants yet
                           //     </h3>
                           //   </td>
-                          //   <td className="table-y-middle py-7 pr-0 border-0">
+                          //   <td className="table-y-middle py-7 pr-0">
                           //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
                           //   </td>
-                          //   <td className="table-y-middle py-7 pr-0 border-0">
+                          //   <td className="table-y-middle py-7 pr-0">
                           //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
                           //   </td>
-                          //   <td className="table-y-middle py-7 pr-0 border-0">
+                          //   <td className="table-y-middle py-7 pr-0">
                           //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
                           //   </td>
-                          //   <td className="table-y-middle py-7 pr-0 border-0">
+                          //   <td className="table-y-middle py-7 pr-0">
                           //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
                           //   </td>
                           // </tr>
@@ -400,7 +421,7 @@ export default function DashboardApplicants() {
                               padding: "50px 20px",
                               fontSize: "20px",
                               fontWeight: "normal",
-                              width: "318.75%",
+                              width: "225%",
                               background: "#eee",
                             }}
                           >

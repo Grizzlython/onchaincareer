@@ -6,6 +6,12 @@ import GlobalContext from "../context/GlobalContext";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
+import {
+  checkForBalance,
+  initiateBundlr,
+  uploadViaBundlr,
+} from "../utils/bundlr-uploader";
+import filereaderStream from "filereader-stream";
 
 const defaultTypes = [
   { value: "Product-based", label: "Product based" },
@@ -34,10 +40,60 @@ export default function DashboardAddCompany() {
 
   const gContext = useContext(GlobalContext);
 
-  const { publicKey, signTransaction, connected } = useWallet();
+  const { publicKey, signTransaction, connected, wallet } = useWallet();
   const { connection } = useConnection();
 
   const router = useRouter();
+
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreview(undefined);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(selectedFile);
+    setPreview(objectUrl);
+
+    // free memory when ever this component is unmounted
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedFile]);
+
+  const onSelectFile = (e) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      setSelectedFile(undefined);
+      return;
+    }
+
+    setSelectedFile(e.target.files[0]);
+  };
+
+  const handleUpload = (e) => {
+    try {
+      e.preventDefault();
+      const file = e.target.files[0];
+
+      const formData = new FormData();
+
+      formData.append("file", file);
+
+      // const payload = {
+      //   imageType: type,
+      //   image: formData,
+      // };
+
+      console.log(file, "imagefile");
+      setLogo(file);
+
+      onSelectFile(e);
+
+      return;
+    } catch (error) {
+      console.log(error, "image upload error");
+    }
+  };
 
   const handleAddCompany = async () => {
     try {
@@ -46,37 +102,46 @@ export default function DashboardAddCompany() {
         return;
       }
 
-      let notFilledFields;
+      let notFilledFields = "";
       if (!name) {
-        notFilledFields = "Company name,";
+        notFilledFields += "Company name, \n";
       }
       if (!domain) {
-        notFilledFields = "Domain,";
+        notFilledFields += "Domain, \n";
       }
       if (!type) {
-        notFilledFields = "Company type,";
+        notFilledFields += "Company type, \n";
       }
       if (!foundedIn) {
-        notFilledFields = "Founded in,";
+        notFilledFields += "Founded in, \n";
       }
       if (!employeeSize) {
-        notFilledFields = "Employee size,";
+        notFilledFields += "Employee size, \n";
       }
       if (!location) {
-        notFilledFields = "Location,";
+        notFilledFields += "Location, \n";
       }
       if (!description) {
-        notFilledFields = "Description,";
+        notFilledFields += "Description, \n";
       }
       if (!website) {
-        notFilledFields = "Website,";
+        notFilledFields += "Website";
+      }
+
+      const websiteRegex = new RegExp(
+        "^(https?:\\/\\/)?((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|((\\d{1,3}\\.){3}\\d{1,3}))(:\\d+)?(\\/[-a-z\\d%_.~+]*)*(\\?[;&a-z\\d%_.~+=-]*)?(\\#[-a-z\\d_]*)?$",
+        "i"
+      );
+
+      if (!websiteRegex.test(website)) {
+        toast.error("Please enter a valid website url");
       }
 
       if (notFilledFields && notFilledFields.length > 0) {
         toast.error(
           `Please fill the following fields: ${notFilledFields} before adding company profile`,
           {
-            duration: 20000,
+            autoClose: 20000,
           }
         );
         return;
@@ -105,12 +170,44 @@ export default function DashboardAddCompany() {
         instagram: "instagram", //128
       };
 
-      await gContext.addCompanyProfile(
-        publicKey,
-        companyInfo,
-        connection,
-        signTransaction
-      );
+      const adapter = wallet?.adapter;
+      const { bundlr } = await initiateBundlr(adapter);
+
+      console.log(bundlr, "bundlr");
+      console.log(logo, "logo");
+      if (!bundlr) {
+        return;
+      }
+
+      let uploadedImageUri = "";
+      // const symbol = "WEB3JOBS";
+
+      if (logo && logo.name) {
+        console.log("in here");
+        const fileType = logo.type;
+        const imageBuffer = filereaderStream(logo);
+
+        await checkForBalance(bundlr, logo.size);
+        let uploadResult = await uploadViaBundlr(bundlr, imageBuffer, fileType);
+        if (!uploadResult.status) {
+          return {
+            success: false,
+            error: uploadResult.error,
+          };
+        }
+        uploadedImageUri = uploadResult.asset_address;
+        console.log(uploadedImageUri, "uploadedImageUri");
+        companyInfo.logo_uri = uploadedImageUri;
+      }
+
+      console.log(companyInfo, "companyInfo");
+
+      // await gContext.addCompanyProfile(
+      //   publicKey,
+      //   companyInfo,
+      //   connection,
+      //   signTransaction
+      // );
       toast.success("Company profile added successfully");
       router.push("/dashboard-main");
     } catch (error) {
@@ -145,24 +242,49 @@ export default function DashboardAddCompany() {
                         border: "1px solid #e5e5e5",
                       }}
                     >
-                      <div className="upload-file mb-16 text-center">
-                        <div
-                          id="userActions"
-                          className="square-144 m-auto px-6 mb-7"
-                        >
-                          <label
-                            htmlFor="fileUpload"
-                            className="mb-0 font-size-4 text-smoke"
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <div className="upload-file mb-16 text-center">
+                          <div
+                            id="userActions"
+                            className="square-144 m-auto px-6 mb-7"
                           >
-                            Browse or Drag and Drop
-                          </label>
-                          <input
-                            type="file"
-                            id="fileUpload"
-                            className="sr-only"
-                          />
+                            <label
+                              htmlFor="fileUpload"
+                              className="mb-0 font-size-4 text-smoke"
+                            >
+                              Browse or Drag and Drop
+                            </label>
+                            <input
+                              type="file"
+                              id="fileUpload"
+                              className="sr-only"
+                              onChange={(e) => handleUpload(e)}
+                              accept="image/*"
+                            />
+                          </div>
                         </div>
+                        {preview && (
+                          <div className="ml-10">
+                            <p>Image preview</p>
+                            <img
+                              src={preview}
+                              alt=""
+                              style={{
+                                width: "100px",
+                                height: "100px",
+                                objectFit: "cover",
+                                borderRadius: "50%",
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
+
                       <form action="/">
                         <fieldset>
                           <div className="row mb-xl-1 mb-9">

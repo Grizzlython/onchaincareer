@@ -8,7 +8,7 @@ import { countries } from "../../staticData";
 
 const Hero = () => {
   const [jobTitle, setJobTitle] = React.useState("");
-  const [country, setCountry] = React.useState();
+  const [country, setCountry] = React.useState(countries[0]);
   return (
     <>
       {/* <!-- Hero Area --> */}
@@ -53,6 +53,7 @@ const Hero = () => {
                           options={countries}
                           className="pl-8 h-100 arrow-3 font-size-4 d-flex align-items-center w-100"
                           border={false}
+                          value={country}
                           onChange={setCountry}
                         />
 

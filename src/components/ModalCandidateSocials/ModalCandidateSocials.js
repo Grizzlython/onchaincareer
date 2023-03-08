@@ -90,21 +90,21 @@ const ModalCandidateSocials = (props) => {
         return;
       }
 
-      let notFilledFields;
+      let notFilledFields = "";
       if (!email) {
-        notFilledFields = "email";
+        notFilledFields = "Email";
       }
       if (!phone) {
-        notFilledFields += "phone";
+        notFilledFields += "Phone,";
       }
       if (!resume) {
-        notFilledFields += "resume";
+        notFilledFields += "Resume Link,";
       }
       if (!github) {
-        notFilledFields += "github";
+        notFilledFields += "Github handle,";
       }
       if (!linkedin) {
-        notFilledFields += "linkedin";
+        notFilledFields += "Linkedin handle";
       }
 
       //regex for email
@@ -115,8 +115,12 @@ const ModalCandidateSocials = (props) => {
         return;
       }
 
+      console.log("notFilledFields", notFilledFields);
+
       if (notFilledFields) {
-        toast.error(`Please fill ${notFilledFields}`);
+        toast.error(`Please fill ${notFilledFields}`, {
+          autoClose: 20000,
+        });
         return;
       }
 

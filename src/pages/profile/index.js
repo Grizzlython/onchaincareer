@@ -22,7 +22,7 @@ export default function FullProfile() {
   const [candidateInfo, setCandidateInfo] = React.useState(null);
 
   const applicant_info_state_account = gContext.userStateAccount;
-  const {publicKey} = useWallet()
+  const { publicKey } = useWallet();
   const { connection } = useConnection();
 
   const applicantWorkExperiences = gContext.workExperience;
@@ -30,6 +30,8 @@ export default function FullProfile() {
   const applicantEducation = gContext.education;
 
   useEffect(() => {
+    if (!applicant_info_state_account) return;
+
     if (applicant_info_state_account) {
       (async () => {
         await gContext.fetchAndSetWorkExperience(
@@ -85,14 +87,15 @@ export default function FullProfile() {
     (async () => {
       const userExistsRes = await check_if_user_exists(publicKey, connection);
       if (userExistsRes.data.user_type === userTypeEnum.RECRUITER) {
-        toast.info("⚠️ You are a recruiter, you can't access the candidate dashboard");
+        toast.info(
+          "⚠️ You are a recruiter, you can't access the candidate dashboard"
+        );
         router.push("/dashboard-main");
       }
 
-      if(userExistsRes.data){
+      if (userExistsRes.data) {
         setCandidateInfo(userExistsRes.data);
       }
-
     })();
   }, [publicKey]);
 
@@ -115,8 +118,6 @@ export default function FullProfile() {
     gContext.setCandidateInfoAction("edit");
     gContext.toggleCandidateProfileModal();
   };
-
-
 
   return (
     <>
@@ -148,7 +149,7 @@ export default function FullProfile() {
             <div className="row">
               {/* <!-- Left Sidebar Start --> */}
               <div className="col-12 col-xxl-3 col-lg-4 col-md-5 mb-11 mb-lg-0">
-                <ProfileSidebar candidateInfo={candidateInfo}/>
+                <ProfileSidebar candidateInfo={candidateInfo} />
               </div>
               {/* <!-- Left Sidebar End --> */}
               {/* <!-- Middle Content --> */}
@@ -283,7 +284,7 @@ export default function FullProfile() {
                               <p>No workexperience found</p>
                             </>
                           ) : (
-                            applicantWorkExperiences.map((workExp, index) => (
+                            applicantWorkExperiences?.map((workExp, index) => (
                               <div className="w-100" key={index}>
                                 <div className="d-flex align-items-center pr-11 mb-9 flex-wrap flex-sm-nowrap">
                                   {/* <div className="square-72 d-block mr-8 mb-7 mb-sm-0">
@@ -376,7 +377,7 @@ export default function FullProfile() {
                               </Button> */}
                             </>
                           ) : (
-                            applicantProjects.map((project, index) => (
+                            applicantProjects?.map((project, index) => (
                               <div
                                 className="w-100"
                                 key={index}
@@ -465,7 +466,7 @@ export default function FullProfile() {
                               </Button> */}
                             </>
                           ) : (
-                            applicantEducation.map((education, index) => (
+                            applicantEducation?.map((education, index) => (
                               <div
                                 className="w-100"
                                 key={index}

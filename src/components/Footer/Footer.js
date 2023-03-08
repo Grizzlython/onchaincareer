@@ -3,7 +3,10 @@ import Link from "next/link";
 import GlobalContext from "../../context/GlobalContext";
 import Logo from "../Logo";
 import imgM from "../../assets/image/l1/png/message.png";
-import { WalletConnectButton, WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import {
+  WalletConnectButton,
+  WalletMultiButton,
+} from "@solana/wallet-adapter-react-ui";
 
 const Footer = () => {
   const gContext = useContext(GlobalContext);
@@ -142,7 +145,7 @@ const Footer = () => {
                         </Link>
                       </li>
                       <li className="mb-6">
-                        <Link href="/#">
+                        <Link href="/pricing">
                           <a className="heading-default-color font-size-4 font-weight-normal">
                             Pricing
                           </a>
@@ -161,26 +164,26 @@ const Footer = () => {
                     {/* <!-- footer widget title end --> */}
                     <ul className="widget-links pl-0 list-unstyled list-hover-primary">
                       <li className="mb-6">
-                        <Link href="/#">
+                        <Link href="/privacy-policy">
                           <a className="heading-default-color font-size-4 font-weight-normal">
                             Privacy Policy
                           </a>
                         </Link>
                       </li>
                       <li className="mb-6">
-                        <Link href="/#">
+                        <Link href="/terms-and-conditions">
                           <a className="heading-default-color font-size-4 font-weight-normal">
                             Terms &amp; Conditions
                           </a>
                         </Link>
                       </li>
-                      <li className="mb-6">
+                      {/* <li className="mb-6">
                         <Link href="/#">
                           <a className="heading-default-color font-size-4 font-weight-normal">
                             Return Policy
                           </a>
                         </Link>
-                      </li>
+                      </li> */}
                     </ul>
                   </div>
                 </div>

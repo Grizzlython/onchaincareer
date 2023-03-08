@@ -30,6 +30,8 @@ export default function CandidateProfileTwo() {
   const { connection } = useConnection();
   const [candidateInfo, setCandidateInfo] = React.useState(null);
   const router = useRouter();
+
+  const { loading } = gContext;
   useEffect(() => {
     if (!publicKey) {
       router.push("/");
@@ -43,15 +45,16 @@ export default function CandidateProfileTwo() {
           publicKey,
           connection
         );
-      }else{
-        toast.info("⚠️ You are a recruiter, you can't access the candidate dashboard");
+      } else {
+        toast.info(
+          "⚠️ You are a recruiter, you can't access the candidate dashboard"
+        );
         router.push("/dashboard-main");
       }
 
-      if(userExistsRes.data){
+      if (userExistsRes.data) {
         setCandidateInfo(userExistsRes.data);
       }
-
     })();
   }, [publicKey]);
 
@@ -60,7 +63,6 @@ export default function CandidateProfileTwo() {
       <PageWrapper headerConfig={{ button: "profile" }}>
         <div className="bg-default-2 pt-19 pt-lg-22 pb-7 pb-lg-23">
           <div className="container">
-            {/* <!-- back Button --> */}
             <div className="row">
               <div className="col-12 mt-13 dark-mode-texts">
                 <div className="mb-9">
@@ -75,7 +77,7 @@ export default function CandidateProfileTwo() {
                 </div>
               </div>
             </div>
-            {/* <!-- back Button End --> */}
+
             <div className="row">
               <div className="col-12 col-xl-4 col-lg-4 col-md-12 col-xs-10 mb-11 mb-lg-0">
                 <ProfileSidebar candidateInfo={candidateInfo} />
@@ -133,7 +135,9 @@ export default function CandidateProfileTwo() {
                                             <div className="media align-items-center">
                                               <div className="square-72 d-block mr-8">
                                                 <img
-                                                  src={job.logo}
+                                                  src={
+                                                    job?.companyInfo?.logo_uri
+                                                  }
                                                   alt=""
                                                   style={{
                                                     width: "75px",
@@ -243,7 +247,12 @@ export default function CandidateProfileTwo() {
                                           </div>
                                         </div>
 
-                                        <div className="card-btn-group mt-3">
+                                        <div
+                                          className="card-btn-group mt-3"
+                                          style={{
+                                            display: "flex",
+                                          }}
+                                        >
                                           <Link
                                             href={`/job-details/${
                                               job.job_pubkey
@@ -255,6 +264,14 @@ export default function CandidateProfileTwo() {
                                               View Job
                                             </a>
                                           </Link>
+                                          <a
+                                            className="btn btn-outline-gray text-black text-uppercase btn-medium rounded-3 ml-3"
+                                            href={`https://explorer.solana.com/address/${job?.job_pubkey?.toString()}?cluster=devnet`}
+                                            target="_blank"
+                                          >
+                                            <i className="fa fa-globe mr-3"></i>
+                                            View on chain
+                                          </a>
                                         </div>
                                       </div>
                                     )

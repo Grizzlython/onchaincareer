@@ -8,7 +8,6 @@ import iconB from "../assets/image/svg/icon-briefcase.svg";
 import iconL from "../assets/image/svg/icon-location.svg";
 
 export default function JobDetails() {
-  // TODO: get the job details from the API
   return (
     <>
       <PageWrapper headerConfig={{ button: "profile" }}>

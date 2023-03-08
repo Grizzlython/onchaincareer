@@ -1,8 +1,6 @@
 import React from "react";
 import Link from "next/link";
 
-import imgL1Logo from "../../assets/image/logo-main-black.png";
-import imgL1LogoWhite from "../../assets/image/logo-main-white.png";
 import Clgo from "../../assets/image/Clgo.png";
 
 const Logo = ({ white, height, className = "", ...rest }) => {

@@ -16,7 +16,7 @@ const Content = () => {
   const gContext = useContext(GlobalContext);
 
   const handleCTA = () => {
-    if (gContext.user?.userType === "recruiter") {
+    if (gContext.user?.user_type === "recruiter") {
       router.push("/dashboard-jobpost");
       return;
     } else {

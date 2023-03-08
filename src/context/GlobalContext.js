@@ -215,12 +215,12 @@ const GlobalProvider = ({ children }) => {
   };
 
   const fetchAndSetAllListedCompaniesByUser = async (connection, owner) => {
-    setLoading(true);
     try {
       if (!owner) {
         toast.error("Please login or provide owner to view company list");
         return;
       }
+      setLoading(true);
       const user_info_state_account = await fetchUserInfoAccount(
         owner,
         connection,
@@ -244,18 +244,18 @@ const GlobalProvider = ({ children }) => {
         response,
         "response from fetchAndSetAllListedCompaniesByUser"
       );
-      
-      if(response.status){
+
+      if (response.status) {
         toast.success("😃 Company list fetched successfully");
         setAllListedCompaniesByUser(response.data);
         setIsPremiumCompanyOwner(response.isPremiumCompanyOwner);
-      }else
-        toast.error("Error fetching company list");
+      } else toast.error("Error fetching company list");
       setLoading(false);
     } catch (error) {
       console.log(error, "error from fetchAndSetAllListedCompaniesByUser");
       toast.error("Error fetching company list");
       setLoading(false);
+      throw Error(error.message);
     }
   };
 
@@ -268,6 +268,8 @@ const GlobalProvider = ({ children }) => {
       //   `http://localhost:3001/api/candidateInfo/getCandidateByUsername/${username}`
       // );
 
+      setLoading(true);
+
       const response = await getUserCandidateInfo(
         applicantStateAccount,
         connection
@@ -276,10 +278,13 @@ const GlobalProvider = ({ children }) => {
       console.log(response, "response from getCandidateProfileByUsername");
 
       setCandidateProfile(response);
+      setLoading(false);
       toast.success("😃 Candidate profile fetched successfully");
     } catch (error) {
       console.log(error);
       toast.error("Candidate profile fetch failed");
+      setLoading(false);
+      throw Error(error.message);
     }
   };
 
@@ -326,10 +331,14 @@ const GlobalProvider = ({ children }) => {
 
   const getJobListingsByUser = async (owner, connection) => {
     try {
+      setLoading(true);
       const response = await fetchAllJobs(owner, connection);
       setJobListingsByUser(response);
+      setLoading(false);
     } catch (error) {
       toast.error("⚠️ Error getting job listings");
+      setLoading(false);
+      throw Error(error.message);
     }
   };
 
@@ -355,7 +364,7 @@ const GlobalProvider = ({ children }) => {
       //   "http://localhost:3001/api/companyProfile/addCompany",
       //   payload
       // );
-
+      setLoading(true);
       const response = await add_company_info(
         owner,
         companyInfo,
@@ -364,9 +373,12 @@ const GlobalProvider = ({ children }) => {
       );
       console.log(response, "addCompanyProfile response");
       toast.success("😃 Company profile created successfully");
+      setLoading(false);
       // getUserProfileByUserName(user.username);
     } catch (error) {
       toast.error("⚠️ Error creating company profile");
+      setLoading(false);
+      throw Error(error.message);
     }
   };
 
@@ -381,7 +393,7 @@ const GlobalProvider = ({ children }) => {
       //   "http://localhost:3001/api/companyProfile/addCompany",
       //   payload
       // );
-
+      setLoading(true);
       const response = await update_company_info(
         owner,
         companyInfo,
@@ -390,9 +402,12 @@ const GlobalProvider = ({ children }) => {
       );
       console.log(response, "updateCompany response");
       toast.success("😃 Company profile updated successfully");
+      setLoading(false);
       // getUserProfileByUserName(user.username);
     } catch (error) {
       toast.error("⚠️ Error updating company profile");
+      setLoading(false);
+      throw Error(error.message);
     }
   };
 
@@ -402,12 +417,18 @@ const GlobalProvider = ({ children }) => {
       //   `http://localhost:3001/api/companyProfile/getCompanyByName/${companyName}`
       // );
 
+      setLoading(true);
+
       const response = await getCompanyInfo(companyPubKey, connection);
 
       console.log(response, "getCompanyProfile response");
+
+      setLoading(false);
       // setSelectedCompanyInfo(response);
     } catch (error) {
       toast.error("⚠️ Error getting company profile");
+      setLoading(false);
+      throw Error(error.message);
     }
   };
 
@@ -433,6 +454,7 @@ const GlobalProvider = ({ children }) => {
 
   const updateCandidateProfile = async (username, payload) => {
     try {
+      setLoading(true);
       const response = await axios.post(
         `http://localhost:3001/api/candidateInfo/updateCandidateByUsername/${username}`,
         payload
@@ -441,8 +463,11 @@ const GlobalProvider = ({ children }) => {
       setCandidateProfile(response.data?.data);
       toast.success("😃 Candidate profile updated successfully");
       getUserProfileByUserName(username);
+      setLoading(false);
     } catch (error) {
       toast.error("⚠️ Error updating candidate profile");
+      setLoading(false);
+      throw Error(error.message);
     }
   };
 
@@ -459,6 +484,7 @@ const GlobalProvider = ({ children }) => {
       //   "http://localhost:3001/api/joblistings/add",
       //   payload
       // );
+      setLoading(true);
       const response = await add_jobpost_info(
         provider,
         owner,
@@ -468,9 +494,12 @@ const GlobalProvider = ({ children }) => {
         signTransaction
       );
       setJobPost(response.data?.data);
+      setLoading(false);
       toast.success("😃 Job post created successfully");
     } catch (error) {
       toast.error("⚠️ Error creating job post");
+      setLoading(false);
+      throw Error(error.message);
     }
   };
 
@@ -486,6 +515,7 @@ const GlobalProvider = ({ children }) => {
       //   "http://localhost:3001/api/joblistings/add",
       //   payload
       // );
+      setLoading(true);
       const response = await update_jobpost_info(
         owner,
         jobPostInfo,
@@ -495,8 +525,11 @@ const GlobalProvider = ({ children }) => {
       );
       setJobPost(response.data?.data);
       toast.success("😃 Job post updated successfully");
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       toast.error("⚠️ Error updating job post");
+      throw Error(error.message);
     }
   };
 
@@ -530,6 +563,7 @@ const GlobalProvider = ({ children }) => {
     } catch (error) {
       console.log(error, "error in addJobApplication");
       toast.error("⚠️ Error while applying for job");
+      setLoading(false);
       throw Error(error);
     }
   };
@@ -548,6 +582,8 @@ const GlobalProvider = ({ children }) => {
       //   payload
       // );
       setLoading(true);
+
+      console.log(jobWorkflowInfo, "jobWorkflowInfo");
       const response = await update_job_workflow_info(
         owner,
         connection,
@@ -557,23 +593,28 @@ const GlobalProvider = ({ children }) => {
         companyInfoAccount
       );
 
-      console.log(response, "addJobApplication response");
+      console.log(response, "update response");
       // setJobApplication(response.data?.data);
       toast.success("😃 Job updated successfully");
       setLoading(false);
     } catch (error) {
       console.log(error, "err in uodate job application");
       toast.error("⚠️ Error while updating for job");
+      setLoading(false);
       throw Error(error, "err in uodate job application");
     }
   };
 
   const fetchAndSetAllInteractedJobsByUser = async (owner, connection) => {
     try {
+      setLoading(true);
       const response = await fetchAllWorkflowOfUsers(owner, connection);
       setAllInteractedJobsByUser(response);
+      setLoading(false);
     } catch (error) {
       toast.error("⚠️ Error while fetching user interacted workflows");
+      setLoading(false);
+      throw Error(error.message);
     }
   };
 
@@ -612,12 +653,15 @@ const GlobalProvider = ({ children }) => {
       setLoading(false);
     } catch (error) {
       toast.error("⚠️ Error while fetching job details");
+      setLoading(false);
+      throw Error(error.message);
     }
   };
 
   const fetchAndSetCompanyPostedJobs = async (
     company_info_account,
-    connection
+    connection,
+    fetchApplicantsAlso = false
   ) => {
     try {
       if (!company_info_account) {
@@ -645,10 +689,15 @@ const GlobalProvider = ({ children }) => {
         setCompanyPostedJobs([]);
       }
 
-      setLoading(false);
+      if (fetchApplicantsAlso) {
+        await fetchAndSetAllAppliedApplicants(connection, company_info_account);
+      } else {
+        setLoading(false);
+      }
     } catch (error) {
       console.log(error, "error in getCompanyPostedJobs");
       toast.error("⚠️ Error while fetching company posted jobs");
+      setLoading(false);
       throw Error("Error while fetching company posted jobs");
     }
   };
@@ -657,15 +706,19 @@ const GlobalProvider = ({ children }) => {
 
   const getAllWorkflowsOfJob = async (jobpost_info_account, connection) => {
     try {
+      setLoading(true);
       const response = await findAllWorkflowOfJobPost(
         jobpost_info_account,
         connection
       );
 
       console.log(response, "response from getAllWorkflowsOfJob");
+      setLoading(false);
     } catch (error) {
       console.log(error, "error in getAllWorkflowsOfJob");
       toast.error("⚠️ Error while fetching all workflows of job");
+      setLoading(false);
+      throw Error(error.message);
     }
   };
 
@@ -702,6 +755,7 @@ const GlobalProvider = ({ children }) => {
     signTransaction
   ) => {
     try {
+      setLoading(true);
       const response = await add_work_experience_info(
         owner,
         payload,
@@ -715,9 +769,11 @@ const GlobalProvider = ({ children }) => {
         toast.success("😃 Work experience added successfully");
         fetchAndSetWorkExperience(owner, connection);
       }
+      setLoading(false);
     } catch (error) {
       console.log(error, "error in addWorkExperience");
       toast.error("⚠️ Error while adding work experience");
+      setLoading(false);
       throw error;
     }
   };
@@ -727,15 +783,19 @@ const GlobalProvider = ({ children }) => {
     connection
   ) => {
     try {
+      setLoading(true);
       const response = await findAllWorkExperiencesOfUser(
         applicant_info_state_account,
         connection
       );
       console.log(response, "response in context work exp");
       setWorkExperience(response);
+      setLoading(false);
     } catch (error) {
       console.log(error, "error in context work exp");
       toast.error("⚠️ Error while fetching work experience");
+      setLoading(false);
+      throw Error(error.message);
     }
   };
 
@@ -746,6 +806,7 @@ const GlobalProvider = ({ children }) => {
     signTransaction
   ) => {
     try {
+      setLoading(true);
       const response = await update_work_experience_info(
         owner,
         payload,
@@ -755,8 +816,12 @@ const GlobalProvider = ({ children }) => {
       if (response) {
         toast.success("😃 Work experience updated successfully");
         fetchAndSetWorkExperience(owner, connection);
+        setLoading(false);
       } else {
+        setLoading(false);
+
         toast.error("⚠️ Error while updating work experience");
+        throw Error;
       }
     } catch (error) {
       console.log(error, "error in updateWorkExperience");
@@ -772,12 +837,15 @@ const GlobalProvider = ({ children }) => {
     signTransaction
   ) => {
     try {
+      setLoading(true);
       await add_project_info(owner, projectInfo, connection, signTransaction);
       await fetchAndSetProjects(owner, connection);
       toast.success("😃 Project added successfully");
+      setLoading(false);
     } catch (error) {
       console.log(error, "error in context project");
       toast.error("⚠️ Error while adding project");
+      setLoading(false);
       throw error;
     }
   };
@@ -787,6 +855,7 @@ const GlobalProvider = ({ children }) => {
     connection
   ) => {
     try {
+      setLoading(true);
       const response = await findAllProjectsOfUser(
         applicant_info_state_account,
         connection
@@ -795,8 +864,11 @@ const GlobalProvider = ({ children }) => {
       console.log(response, "response in context project");
 
       setProjects(response);
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       toast.error("⚠️ Error while fetching projects");
+      throw Error(error.message);
     }
   };
 
@@ -807,6 +879,7 @@ const GlobalProvider = ({ children }) => {
     signTransaction
   ) => {
     try {
+      setLoading(true);
       await update_project_info(
         owner,
         projectInfo,
@@ -815,9 +888,11 @@ const GlobalProvider = ({ children }) => {
       );
       await fetchAndSetProjects(owner, connection);
       toast.success("😃 Project updated successfully");
+      setLoading(false);
     } catch (error) {
       console.log(error, "error in context project");
       toast.error("⚠️ Error while updating project");
+      setLoading(false);
       throw error;
     }
   };
@@ -829,6 +904,7 @@ const GlobalProvider = ({ children }) => {
     signTransaction
   ) => {
     try {
+      setLoading(true);
       await add_education_info(
         owner,
         educationInfo,
@@ -837,9 +913,11 @@ const GlobalProvider = ({ children }) => {
       );
       await fetchAndSetEducation(owner, connection);
       toast.success("😃 Education added successfully");
+      setLoading(false);
     } catch (error) {
       console.log(error, "error in context education");
       toast.error("⚠️ Error while adding education");
+      setLoading(false);
       throw error;
     }
   };
@@ -849,6 +927,7 @@ const GlobalProvider = ({ children }) => {
     connection
   ) => {
     try {
+      setLoading(true);
       const response = await findAllEducationsOfUser(
         applicant_info_state_account,
         connection
@@ -857,9 +936,12 @@ const GlobalProvider = ({ children }) => {
       console.log(response, "response in context fetchAndSetEducation");
 
       setEducations(response);
+      setLoading(false);
     } catch (error) {
-      console.log(error)
+      console.log(error);
       toast.error("⚠️ Error in fetchAndSetEducation");
+      setLoading(false);
+      throw Error(error.message);
     }
   };
 
@@ -870,6 +952,7 @@ const GlobalProvider = ({ children }) => {
     signTransaction
   ) => {
     try {
+      setLoading(true);
       await update_education_info(
         owner,
         educationInfo,
@@ -878,7 +961,9 @@ const GlobalProvider = ({ children }) => {
       );
       await fetchAndSetProjects(owner, connection);
       toast.success("😃 Education updated successfully");
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       console.log(error, "error in context education");
       toast.error("⚠️ Error while updating Education");
       throw error;
@@ -933,6 +1018,7 @@ const GlobalProvider = ({ children }) => {
       //   "http://localhost:3001/api/candidateInfo/addCandidateContactInfo",
       //   payload
       // );
+      setLoading(true);
       const response = await add_contact_info(
         owner,
         contactInfo,
@@ -943,7 +1029,9 @@ const GlobalProvider = ({ children }) => {
       console.log(response, "response in context socials");
       fetchAndSetCandidateSocials(owner, connection);
       toast.success("😃 Socials added successfully");
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       toast.error("⚠️ Error while adding socials");
     }
   };
@@ -954,6 +1042,7 @@ const GlobalProvider = ({ children }) => {
     user_info_state_account = ""
   ) => {
     try {
+      setLoading(true);
       console.log(publicKey, "publicKey in context socials");
       const res = await getContactInfoByUserAccount(
         publicKey,
@@ -962,7 +1051,9 @@ const GlobalProvider = ({ children }) => {
       );
       console.log(res, "res in context socials");
       setCandidateSocials(res);
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       toast.error("⚠️ Error while fetching socials");
     }
   };
@@ -974,6 +1065,7 @@ const GlobalProvider = ({ children }) => {
     signTransaction
   ) => {
     try {
+      setLoading(true);
       await update_contact_info(
         owner,
         contactInfo,
@@ -983,7 +1075,9 @@ const GlobalProvider = ({ children }) => {
 
       fetchAndSetCandidateSocials(owner, connection);
       toast.success("😃 Socials updated successfully");
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       toast.error("⚠️ Error while updating socials");
     }
   };
@@ -992,25 +1086,38 @@ const GlobalProvider = ({ children }) => {
     applicant_public_key,
     connection
   ) => {
-    // try {
-    const resp = await getUserCandidateInfo(applicant_public_key, connection);
-    console.log(applicant_public_key.toString(), "applicant_public_key");
-    console.log(resp, "resp");
-    return resp;
-    // } catch (err) {
-    //   console.log(err, "err");
-    // }
+    try {
+      setLoading(true);
+      const resp = await getUserCandidateInfo(applicant_public_key, connection);
+      console.log(applicant_public_key.toString(), "applicant_public_key");
+      console.log(resp, "resp");
+      setLoading(false);
+      return resp;
+    } catch (err) {
+      console.log(err, "err");
+      setLoading(false);
+    }
   };
 
   const [userStateAccount, setUserStateAccount] = useState(null);
   const [isUserApplicant, setIsUserApplicant] = useState(true);
 
   const setUserFromChain = async (payload, connection) => {
-    console.log(payload, "payload in setUserFromChain")
-    setUser(payload);
-    setIsUserApplicant(payload.user_type === userTypeEnum.APPLICANT ? true : false);
-    if(payload.user_type === userTypeEnum.RECRUITER){
-      await fetchAndSetAllListedCompaniesByUser(connection, payload.owner_pubkey);
+    try {
+      console.log(payload, "payload in setUserFromChain");
+      setUser(payload);
+      setIsUserApplicant(
+        payload.user_type === userTypeEnum.APPLICANT ? true : false
+      );
+      if (payload.user_type === userTypeEnum.RECRUITER) {
+        await fetchAndSetAllListedCompaniesByUser(
+          connection,
+          payload.owner_pubkey
+        );
+      }
+    } catch (error) {
+      console.log(error, "error in setUserFromChain");
+      toast.error("⚠️ Error while setting user from chain");
     }
   };
   const updateUserStateAccount = async (applicant_info_state_account) => {
@@ -1021,13 +1128,16 @@ const GlobalProvider = ({ children }) => {
   const fetchAndSetAllListedCompanies = async (connection) => {
     try {
       console.log("In fetchAndSetAllListedCompanies context function");
-
+      setLoading(true);
       const response = await findAllCompanyInfosOfUser(connection);
       setAllListedCompanies(response.data);
+      setLoading(false);
       // toast.success("😃 All listed companies fetched successfully");
     } catch (error) {
       console.log(error, "error in getAllListedCompanies");
       toast.error(error.message);
+      setLoading(false);
+      throw Error(error.message);
     }
   };
 
@@ -1079,6 +1189,8 @@ const GlobalProvider = ({ children }) => {
     } catch (error) {
       console.log(error, "error in fetchAndSetAllJobListings");
       toast.error("Error while fetching all job listings");
+      setLoading(false);
+      throw Error(error);
     }
   };
 
@@ -1144,12 +1256,14 @@ const GlobalProvider = ({ children }) => {
           pubkey: workflow.pubkey,
         });
       }
+      console.log(allWorkflows, "allWorkflows");
 
       setAllAppliedApplicants(allWorkflows);
       setLoading(false);
     } catch (err) {
       console.log(err, "err in fetch applicants");
       toast.error("⚠️ Error while fetching applicants");
+      setLoading(false);
       throw Error(err, "err in fetch applicants");
     }
   };
@@ -1161,15 +1275,15 @@ const GlobalProvider = ({ children }) => {
       setLoading(true);
       // setAllAppliedApplicants(null);
 
-      const result = await fetchAllUsers(userTypeEnum.APPLICANT,connection);
-      if(result.status){
+      const result = await fetchAllUsers(userTypeEnum.APPLICANT, connection);
+      if (result.status) {
         setAllCandidates(result.candidates);
-      }else
-        setAllCandidates([])
+      } else setAllCandidates([]);
       setLoading(false);
     } catch (err) {
       console.log(err, "err in fetch applicants");
       toast.error("⚠️ Error while fetching applicants");
+      setLoading(false);
       throw Error(err, "err in fetch applicants");
     }
   };
@@ -1180,6 +1294,8 @@ const GlobalProvider = ({ children }) => {
         toast.error("⚠️ No workflow found");
         return;
       }
+
+      setLoading(true);
       const workflow = await getWorkflowInfo(
         new PublicKey(workflowPubkey),
         connection
@@ -1220,9 +1336,11 @@ const GlobalProvider = ({ children }) => {
       console.log(workflow, "response in fetchAndSetWorkflowInfo");
 
       setWorkflowSelectedToView(workflow);
+      setLoading(false);
     } catch (err) {
       console.log(err, "err in fetchAndSetWorkflowInfo");
       toast.error(err.message || "⚠️ Error while fetching workflow info");
+      setLoading(false);
       throw err;
     }
   };
@@ -1249,6 +1367,7 @@ const GlobalProvider = ({ children }) => {
       setLoading(false);
     } catch (err) {
       console.log(err, "err in fetchAndSetCompanyInfo");
+      setLoading(false);
       toast.error(err.message || "⚠️ Error while fetching company info");
     }
   };
@@ -1408,7 +1527,7 @@ const GlobalProvider = ({ children }) => {
         allCandidates,
         fetchAndSetAllUsers,
         isUserApplicant,
-        isPremiumCompanyOwner
+        isPremiumCompanyOwner,
       }}
     >
       {children}

@@ -92,15 +92,21 @@ const ModalCompanyProfile = (props) => {
         name: name, //64
         logo_uri: logo, //128
         domain: domain, //64
-        company_type: type.value, //8 "product, service, both"
-        company_size: employeeSize.value, //8 "small, medium, large"
+        company_type: type && type.value.length > 0 ? type.value : "", //8 "product, service, both"
+        company_size:
+          employeeSize && employeeSize.value.length > 0
+            ? employeeSize.value
+            : "", //8 "small, medium, large"
         company_stage: "company_stage", //32
         funding_amount: "10000", //8
         funding_currency: "SOLG", //8
         image_uri: "image_uri", //128
         cover_image_uri: "cover_image_uri", //128
         founded_in: foundedIn, //8
-        employee_size: employeeSize.value, //8
+        employee_size:
+          employeeSize && employeeSize.value.length > 0
+            ? employeeSize.value
+            : "", //8
         address: location, //512
         description: description, // 1024
         website: website, //128
