@@ -1,19 +1,17 @@
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
-  Keypair,
   PublicKey,
+  sendAndConfirmTransaction,
   SystemProgram,
-
-  //Transaction,
+  Transaction,
   TransactionInstruction,
 } from "@solana/web3.js";
 import { sendTxUsingExternalSignature } from "./externalwallet";
-import { getOrCreateAssociatedAccount } from "./getOrCreateAssociatedAccount";
 import {
+  getPayer,
   JobsOnChain_Company_Info_ID,
   JobsOnChain_JobPost_Info_ID,
   JobsOnChain_User_Info_ID,
-  treasory_token_account,
+  JobsOnChain_Workflow_Info_ID,
 } from "./program_ids";
 import {
   UserCandidateInfoState,
@@ -24,7 +22,6 @@ import {
   ProjectInfoState_SIZE,
   EducationInfoState_SIZE,
   WorkExperienceInfoState_SIZE,
-  ContactInfoState_SIZE,
 } from "./struct_decoders/jobsonchain_user_info_decoder";
 import {
   JobPostInfoState,
@@ -38,13 +35,21 @@ import {
   CompanyInfoState,
   CompanyInfoState_SIZE,
 } from "./struct_decoders/jobsonchain_company_info_decoder";
-import * as BufferLayout from "@solana/buffer-layout";
 import { Buffer } from "buffer";
 import {
+  REVEAL_USER_DETAILS_PRICE,
   SOLANA_USDC_MINT_KEY_DEVNET,
   SOLANA_USDC_MINT_KEY_LOCALHOST,
+  SUBSCRIPTION_PLANS,
+  SUBSCRIPTION_PLANS_enum,
+  SUBSCRIPTION_PLANS_PRICES,
+  WORKFLOW_STATUSES,
+  WORKFLOW_STATUSES_enum,
 } from "./struct_decoders/jobsonchain_constants_enum";
-
+import { findAssociatedTokenAccountPublicKey } from "./associatedAccounts";
+import { transferCustomToken } from "./transferCustomToken";
+import { toast } from "react-toastify";
+const BN = require("bn.js");
 // export const create_game_daily_league_cpi = async (owner,game_info_state_account, LEAGUE_ID, connection, signTransaction): Promise<FunctionResponse> => {
 //   try{
 //     const solgames_uac_state_account = platform_state_account;
@@ -135,8 +140,6 @@ export const getUserCandidateInfo = async (
     applicant_info_state_account
   );
 
-  console.log(accountInfo.data, "---accountInfo.data---");
-
   if (accountInfo === null) {
     return null;
   }
@@ -158,27 +161,23 @@ export const getProjectInfo = async (
   return projectInfo;
 };
 
-export const getContactInfoByUserAccount = async (owner, connection) => {
-  console.log(owner, "---owner---");
-
-  const candidate_info_state_account = await PublicKey.findProgramAddress(
-    [
-      Buffer.from(APPLICANT_STATE_ACCOUNT_PREFIX),
-      new PublicKey(owner).toBuffer(),
-    ],
-    JobsOnChain_User_Info_ID
-  );
-
-  console.log(
-    candidate_info_state_account,
-    "---candidate_info_state_account---"
-  );
+export const getContactInfoByUserAccount = async (owner, connection, user_info_state_account = "") => {
+  let candidate_info_state_account =[]
+  if(user_info_state_account){
+    candidate_info_state_account=[user_info_state_account]
+  }else{
+    candidate_info_state_account = await PublicKey.findProgramAddress(
+      [
+        Buffer.from(APPLICANT_STATE_ACCOUNT_PREFIX),
+        new PublicKey(owner).toBuffer(),
+      ],
+      JobsOnChain_User_Info_ID
+    );
+  }
 
   let candidateInfoExists = await connection.getAccountInfo(
     candidate_info_state_account[0]
   );
-
-  console.log(candidateInfoExists, "---candidateInfoExists---");
 
   if (candidateInfoExists === null) {
     return null;
@@ -192,18 +191,16 @@ export const getContactInfoByUserAccount = async (owner, connection) => {
     JobsOnChain_User_Info_ID
   );
 
-  console.log(contact_info_state_account, "---contact_info_state_account---");
-
   let contactInfoExists = await connection.getAccountInfo(
     contact_info_state_account[0]
   );
+  console.log("contactInfoExists ", contactInfoExists);
 
   if (!contactInfoExists) {
     return null;
   }
 
   const contactInfo = ContactInfoState.deserialize(contactInfoExists.data);
-  console.log(contactInfo, "---cI---");
   return contactInfo;
 };
 
@@ -306,7 +303,15 @@ export const findAllEducationsOfUser = async (
     }
   );
 
-  return educationsOfUser;
+  const educations = [];
+  for (let i = 0; i < educationsOfUser.length; i++) {
+    const education = EducationInfoState.deserialize(
+      educationsOfUser[i].account.data
+    );
+    educations.push(education);
+  }
+
+  return educations;
 };
 
 export const findAllWorkExperiencesOfUser = async (
@@ -339,16 +344,14 @@ export const findAllWorkExperiencesOfUser = async (
     workExperiences.push(workExperience);
   }
 
-  console.log(workExperiencesOfUser, "---workExperiencesOfUser---");
-
   console.log(workExperiences, "---workExperiences---");
 
   return workExperiences;
 };
 
 export const findAllCompanyInfosOfUser = async (
-  user_info_state_account,
-  connection
+  connection,
+  user_info_state_account
 ) => {
   try {
     const filters = [
@@ -356,7 +359,6 @@ export const findAllCompanyInfosOfUser = async (
         dataSize: CompanyInfoState_SIZE,
       },
     ];
-
     //if user_info_state_account is not null, then filter by user_info_state_account else return all company infos
     if (user_info_state_account) {
       filters.push({
@@ -373,8 +375,6 @@ export const findAllCompanyInfosOfUser = async (
         filters,
       }
     );
-
-    console.log(companyInfosOfUser, "---companyInfosOfUser---");
 
     const companyInfos = [];
 
@@ -399,15 +399,19 @@ export const findAllCompanyInfosOfUser = async (
       const companyInfo = CompanyInfoState.deserialize(
         companyInfosOfUser[i].account.data
       );
-      companyInfos.push(companyInfo);
+
+      const companyInfoWithPubKey = {
+        ...companyInfo,
+        company_info_account: companyInfosOfUser[i].pubkey,
+      };
+
+      companyInfos.push(companyInfoWithPubKey);
     }
 
-    return companyInfos;
-
-    // return {
-    //   status: true,
-    //   data: companyInfosOfUser,
-    // };
+    return {
+      status: true,
+      data: companyInfos,
+    };
   } catch (err) {
     console.log(err);
     return {
@@ -422,16 +426,6 @@ export const findAllJobsOfCompanyByPublicKey = async (
   company_info_account
 ) => {
   try {
-    const companyInfoAccount = await PublicKey.findProgramAddress(
-      [
-        Buffer.from(APPLICANT_STATE_ACCOUNT_PREFIX),
-        new PublicKey(user_public_key).toBuffer(),
-      ],
-      JobsOnChain_Company_Info_ID
-    );
-
-    console.log(companyInfoAccount, "---companyInfoAccount---");
-
     const filters = [
       {
         dataSize: JobPostInfoState_SIZE,
@@ -496,9 +490,29 @@ export const findAllJobsOfCompany = async (
       }
     );
 
+    const jobs = [];
+
+    for (let i = 0; i < allJobsOfCompany.length; i++) {
+      const job = JobPostInfoState.deserialize(
+        allJobsOfCompany[i].account.data
+      );
+
+      // const jobWithPubKey = {
+      //   ...job,
+      //   // job_post_info_account: allJobsOfCompany[i].pubkey,
+
+      // };
+
+      jobs.push({
+        pubkey: allJobsOfCompany[i].pubkey,
+        parsedInfo: job,
+        jobTitle: job.job_title,
+      });
+    }
+
     return {
       status: true,
-      data: allJobsOfCompany,
+      data: jobs,
     };
   } catch (err) {
     console.log(err);
@@ -524,7 +538,7 @@ export const findAllWorkflowOfApplicant = async (
     if (applicant_info_state_account) {
       filters.push({
         memcmp: {
-          offset: 66,
+          offset: 67,
           bytes: applicant_info_state_account.toString(),
         },
       });
@@ -552,7 +566,9 @@ export const findAllWorkflowOfApplicant = async (
 
 export const findAllWorkflowOfJobPost = async (
   connection,
-  jobpost_info_account
+  jobpost_info_account,
+  applicant_info_state_account = "",
+  company_info_account = ""
 ) => {
   try {
     const filters = [
@@ -565,8 +581,25 @@ export const findAllWorkflowOfJobPost = async (
     if (jobpost_info_account) {
       filters.push({
         memcmp: {
-          offset: 98,
+          offset: 99,
           bytes: jobpost_info_account.toString(),
+        },
+      });
+    }
+    if (applicant_info_state_account) {
+      filters.push({
+        memcmp: {
+          offset: 67,
+          bytes: applicant_info_state_account.toString(),
+        },
+      });
+    }
+
+    if (company_info_account) {
+      filters.push({
+        memcmp: {
+          offset: 35,
+          bytes: company_info_account.toString(),
         },
       });
     }
@@ -585,15 +618,15 @@ export const findAllWorkflowOfJobPost = async (
         allWorkflowOfJobs[i].account.data
       );
 
-      jobWorkflows.push(jobWorkflow);
+      jobWorkflows.push({...jobWorkflow, pubkey: allWorkflowOfJobs[i].pubkey});
     }
 
-    return jobWorkflows;
+    // return jobWorkflows;
 
-    // return {
-    //   status: true,
-    //   data: allWorkflowOfJobs,
-    // };
+    return {
+      status: true,
+      data: jobWorkflows,
+    };
   } catch (err) {
     console.log(err);
     return {
@@ -622,11 +655,48 @@ export const getJobPostInfo = async (jobpost_info_account, connection) => {
     return null;
   }
   const jobPostInfo = JobPostInfoState.deserialize(jobPostExists.data);
+  if (jobPostInfo) {
+    jobPostInfo.pubkey = jobpost_info_account;
+  }
   return jobPostInfo;
 };
 
 export const getWorkflowInfo = async (workflow_info_account, connection) => {
   let workflowExists = await connection.getAccountInfo(workflow_info_account);
+  if (workflowExists === null) {
+    return null;
+  }
+  const workflowInfo = WorkflowInfoState.deserialize(workflowExists.data);
+  return workflowInfo;
+};
+
+export const getWorkflowInfoByUser = async (
+  jobpost_info_account,
+  owner,
+  connection
+) => {
+  const applicant_info_state_account = await PublicKey.findProgramAddress(
+    [Buffer.from(APPLICANT_STATE_ACCOUNT_PREFIX), owner.toBuffer()],
+    JobsOnChain_User_Info_ID
+  );
+  console.log("applicant_info_state_account", applicant_info_state_account[0]);
+
+  const workflow_info_account = await PublicKey.findProgramAddress(
+    [
+      Buffer.from(WORKFLOW_STATE_ACCOUNT_PREFIX),
+      jobpost_info_account.toBuffer(),
+      applicant_info_state_account[0].toBuffer(),
+    ],
+    JobsOnChain_Workflow_Info_ID
+  );
+
+  console.log("workflow_info_account", workflow_info_account[0].toBase58());
+
+  // console.log("workflow_info_account", workflow_info_account);
+
+  let workflowExists = await connection.getAccountInfo(
+    workflow_info_account[0]
+  );
   if (workflowExists === null) {
     return null;
   }
@@ -654,6 +724,8 @@ export const check_if_user_exists = async (user_public_key, connection) => {
     ],
     JobsOnChain_User_Info_ID
   );
+
+  console.log(applicant_info_state_account[0], "applicant_info_state_account");
 
   const applicant_info_state_account_exists = await connection.getAccountInfo(
     applicant_info_state_account[0]
@@ -843,8 +915,6 @@ export const add_project_info = async (
   signTransaction
 ) => {
   try {
-    console.log(projectInfo, "--projectInfo--");
-
     console.log("owner => ", owner.toBase58());
     // const projectInfo = {
     //   archived: false,
@@ -947,33 +1017,21 @@ export const add_project_info = async (
       signTransaction
     );
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    const projectInfoResult = await getProjectInfo(
-      project_info_state_account[0],
-      connection
-    );
-    console.log("projectInfoResult => ", projectInfoResult);
-    return projectInfoResult;
+    return;
   } catch (err) {
     console.log("err => ", err);
     throw err;
   }
 };
 
-export const update_project_info = async (owner, connection) => {
+export const update_project_info = async (
+  owner,
+  projectInfo,
+  connection,
+  signTransaction
+) => {
   try {
     console.log("owner => ", owner.toBase58());
-    const projectInfo = {
-      archived: true,
-      project_name: "updated project",
-      project_description: "Sandeep Ghosh",
-      project_image_uris: ["https://dummy.org"],
-      project_link: "applicant bio",
-      project_skills: ["Developer", "Speaker"],
-      project_start_date: new Date().getTime().toString(),
-      project_end_date: new Date().getTime().toString(),
-      project_status: "Completed",
-      project_number: "P5",
-    };
 
     const applicant_info_state_account = await PublicKey.findProgramAddress(
       [
@@ -1051,15 +1109,11 @@ export const update_project_info = async (owner, connection) => {
       connection,
       null,
       [],
-      new PublicKey(owner)
+      new PublicKey(owner),
+      signTransaction
     );
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    const projectInfoResult = await getProjectInfo(
-      project_info_state_account[0],
-      connection
-    );
-    console.log("projectInfoResult => ", projectInfoResult);
-    return projectInfoResult;
+    return;
   } catch (err) {
     console.log("err => ", err);
     throw err;
@@ -1179,24 +1233,28 @@ export const add_contact_info = async (
   }
 };
 
-export const update_contact_info = async (owner, connection) => {
+export const update_contact_info = async (
+  owner,
+  contactInfo,
+  connection,
+  signTransaction
+) => {
   try {
-    console.log("owner => ", owner.toBase58());
-    const contactInfo = {
-      email: "updated email again", //64
-      phone: "updated phone", //16
-      resume_uri: "updated resume_uri", //128
-      github: "updated github link", //128
-      linkedin: "linkedin link", //128
-      twitter: "twitter link", //128
-      dribble: "dribble link", //128
-      behance: "behance link", //128
-      twitch: "twitch link", //128
-      solgames: "solgames link", //128
-      facebook: "facebook link", //128
-      instagram: "instagram link", //128
-      website: "website link", //128
-    };
+    // const contactInfo = {
+    //   email: "updated email again", //64
+    //   phone: "updated phone", //16
+    //   resume_uri: "updated resume_uri", //128
+    //   github: "updated github link", //128
+    //   linkedin: "linkedin link", //128
+    //   twitter: "twitter link", //128
+    //   dribble: "dribble link", //128
+    //   behance: "behance link", //128
+    //   twitch: "twitch link", //128
+    //   solgames: "solgames link", //128
+    //   facebook: "facebook link", //128
+    //   instagram: "instagram link", //128
+    //   website: "website link", //128
+    // };
 
     const applicant_info_state_account = await PublicKey.findProgramAddress(
       [
@@ -1243,11 +1301,6 @@ export const update_contact_info = async (owner, connection) => {
       return;
     }
 
-    console.log(
-      " contact_info_state_account => ",
-      contact_info_state_account[0].toBase58()
-    );
-
     const update_contact_info = new TransactionInstruction({
       programId: JobsOnChain_User_Info_ID,
       keys: [
@@ -1271,14 +1324,14 @@ export const update_contact_info = async (owner, connection) => {
       connection,
       null,
       [],
-      new PublicKey(owner)
+      new PublicKey(owner),
+      signTransaction
     );
     await new Promise((resolve) => setTimeout(resolve, 2000));
     const contactInfoResult = await getContactInfo(
       contact_info_state_account[0],
       connection
     );
-    console.log("contactInfoResult => ", contactInfoResult);
     return contactInfoResult;
   } catch (err) {
     console.log("err => ", err);
@@ -1286,23 +1339,28 @@ export const update_contact_info = async (owner, connection) => {
   }
 };
 
-export const add_education_info = async (owner, connection) => {
+export const add_education_info = async (
+  owner,
+  educationInfo,
+  connection,
+  signTransaction
+) => {
   try {
     console.log("owner => ", owner.toBase58());
-    const educationInfo = {
-      school_name: "school_name", //128
-      degree: "degree", //64
-      field_of_study: "field_of_study", //64
-      start_date: "start_date", //64
-      end_date: "end_data", //64
-      grade: "grade", //64
-      activities: ["activities"], //64*10 //640+10+10 ~700
-      subjects: ["subjects 1", "subjects 2"], //64*10 //640+10+10 ~700
-      description: "description", //1024
-      is_college: true, //1 //if true then school_name is college name
-      is_studying: false, //1
-      certificate_uris: ["uri 1", "uri 2"], //128*5 //640+5+5 ~650
-    };
+    // const educationInfo = {
+    //   school_name: "school_name", //128
+    //   degree: "degree", //64
+    //   field_of_study: "field_of_study", //64
+    //   start_date: "start_date", //64
+    //   end_date: "end_data", //64
+    //   grade: "grade", //64
+    //   activities: ["activities"], //64*10 //640+10+10 ~700
+    //   subjects: ["subjects 1", "subjects 2"], //64*10 //640+10+10 ~700
+    //   description: "description", //1024
+    //   is_college: true, //1 //if true then school_name is college name
+    //   is_studying: false, //1
+    //   certificate_uris: ["uri 1", "uri 2"], //128*5 //640+5+5 ~650
+    // };
 
     const applicant_info_state_account = await PublicKey.findProgramAddress(
       [
@@ -1386,7 +1444,8 @@ export const add_education_info = async (owner, connection) => {
       connection,
       null,
       [],
-      new PublicKey(owner)
+      new PublicKey(owner),
+      signTransaction
     );
     await new Promise((resolve) => setTimeout(resolve, 2000));
     const educationInfoResult = await getEducationInfo(
@@ -1403,26 +1462,27 @@ export const add_education_info = async (owner, connection) => {
 
 export const update_education_info = async (
   owner,
+  educationInfo,
   connection,
   signTransaction
 ) => {
   try {
     console.log("owner => ", owner.toBase58());
-    const educationInfo = {
-      school_name: "updated school_name", //128
-      degree: "updated degree", //64
-      field_of_study: "field_of_study", //64
-      start_date: "start_date", //64
-      end_date: "end_data", //64
-      grade: "grade", //64
-      activities: ["activities"], //64*10 //640+10+10 ~700
-      subjects: ["subjects 1", "subjects 2"], //64*10 //640+10+10 ~700
-      description: "description", //1024
-      is_college: true, //1 //if true then school_name is college name
-      is_studying: false, //1
-      certificate_uris: ["uri 1", "uri 2"], //128*5 //640+5+5 ~650
-      education_number: "E1",
-    };
+    // const educationInfo = {
+    //   school_name: "updated school_name", //128
+    //   degree: "updated degree", //64
+    //   field_of_study: "field_of_study", //64
+    //   start_date: "start_date", //64
+    //   end_date: "end_data", //64
+    //   grade: "grade", //64
+    //   activities: ["activities"], //64*10 //640+10+10 ~700
+    //   subjects: ["subjects 1", "subjects 2"], //64*10 //640+10+10 ~700
+    //   description: "description", //1024
+    //   is_college: true, //1 //if true then school_name is college name
+    //   is_studying: false, //1
+    //   certificate_uris: ["uri 1", "uri 2"], //128*5 //640+5+5 ~650
+    //   education_number: "E1",
+    // };
 
     const applicant_info_state_account = await PublicKey.findProgramAddress(
       [
@@ -1499,12 +1559,7 @@ export const update_education_info = async (
       signTransaction
     );
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    const educationInfoResult = await getEducationInfo(
-      education_info_state_account[0],
-      connection
-    );
-    console.log("educationInfoResult => ", educationInfoResult);
-    return educationInfoResult;
+    return true;
   } catch (err) {
     console.log("err => ", err);
     throw err;
@@ -1520,7 +1575,7 @@ export const add_work_experience_info = async (
   try {
     console.log("owner => ", owner.toBase58());
 
-    // console.log();
+    console.log(workExperienceIn, "---workExperienceIn---");
 
     const workExperience = workExperienceIn;
 
@@ -1630,22 +1685,13 @@ export const add_work_experience_info = async (
   }
 };
 
-export const update_work_experience_info = async (owner, connection) => {
+export const update_work_experience_info = async (
+  owner,
+  workExperience,
+  connection,
+  signTransaction
+) => {
   try {
-    console.log("owner => ", owner.toBase58());
-    const workExperience = {
-      archived: false, //1
-      company_name: "update company_name", //64
-      designation: "designation", //128
-      is_currently_working_here: false, //1
-      start_date: new Date().getTime().toString(), //64
-      end_date: new Date().getTime().toString(), //64
-      description: "description", //512
-      location: "location", //256
-      website: "website url", //128
-      work_experience_number: "W3",
-    };
-
     const applicant_info_state_account = await PublicKey.findProgramAddress(
       [
         Buffer.from(APPLICANT_STATE_ACCOUNT_PREFIX),
@@ -1716,15 +1762,11 @@ export const update_work_experience_info = async (owner, connection) => {
       connection,
       null,
       [],
-      new PublicKey(owner)
+      new PublicKey(owner),
+      signTransaction
     );
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    const workExperienceInfoResult = await getWorkExperienceInfo(
-      work_experience_info_state_account[0],
-      connection
-    );
-    console.log("workExperienceInfoResult => ", workExperienceInfoResult);
-    return workExperienceInfoResult;
+    return true;
   } catch (err) {
     console.log("err => ", err);
     throw err;
@@ -1796,6 +1838,11 @@ export const add_company_info = async (
       companyInfo.company_seq_number = "CP1";
     }
 
+    console.log(
+      companyInfo.company_seq_number,
+      "companyInfo.company_seq_number"
+    );
+
     const addcompanyInfo = new CompanyInfoState({
       ...companyInfo,
     });
@@ -1866,32 +1913,37 @@ export const add_company_info = async (
   }
 };
 
-export const update_company_info = async (owner, connection) => {
+export const update_company_info = async (
+  owner,
+  companyInfo,
+  connection,
+  signTransaction
+) => {
   try {
-    const companyInfo = {
-      archived: false,
-      username: "update user name", //32
-      name: "update name ", //64
-      logo_uri: "logo uri", //128
-      domain: "domain ", //64
-      company_type: "company_type", //8 "product, service, both"
-      company_size: "company_size", //8 "small, medium, large"
-      company_stage: "company_stage", //32
-      funding_amount: "10000", //8
-      funding_currency: "SOLG", //8
-      image_uri: "image_uri", //128
-      cover_image_uri: "cover_image_uri", //128
-      founded_in: "founded_in", //8
-      employee_size: "1000", //8
-      address: "address", //512
-      description: "description", // 1024
-      website: "website", //128
-      linkedin: "linkedin", //128
-      twitter: "twitter", //128
-      facebook: "facebook", //128
-      instagram: "instagram", //128
-      company_seq_number: "CP1",
-    };
+    // const companyInfo = {
+    //   archived: false,
+    //   username: "update user name", //32
+    //   name: "update name ", //64
+    //   logo_uri: "logo uri", //128
+    //   domain: "domain ", //64
+    //   company_type: "company_type", //8 "product, service, both"
+    //   company_size: "company_size", //8 "small, medium, large"
+    //   company_stage: "company_stage", //32
+    //   funding_amount: "10000", //8
+    //   funding_currency: "SOLG", //8
+    //   image_uri: "image_uri", //128
+    //   cover_image_uri: "cover_image_uri", //128
+    //   founded_in: "founded_in", //8
+    //   employee_size: "1000", //8
+    //   address: "address", //512
+    //   description: "description", // 1024
+    //   website: "website", //128
+    //   linkedin: "linkedin", //128
+    //   twitter: "twitter", //128
+    //   facebook: "facebook", //128
+    //   instagram: "instagram", //128
+    //   company_seq_number: "CP1",
+    // };
 
     const applicant_info_state_account = await PublicKey.findProgramAddress(
       [
@@ -1967,7 +2019,8 @@ export const update_company_info = async (owner, connection) => {
       connection,
       null,
       [],
-      new PublicKey(owner)
+      new PublicKey(owner),
+      signTransaction
     );
     await new Promise((resolve) => setTimeout(resolve, 2000));
     const companyInfoResult = await getCompanyInfo(
@@ -2083,6 +2136,7 @@ export const update_company_subscription_info = async (owner, connection) => {
 };
 
 export const add_jobpost_info = async (
+  provider,
   owner,
   jobPostInfo,
   company_seq_number,
@@ -2090,26 +2144,6 @@ export const add_jobpost_info = async (
   signTransaction
 ) => {
   try {
-    // const jobPostInfo = {
-    //   job_title: "job_title", //128
-    //   short_description: "short_description", //256
-    //   long_description: "long_description", //1024
-    //   category: ["category 1", "category 2"], //32*4+10+10 //category is an array of job category like Frontend Developer
-    //   job_type: "job_type", //16 full-time, part-time, contract, internship",
-    //   currency_type: "currency_type", //8 fiat, crypto
-    //   currency: "currency", //8 USD, ETH, BTC, etc
-    //   min_salary: new BN(10000), //8 u64
-    //   max_salary: new BN(50000), //8 u64
-    //   experience_in_months: new BN(100), //8 u64
-    //   skills: ["Coding", "painting"], //64*10+10+10 // ReactJs, NodeJs, etc
-    //   qualification: "qualification", //512
-    //   job_location_type: "job_location_type", //32
-    //   country: "country", //64
-    //   city: "city", //64
-    // };
-
-    // const company_seq_number = "CP2";
-
     const applicant_info_state_account = await PublicKey.findProgramAddress(
       [
         Buffer.from(APPLICANT_STATE_ACCOUNT_PREFIX),
@@ -2191,6 +2225,44 @@ export const add_jobpost_info = async (
     const buffer =
       JobPostInfoState.serializeAddJobPostInfoInstruction(newJobPostInfo);
 
+    const companyParsedInfo = await getCompanyInfo(
+      company_info_account[0],
+      connection
+    );
+
+    if (!companyParsedInfo) {
+      console.log("company info not found");
+      return;
+    }
+
+    //if the company is not on forever plan then ask the user to pay for the job posting
+    if (
+      companyParsedInfo &&
+      companyParsedInfo.subscription_plan != SUBSCRIPTION_PLANS_enum.FOREVER
+    ) {
+      const selectedPlan =
+        SUBSCRIPTION_PLANS_PRICES[companyParsedInfo.subscription_plan];
+      console.log(selectedPlan, "selectedPlan");
+      if (!selectedPlan) {
+        console.log("Not a valid subscription plan found");
+        return;
+      }
+      const transactionStatus = await payFromCompanyToPlatform(
+        provider,
+        owner,
+        connection,
+        selectedPlan.job_posting_price
+      );
+
+      if (!transactionStatus || !transactionStatus.status) {
+        console.log(transactionStatus.message || "Transaction failed");
+        return;
+      }
+
+      console.log(transactionStatus.message || "Transaction success");
+    }
+
+    console.log("companyParsedInfo => ", companyParsedInfo);
     const add_jobpost_info_ins = new TransactionInstruction({
       programId: JobsOnChain_JobPost_Info_ID,
       keys: [
@@ -2237,29 +2309,35 @@ export const add_jobpost_info = async (
   }
 };
 
-export const update_jobpost_info = async (owner, connection) => {
+export const update_jobpost_info = async (
+  owner,
+  jobPostInfo,
+  company_seq_number,
+  connection,
+  signTransaction
+) => {
   try {
-    const jobPostInfo = {
-      archived: false,
-      job_title: "updated job_title", //128
-      short_description: "updated short_description", //256
-      long_description: "long_description", //1024
-      category: ["category 1", "category 2"], //32*4+10+10 //category is an array of job category like Frontend Developer
-      job_type: "job_type", //16 full-time, part-time, contract, internship",
-      currency_type: "currency_type", //8 fiat, crypto
-      currency: "currency", //8 USD, ETH, BTC, etc
-      min_salary: new BN(10000), //8 u64
-      max_salary: new BN(50000), //8 u64
-      experience_in_months: new BN(100), //8 u64
-      skills: ["Coding", "painting"], //64*10+10+10 // ReactJs, NodeJs, etc
-      qualification: "qualification", //512
-      job_location_type: "job_location_type", //32
-      country: "country", //64
-      city: "city", //64
-      job_number: "JP1",
-    };
+    // const jobPostInfo = {
+    //   archived: false,
+    //   job_title: "updated job_title", //128
+    //   short_description: "updated short_description", //256
+    //   long_description: "long_description", //1024
+    //   category: ["category 1", "category 2"], //32*4+10+10 //category is an array of job category like Frontend Developer
+    //   job_type: "job_type", //16 full-time, part-time, contract, internship",
+    //   currency_type: "currency_type", //8 fiat, crypto
+    //   currency: "currency", //8 USD, ETH, BTC, etc
+    //   min_salary: new BN(10000), //8 u64
+    //   max_salary: new BN(50000), //8 u64
+    //   experience_in_months: new BN(100), //8 u64
+    //   skills: ["Coding", "painting"], //64*10+10+10 // ReactJs, NodeJs, etc
+    //   qualification: "qualification", //512
+    //   job_location_type: "job_location_type", //32
+    //   country: "country", //64
+    //   city: "city", //64
+    //   job_number: "JP1",
+    // };
 
-    const company_seq_number = "CP1";
+    // const company_seq_number = "CP1";
 
     const applicant_info_state_account = await PublicKey.findProgramAddress(
       [
@@ -2366,7 +2444,8 @@ export const update_jobpost_info = async (owner, connection) => {
       connection,
       null,
       [],
-      new PublicKey(owner)
+      new PublicKey(owner),
+      signTransaction
     );
     await new Promise((resolve) => setTimeout(resolve, 2000));
     const jobPostInfoResult = await getJobPostInfo(
@@ -2386,11 +2465,10 @@ export const add_job_workflow_info = async (
   connection,
   signTransaction,
   applyJobWorkflowInfo,
-  job_pubkey
+  jobInfoAccount,
+  companyInfoAccount
 ) => {
   try {
-    console.log("add_job_workflow_info => ", applyJobWorkflowInfo);
-
     // const applyJobWorkflowInfo = {
     //   status: "applied", //16 => 'saved' or 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
     //   job_applied_at: new BN(new Date().getTime()), //8 => timestamp in unix format
@@ -2421,68 +2499,53 @@ export const add_job_workflow_info = async (
       applicant_info_state_account[0].toBase58()
     );
 
-    const company_info_account = await PublicKey.findProgramAddress(
-      [
-        Buffer.from(COMPANY_STATE_ACCOUNT_PREFIX),
-        Buffer.from(company_seq_number),
-        applicant_info_state_account[0].toBuffer(),
-      ],
-      JobsOnChain_Company_Info_ID
-    );
-
-    console.log("company_info_account => ", company_info_account[0].toBase58());
+    const company_info_account = companyInfoAccount;
 
     const company_info_account_exists = await connection.getAccountInfo(
-      company_info_account[0]
+      company_info_account
     );
     if (!company_info_account_exists) {
       console.log("company_info_account do not exists");
       return;
     }
-    console.log(
-      " company_info_account => ",
-      company_info_account[0].toBase58()
-    );
+    console.log(" company_info_account => ", company_info_account);
 
-    const jobpost_info_account = await PublicKey.findProgramAddress(
-      [
-        Buffer.from(JOBPOST_STATE_ACCOUNT_PREFIX),
-        Buffer.from(job_number),
-        company_info_account[0].toBuffer(),
-      ],
-      JobsOnChain_JobPost_Info_ID
-    );
+    const jobpost_info_account = jobInfoAccount;
     const jobpost_info_account_exists = await connection.getAccountInfo(
-      jobpost_info_account[0]
+      jobpost_info_account
     );
     if (!jobpost_info_account_exists) {
       console.log("jobpost_info_account do not exists");
       return;
     }
-    console.log(
-      " jobpost_info_account => ",
-      jobpost_info_account[0].toBase58()
-    );
+    console.log(" jobpost_info_account => ", jobpost_info_account.toBase58());
 
     const workflow_info_account = await PublicKey.findProgramAddress(
       [
         Buffer.from(WORKFLOW_STATE_ACCOUNT_PREFIX),
-        jobpost_info_account[0].toBuffer(),
+        jobpost_info_account.toBuffer(),
+        applicant_info_state_account[0].toBuffer(),
       ],
       JobsOnChain_Workflow_Info_ID
     );
-
-    const workflow_info_account_exists = await connection.getAccountInfo(
-      workflow_info_account[0]
-    );
-    if (workflow_info_account_exists) {
-      console.log("workflow_info_account already exists");
-      return;
-    }
     console.log(
       " workflow_info_account => ",
       workflow_info_account[0].toBase58()
     );
+    const workflow_info_account_exists = await connection.getAccountInfo(
+      workflow_info_account[0]
+    );
+    if (workflow_info_account_exists) {
+      console.log("workflow_info_account already exists, apply job again");
+      // return;
+    }
+
+    // const workflowInfoResult = await getWorkflowInfo(
+    //   workflow_info_account[0],
+    //   connection
+    // );
+    // console.log("workflowInfoResult => ", workflowInfoResult);
+    // return workflowInfoResult;
 
     const newJobApplyWorkflowInfo = new WorkflowInfoState({
       ...applyJobWorkflowInfo,
@@ -2492,17 +2555,32 @@ export const add_job_workflow_info = async (
       newJobApplyWorkflowInfo
     );
 
+    console.log("owner => ", owner);
+    console.log("connection => ", connection);
+    console.log("signTransaction => ", signTransaction);
+    console.log("applyJobWorkflowInfo => ", applyJobWorkflowInfo);
+    console.log("jobInfoAccount => ", jobInfoAccount.toBase58());
+    console.log("companyInfoAccount => ", companyInfoAccount.toBase58());
+    console.log(
+      "applicant_info_state_account => ",
+      applicant_info_state_account[0].toBase58()
+    );
+    console.log(
+      "workflow_info_account => ",
+      workflow_info_account[0].toBase58()
+    );
+
     const apply_job_workflow_info_account_inst = new TransactionInstruction({
       programId: JobsOnChain_Workflow_Info_ID,
       keys: [
         { pubkey: owner, isSigner: true, isWritable: false },
-        { pubkey: company_info_account[0], isSigner: false, isWritable: false },
+        { pubkey: company_info_account, isSigner: false, isWritable: false },
         {
           pubkey: applicant_info_state_account[0],
           isSigner: false,
           isWritable: false,
         },
-        { pubkey: jobpost_info_account[0], isSigner: false, isWritable: false },
+        { pubkey: jobpost_info_account, isSigner: false, isWritable: false },
         { pubkey: workflow_info_account[0], isSigner: false, isWritable: true },
 
         {
@@ -2533,28 +2611,32 @@ export const add_job_workflow_info = async (
       signTransaction
     );
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    const workflowInfoResult = await getWorkflowInfo(
-      workflow_info_account[0],
-      connection
-    );
-    console.log("workflowInfoResult => ", workflowInfoResult);
-    return workflowInfoResult;
   } catch (err) {
     console.log("err => ", err);
     throw err;
   }
 };
 
-export const update_job_workflow_info = async (owner, connection) => {
+export const update_job_workflow_info = async (
+  owner,
+  connection,
+  signTransaction,
+  updateWorkflowInfo,
+  jobInfoAccount,
+  companyInfoAccount
+) => {
   try {
-    const updateWorkflowInfo = {
-      archived: false, //1 => true or false
-      status: "in_progress", //16 => 'saved' or 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
-      last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
-    };
+    console.log("updateWorkflowInfo => ", updateWorkflowInfo);
 
-    const company_seq_number = "CP2";
-    const job_number = "JP2";
+    // console.log();
+    // const updateWorkflowInfo = {
+    //   archived: false, //1 => true or false
+    //   status: "in_progress", //16 => 'saved' or 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
+    //   last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
+    // };
+
+    // const company_seq_number = "CP2";
+    // const job_number = "JP2";
 
     const applicant_info_state_account = await PublicKey.findProgramAddress(
       [
@@ -2572,39 +2654,25 @@ export const update_job_workflow_info = async (owner, connection) => {
       console.log("applicant_info_state_account not found");
       return;
     }
-    console.log(
-      " applicant_info_state_account => ",
-      applicant_info_state_account[0].toBase58()
-    );
+    // console.log(
+    //   " applicant_info_state_account => ",
+    //   applicant_info_state_account[0].toBase58()
+    // );
 
-    const company_info_account = await PublicKey.findProgramAddress(
-      [
-        Buffer.from(COMPANY_STATE_ACCOUNT_PREFIX),
-        Buffer.from(company_seq_number),
-        applicant_info_state_account[0].toBuffer(),
-      ],
-      JobsOnChain_Company_Info_ID
-    );
+    const company_info_account = companyInfoAccount;
     const company_info_account_exists = await connection.getAccountInfo(
-      company_info_account[0]
+      company_info_account
     );
     if (!company_info_account_exists) {
       console.log("company_info_account do not exists");
       return;
     }
-    console.log(
-      " company_info_account => ",
-      company_info_account[0].toBase58()
-    );
+    // console.log(
+    //   " company_info_account => ",
+    //   company_info_account[0].toBase58()
+    // );
 
-    const jobpost_info_account = await PublicKey.findProgramAddress(
-      [
-        Buffer.from(JOBPOST_STATE_ACCOUNT_PREFIX),
-        Buffer.from(job_number),
-        company_info_account[0].toBuffer(),
-      ],
-      JobsOnChain_JobPost_Info_ID
-    );
+    const jobpost_info_account = [jobInfoAccount];
     const jobpost_info_account_exists = await connection.getAccountInfo(
       jobpost_info_account[0]
     );
@@ -2612,15 +2680,21 @@ export const update_job_workflow_info = async (owner, connection) => {
       console.log("jobpost_info_account do not exists");
       return;
     }
-    console.log(
-      " jobpost_info_account => ",
-      jobpost_info_account[0].toBase58()
-    );
+    // console.log(
+    //   " jobpost_info_account => ",
+    //   jobpost_info_account[0].toBase58()
+    // );
+
+    // const jobPostInfo = await getJobPostInfo(
+    //   job_info_state_account,
+    //   connection
+    // );
 
     const workflow_info_account = await PublicKey.findProgramAddress(
       [
         Buffer.from(WORKFLOW_STATE_ACCOUNT_PREFIX),
         jobpost_info_account[0].toBuffer(),
+        applicant_info_state_account[0].toBuffer(),
       ],
       JobsOnChain_Workflow_Info_ID
     );
@@ -2632,24 +2706,39 @@ export const update_job_workflow_info = async (owner, connection) => {
       console.log("workflow_info_account do not exists");
       return;
     }
-    console.log(
-      " workflow_info_account => ",
-      workflow_info_account[0].toBase58()
-    );
+    // console.log(
+    //   " workflow_info_account => ",
+    //   workflow_info_account[0].toBase58()
+    // );
 
     const updateJobApplyWorkflowInfo = new WorkflowInfoState({
       ...updateWorkflowInfo,
     });
 
+    console.log("updateJobApplyWorkflowInfo => ", updateJobApplyWorkflowInfo);
+
     const buffer = WorkflowInfoState.serializeUpdateWorkflowInfoInstruction(
       updateJobApplyWorkflowInfo
+    );
+
+    console.log(
+      owner,
+      company_info_account,
+      applicant_info_state_account[0],
+      jobpost_info_account[0],
+      workflow_info_account[0],
+      JobsOnChain_User_Info_ID,
+      JobsOnChain_Company_Info_ID,
+      JobsOnChain_JobPost_Info_ID,
+      SystemProgram.programId,
+      "owner"
     );
 
     const update_job_workflow_info_account_inst = new TransactionInstruction({
       programId: JobsOnChain_Workflow_Info_ID,
       keys: [
         { pubkey: owner, isSigner: true, isWritable: false },
-        { pubkey: company_info_account[0], isSigner: false, isWritable: false },
+        { pubkey: company_info_account, isSigner: false, isWritable: false },
         {
           pubkey: applicant_info_state_account[0],
           isSigner: false,
@@ -2682,7 +2771,8 @@ export const update_job_workflow_info = async (owner, connection) => {
       connection,
       null,
       [],
-      new PublicKey(owner)
+      new PublicKey(owner),
+      signTransaction
     );
     await new Promise((resolve) => setTimeout(resolve, 2000));
     const workflowInfoResult = await getWorkflowInfo(
@@ -2886,7 +2976,7 @@ export const purchase_subscription_plan = async (
   plan_type
 ) => {
   try {
-    const company_seq_number = "CP2";
+    const company_seq_number = "CP1";
 
     const applicant_info_state_account = await PublicKey.findProgramAddress(
       [
@@ -2950,12 +3040,13 @@ export const purchase_subscription_plan = async (
         );
         return;
       }
-
+      console.log(usdcAccountExists.toBase58(), "---usdcAccountExists---");
       const payer = await getPayer();
       const payerUSDCAccount = await findAssociatedTokenAccountPublicKey(
         payer.publicKey,
         USDC_MINT_ID
       );
+      console.log(payerUSDCAccount.toBase58(), "---payerUSDCAccount---");
 
       const transferResult = await transferCustomToken(
         provider,
@@ -2966,7 +3057,7 @@ export const purchase_subscription_plan = async (
       );
       if (!transferResult) {
         console.log("Transfer failed, Please try again");
-        return;
+        throw err;
       }
 
       console.log("transferResult => ", transferResult);
@@ -3029,7 +3120,7 @@ export const purchase_subscription_plan = async (
       connection
     );
     console.log("companyInfoResult => ", companyInfoResult);
-    return companyInfoResult;
+    return true;
   } catch (err) {
     console.log("err => ", err);
     throw err;
@@ -3040,84 +3131,85 @@ export const pay_and_reveal_user_details = async (
   provider,
   owner,
   connection,
-  plan_type
+  user_info_state_account, 
+  company_info_state_account, 
+  job_info_account
 ) => {
+  let RECONCILING_AMOUNT = 0
   try {
-    const candidate_pubkey = new PublicKey(
-      "D3YCmJCTyx8CtSv39bwN46Aut6At9ucGNf6QFzhnVrHc"
-    );
-    let company_seq_number = "CP2";
-    let job_number = "JP2";
-
     //Check if applicant_info_state_account exists
-    const applicant_info_state_account = await PublicKey.findProgramAddress(
-      [
-        Buffer.from(APPLICANT_STATE_ACCOUNT_PREFIX),
-        candidate_pubkey.toBuffer(),
-      ],
-      JobsOnChain_User_Info_ID
-    );
+    const applicant_info_state_account = [new PublicKey(user_info_state_account)]
 
     const applicant_info_state_account_exists = await connection.getAccountInfo(
       applicant_info_state_account[0]
     );
 
     if (!applicant_info_state_account_exists) {
-      console.log("applicant_info_state_account not found");
-      return;
+      const erroMessage = "applicant_info_state_account not found";
+      console.log(erroMessage);
+      return {
+        status: false,
+        message:erroMessage,
+      }
     }
-    console.log(
-      " applicant_info_state_account => ",
-      applicant_info_state_account[0].toBase58()
-    );
+    // console.log(
+    //   " applicant_info_state_account => ",
+    //   applicant_info_state_account[0].toBase58()
+    // );
 
     //Check if company_info_account exists
-    const company_info_account = await PublicKey.findProgramAddress(
-      [
-        Buffer.from(COMPANY_STATE_ACCOUNT_PREFIX),
-        Buffer.from(company_seq_number),
-        applicant_info_state_account[0].toBuffer(),
-      ],
-      JobsOnChain_Company_Info_ID
-    );
+    const company_info_account =  [new PublicKey(company_info_state_account)];
     const company_info_account_exists = await connection.getAccountInfo(
       company_info_account[0]
     );
     if (!company_info_account_exists) {
-      console.log("company_info_account do not exists");
-      return;
+      const erroMessage = "company_info_account not found";
+      console.log(erroMessage);
+      return {
+        status: false,
+        message:erroMessage,
+
+      }
     }
-    console.log(
-      " company_info_account => ",
-      company_info_account[0].toBase58()
-    );
+    // console.log(
+    //   " company_info_account => ",
+    //   company_info_account[0].toBase58()
+    // );
+
+    const company_info = await getCompanyInfo(company_info_account[0], connection);
+    if(!company_info){
+      console.log("company_info not found");
+      return {
+        status: false,
+        message:"company_info not found",
+      }
+    }
+
+
 
     //Check if jobpost_info_account exists
-    const jobpost_info_account = await PublicKey.findProgramAddress(
-      [
-        Buffer.from(JOBPOST_STATE_ACCOUNT_PREFIX),
-        Buffer.from(job_number),
-        company_info_account[0].toBuffer(),
-      ],
-      JobsOnChain_JobPost_Info_ID
-    );
+    const jobpost_info_account = [new PublicKey(job_info_account)]
     const jobpost_info_account_exists = await connection.getAccountInfo(
       jobpost_info_account[0]
     );
     if (!jobpost_info_account_exists) {
       console.log("jobpost_info_account do not exists");
-      return;
+      return {
+        status: false,
+        message:"jobpost_info_account do not exists",
+      }
     }
-    console.log(
-      " jobpost_info_account => ",
-      jobpost_info_account[0].toBase58()
-    );
+    // console.log(
+    //   " jobpost_info_account => ",
+    //   jobpost_info_account[0].toBase58()
+    // );
 
     //Check if workflow_info_account exists
     const workflow_info_account = await PublicKey.findProgramAddress(
       [
         Buffer.from(WORKFLOW_STATE_ACCOUNT_PREFIX),
         jobpost_info_account[0].toBuffer(),
+        applicant_info_state_account[0].toBuffer(),
       ],
       JobsOnChain_Workflow_Info_ID
     );
@@ -3127,12 +3219,15 @@ export const pay_and_reveal_user_details = async (
     );
     if (!workflow_info_account_exists) {
       console.log("workflow_info_account do not exists");
-      return;
+      return {
+        status: false,
+        message:"workflow_info_account do not exists",
+      }
     }
-    console.log(
-      " workflow_info_account => ",
-      workflow_info_account[0].toBase58()
-    );
+    // console.log(
+    //   " workflow_info_account => ",
+    //   workflow_info_account[0].toBase58()
+    // );
 
     //Check if contact_info_state_account of user exists
     const contact_info_state_account = await PublicKey.findProgramAddress(
@@ -3149,47 +3244,77 @@ export const pay_and_reveal_user_details = async (
 
     if (!contact_info_state_account_exists) {
       console.log("contact_info_state_account do not exists");
-      return;
+      return {
+        status: false,
+        message:"contact_info_state_account do not exists",
+      }
     }
 
-    const plan_type_details = REVEAL_USER_DETAILS_PRICE[plan_type];
+    console.log(company_info, "company_info");
+
+    const plan_type_details = REVEAL_USER_DETAILS_PRICE[company_info.subscription_plan];
     if (!plan_type_details) {
       console.log("plan_type_details not found");
-      return;
+      return {
+        status: false,
+        message:"plan_type_details not found",
+      }
     }
+    console.log("plan_type_details => ", plan_type_details);
+    return
     if (plan_type_details.price) {
-      const USDC_MINT_ID = new PublicKey(SOLANA_USDC_MINT_KEY_LOCALHOST);
-      const usdcAccountExists = await findAssociatedTokenAccountPublicKey(
-        owner,
-        USDC_MINT_ID
-      );
-      if (!usdcAccountExists) {
-        console.log(
-          "USDC account not found in your wallet, Please load your wallet with USDC"
-        );
-        return;
-      }
-
-      const payer = await getPayer();
-      const payerUSDCAccount = await findAssociatedTokenAccountPublicKey(
-        payer.publicKey,
-        USDC_MINT_ID
-      );
-
-      const transferResult = await transferCustomToken(
+      RECONCILING_AMOUNT = plan_type_details.price;
+      toast.info("Please wait while we process your payment");
+      const transactionStatus = await payFromCompanyToPlatform(
         provider,
+        owner,
         connection,
-        plan_type_details.price,
-        usdcAccountExists,
-        payerUSDCAccount
+        plan_type_details.price
       );
-      if (!transferResult) {
-        console.log("Transfer failed, Please try again");
-        return;
+
+      if (!transactionStatus || !transactionStatus.status) {
+        console.log(transactionStatus.message || "Transaction failed");
+        return {
+          status: false,
+          message:transactionStatus.message || "Transaction failed",
+        }
       }
 
-      console.log("transferResult => ", transferResult);
+      console.log(transactionStatus.message || "Transaction success");
+      // const USDC_MINT_ID = new PublicKey(SOLANA_USDC_MINT_KEY_LOCALHOST);
+      // const usdcAccountExists = await findAssociatedTokenAccountPublicKey(
+      //   owner,
+      //   USDC_MINT_ID
+      // );
+      // if (!usdcAccountExists) {
+      //   console.log(
+      //     "USDC account not found in your wallet, Please load your wallet with USDC"
+      //   );
+      //   return;
+      // }
+
+      // const payer = await getPayer();
+      // const payerUSDCAccount = await findAssociatedTokenAccountPublicKey(
+      //   payer.publicKey,
+      //   USDC_MINT_ID
+      // );
+
+      // const transferResult = await transferCustomToken(
+      //   provider,
+      //   connection,
+      //   plan_type_details.price,
+      //   usdcAccountExists,
+      //   payerUSDCAccount
+      // );
+      // if (!transferResult) {
+      //   console.log("Transfer failed, Please try again");
+      //   return;
+      // }
+
+      // console.log("transferResult => ", transferResult);
+
     }
+    toast.info("Updating your payment status");
     const updateWorkflowInfo = {
       is_paid: true,
       paid_amount: new BN(plan_type_details.price),
@@ -3268,43 +3393,53 @@ export const pay_and_reveal_user_details = async (
       [subscriptionModifier]
     );
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    const workflowInfoResult = await getWorkflowInfo(
-      workflow_info_account[0],
-      connection
-    );
-    console.log("workflowInfoResult => ", workflowInfoResult);
-
-    if (workflowInfoResult.is_paid) {
-      const userContantInfo = await getContactInfo(
-        contact_info_state_account[0],
-        connection
-      );
-      console.log("userContantInfo => ", userContantInfo);
-      return userContantInfo;
+    return {
+      status: true,
+      message:"Payment success updating successful",
     }
-    return null;
+    // const workflowInfoResult = await getWorkflowInfo(
+    //   workflow_info_account[0],
+    //   connection
+    // );
+    // console.log("workflowInfoResult => ", workflowInfoResult);
+
+    // if (workflowInfoResult.is_paid) {
+    //   const userContantInfo = await getContactInfo(
+    //     contact_info_state_account[0],
+    //     connection
+    //   );
+    //   console.log("userContantInfo => ", userContantInfo);
+    //   return userContantInfo;
+    // }
+    // return null;
   } catch (err) {
     console.log("err => ", err);
+    await payFromPlatformToCompany(
+      provider,
+      owner,
+      connection,
+      RECONCILING_AMOUNT
+    )
+    // if(!txnStatus.status){
+      // toast.error("Reconciling txn failed")
+    toast.info("In case of failure, Please send email to admin to reconcile your payment with transaction id or wallet address")
+    // }
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     throw err;
   }
 };
 
-export const reveal_user_details = async (owner, connection) => {
+export const reveal_user_details = async (owner,user_info_state_account, company_info_state_account, job_info_account, connection) => {
   try {
     const candidate_pubkey = new PublicKey(
       "D3YCmJCTyx8CtSv39bwN46Aut6At9ucGNf6QFzhnVrHc"
     );
-    let company_seq_number = "CP2";
-    let job_number = "JP2";
+    // let company_seq_number = "CP2";
+    // let job_number = "JP2";
 
     //Check if applicant_info_state_account exists
-    const applicant_info_state_account = await PublicKey.findProgramAddress(
-      [
-        Buffer.from(APPLICANT_STATE_ACCOUNT_PREFIX),
-        candidate_pubkey.toBuffer(),
-      ],
-      JobsOnChain_User_Info_ID
-    );
+    const applicant_info_state_account = [new PublicKey(user_info_state_account)]
 
     const applicant_info_state_account_exists = await connection.getAccountInfo(
       applicant_info_state_account[0]
@@ -3320,14 +3455,15 @@ export const reveal_user_details = async (owner, connection) => {
     );
 
     //Check if company_info_account exists
-    const company_info_account = await PublicKey.findProgramAddress(
-      [
-        Buffer.from(COMPANY_STATE_ACCOUNT_PREFIX),
-        Buffer.from(company_seq_number),
-        applicant_info_state_account[0].toBuffer(),
-      ],
-      JobsOnChain_Company_Info_ID
-    );
+    const company_info_account =  [new PublicKey(company_info_state_account)];
+    // await PublicKey.findProgramAddress(
+    //   [
+    //     Buffer.from(COMPANY_STATE_ACCOUNT_PREFIX),
+    //     Buffer.from(company_seq_number),
+    //     applicant_info_state_account[0].toBuffer(),
+    //   ],
+    //   JobsOnChain_Company_Info_ID
+    // );
     const company_info_account_exists = await connection.getAccountInfo(
       company_info_account[0]
     );
@@ -3341,14 +3477,15 @@ export const reveal_user_details = async (owner, connection) => {
     );
 
     //Check if jobpost_info_account exists
-    const jobpost_info_account = await PublicKey.findProgramAddress(
-      [
-        Buffer.from(JOBPOST_STATE_ACCOUNT_PREFIX),
-        Buffer.from(job_number),
-        company_info_account[0].toBuffer(),
-      ],
-      JobsOnChain_JobPost_Info_ID
-    );
+    const jobpost_info_account = [new PublicKey(job_info_account)]
+    // await PublicKey.findProgramAddress(
+    //   [
+    //     Buffer.from(JOBPOST_STATE_ACCOUNT_PREFIX),
+    //     Buffer.from(job_number),
+    //     company_info_account[0].toBuffer(),
+    //   ],
+    //   JobsOnChain_JobPost_Info_ID
+    // );
     const jobpost_info_account_exists = await connection.getAccountInfo(
       jobpost_info_account[0]
     );
@@ -3366,6 +3503,7 @@ export const reveal_user_details = async (owner, connection) => {
       [
         Buffer.from(WORKFLOW_STATE_ACCOUNT_PREFIX),
         jobpost_info_account[0].toBuffer(),
+        applicant_info_state_account[0].toBuffer(),
       ],
       JobsOnChain_Workflow_Info_ID
     );
@@ -3426,25 +3564,34 @@ export const reveal_user_details = async (owner, connection) => {
   }
 };
 
-export const fetchAllJobs = async (owner, connection) => {
+export const fetchAllJobs = async (connection, company_info_account) => {
   try {
-    const allJobs = [];
-    const allJobsOfCompany = await findAllJobsOfCompany(connection);
+    let allJobsOfCompany;
+    if (company_info_account) {
+      allJobsOfCompany = await findAllJobsOfCompany(
+        connection,
+        company_info_account
+      );
+    } else {
+      allJobsOfCompany = await findAllJobsOfCompany(connection);
+    }
+
     if (allJobsOfCompany.status) {
-      for (let job of allJobsOfCompany.data) {
-        console.log("job => ", job.pubkey.toBase58());
-        const jobPostInfo = await getJobPostInfo(job.pubkey, connection);
-        console.log("jobPostInfo => ", jobPostInfo);
-        if (jobPostInfo) {
-          allJobs.push({
-            pubkey: job.pubkey,
-            parsedInfo: jobPostInfo,
-            jobTitle: jobPostInfo.job_title,
-          });
-        }
-      }
-      console.log("allJobs => ", allJobs);
-      return allJobs;
+      // for (let job of allJobsOfCompany.data) {
+      //   console.log("job in all jobs => ", job);
+      //   console.log("job => ", job.pubkey.toBase58());
+      //   const jobPostInfo = await getJobPostInfo(job.pubkey, connection);
+      //   console.log("jobPostInfo => ", jobPostInfo);
+      //   if (jobPostInfo) {
+      //     allJobs.push({
+      //       pubkey: job.pubkey,
+      //       parsedInfo: jobPostInfo,
+      //       jobTitle: jobPostInfo.job_title,
+      //     });
+      //   }
+      // }
+
+      return allJobsOfCompany.data;
     }
 
     console.log("No Jobs found");
@@ -3458,11 +3605,10 @@ export const fetchAllJobs = async (owner, connection) => {
 export const fetchAllCompanies = async (owner, connection) => {
   try {
     const allCompanies = [];
-    const allCompaniesInfo = await findAllCompanyInfosOfUser(owner, connection);
+    const allCompaniesInfo = await findAllCompanyInfosOfUser(connection, owner);
     if (allCompaniesInfo.status) {
       for (let company of allCompaniesInfo.data) {
         const comapanyInfo = await getCompanyInfo(company.pubkey, connection);
-        console.log("comapanyInfo => ", comapanyInfo);
         if (comapanyInfo) {
           allCompanies.push({
             pubkey: company.pubkey,
@@ -3471,7 +3617,6 @@ export const fetchAllCompanies = async (owner, connection) => {
           });
         }
       }
-      console.log("allCompanies => ", allCompanies);
       return allCompanies;
     }
 
@@ -3508,7 +3653,6 @@ export const fetchAllWorkflowOfJobPost = async (owner, connection) => {
           });
         }
       }
-      console.log("allWorkflows => ", allWorkflows);
       return allWorkflows;
     }
 
@@ -3556,9 +3700,30 @@ export const fetchAllWorkflowOfUsers = async (owner, connection) => {
       for (let workflow of allWorkflowOfApplicants.data) {
         const workflowInfo = await getWorkflowInfo(workflow.pubkey, connection);
         if (workflowInfo) {
+          const companyInfo = await getCompanyInfo(
+            workflowInfo.company_pubkey,
+            connection
+          );
+          const jobInfo = await getJobPostInfo(
+            workflowInfo.job_pubkey,
+            connection
+          );
+
+          console.log(workflowInfo, "==>workflowInfo");
+
+          if (workflowInfo.is_saved) {
+            allWorkflows[WORKFLOW_STATUSES_enum.SAVED].push({
+              ...workflowInfo,
+              pubkey: workflow.pubkey,
+              companyInfo,
+              jobInfo,
+            });
+          }
           allWorkflows[workflowInfo.status].push({
             ...workflowInfo,
             pubkey: workflow.pubkey,
+            companyInfo,
+            jobInfo,
           });
         }
       }
@@ -3571,5 +3736,169 @@ export const fetchAllWorkflowOfUsers = async (owner, connection) => {
   } catch (err) {
     console.log("err in fetchAllJobs => ", err);
     throw err;
+  }
+};
+
+export const fetchUserInfoAccount = async (
+  owner,
+  connection,
+  includeParsedInfo
+) => {
+  try {
+    const user_info_state_account = await PublicKey.findProgramAddress(
+      [
+        Buffer.from(APPLICANT_STATE_ACCOUNT_PREFIX),
+        new PublicKey(owner).toBuffer(),
+      ],
+      JobsOnChain_User_Info_ID
+    );
+
+    const user_info_state_account_exists = await connection.getAccountInfo(
+      user_info_state_account[0]
+    );
+
+    if (!user_info_state_account_exists) {
+      console.log("user_info_state_account not found");
+      return null;
+    }
+    let userInfo = {
+      pubkey: user_info_state_account[0],
+    };
+    if (includeParsedInfo) {
+      userInfo.parsedInfo = await getUserInfo(
+        user_info_state_account[0],
+        connection
+      );
+    }
+    return userInfo;
+  } catch (err) {
+    console.log("err in fetchAllJobs => ", err);
+    throw err;
+  }
+};
+
+export const payFromCompanyToPlatform = async (
+  provider,
+  owner,
+  connection,
+  amount
+) => {
+  try {
+    if (!amount) {
+      return {
+        status: true,
+      };
+    }
+    const USDC_MINT_ID = new PublicKey(SOLANA_USDC_MINT_KEY_DEVNET);
+    const payerUSDCAccountExists = await findAssociatedTokenAccountPublicKey(
+      owner,
+      USDC_MINT_ID
+    );
+    if (!payerUSDCAccountExists) {
+      const msg =
+        "USDC account not found in your wallet, Please load your wallet with USDC";
+      return {
+        status: false,
+        message: msg,
+      };
+    }
+    console.log(
+      payerUSDCAccountExists.toBase58(),
+      "---payerUSDCAccountExists---"
+    );
+    const receiver = await getPayer();
+    const receiverUSDCAccount = await findAssociatedTokenAccountPublicKey(
+      receiver.publicKey,
+      USDC_MINT_ID
+    );
+    console.log(receiverUSDCAccount.toBase58(), "---payerUSDCAccount---");
+
+    const transferResult = await transferCustomToken(
+      provider,
+      connection,
+      amount,
+      payerUSDCAccountExists,
+      receiverUSDCAccount
+    );
+    console.log("transferResult => ", transferResult);
+    if (!transferResult || transferResult.status === false) {
+      return {
+        status: false,
+        message: transferResult.error || "Transfer failed, Please try again",
+      };
+    }
+    return {
+      status: true,
+      message: `Payment done successfully ${amount} with signature ${transferResult.signature}`,
+    };
+  } catch (err) {
+    console.log("err in payFromCompanyToPlatform => ", err);
+    return {
+      status: false,
+      message: err.message,
+    };
+  }
+};
+
+export const payFromPlatformToCompany = async (
+  provider,
+  owner,
+  connection,
+  amount
+) => {
+  try {
+    if (!amount) {
+      return {
+        status: true,
+      };
+    }
+    const USDC_MINT_ID = new PublicKey(SOLANA_USDC_MINT_KEY_DEVNET);
+    const payerUSDCAccountExists = await findAssociatedTokenAccountPublicKey(
+      owner,
+      USDC_MINT_ID
+    );
+    if (!payerUSDCAccountExists) {
+      const msg =
+        "USDC account not found in your wallet, Please load your wallet with USDC";
+      return {
+        status: false,
+        message: msg,
+      };
+    }
+    console.log(
+      payerUSDCAccountExists.toBase58(),
+      "---payerUSDCAccountExists---"
+    );
+    const receiver = await getPayer();
+    const receiverUSDCAccount = await findAssociatedTokenAccountPublicKey(
+      receiver.publicKey,
+      USDC_MINT_ID
+    );
+    console.log(receiverUSDCAccount.toBase58(), "---payerUSDCAccount---");
+
+    const transferResult = await transferCustomToken(
+      provider,
+      connection,
+      amount,
+      receiverUSDCAccount,
+      payerUSDCAccountExists
+    );
+    console.log("transferResult => ", transferResult);
+    if (!transferResult || transferResult.status === false) {
+      return {
+        status: false,
+        message: transferResult.error || "Transfer failed, Please try again",
+      };
+    }
+    return {
+      status: true,
+      message: `Payment done successfully ${amount} with signature ${transferResult.signature}`,
+    };
+  } catch (err) {
+    console.log("err in payFromCompanyToPlatform => ", err);
+    return {
+      status: false,
+      message: err.message,
+    };
   }
 };

@@ -4,6 +4,16 @@ import cryptoCurrencyList from "./cryptoCurrency.json";
 
 export const currencies = currencyList;
 export const countries = countryList;
+export const defaultCategories = [
+  { value: "marketing", label: "Marketing" },
+  { value: "development", label: "Development" },
+  { value: "design", label: "Design" },
+  { value: "business_development", label: "Business Development" },
+  { value: "customer_service", label: "Customer service" },
+  { value: "sales_&_communication", label: "Sales & Communication" },
+  { value: "project_management", label: "Project Management" },
+  { value: "human_resource", label: "Human Resource" },
+];
 
 export const jobPostJson = {
   username: "string - wallet address",

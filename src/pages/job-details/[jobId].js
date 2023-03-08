@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import PageWrapper from "../../components/PageWrapper";
 
@@ -14,28 +14,64 @@ import moment from "moment";
 import { toast } from "react-toastify";
 import { PublicKey } from "@solana/web3.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { getCompanyInfo } from "../../utils/web3/web3_functions";
+import {
+  findAllWorkflowOfJobPost,
+  getWorkflowInfo,
+  getWorkflowInfoByUser,
+} from "../../utils/web3/web3_functions";
 import { BN } from "bn.js";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
+import { WORKFLOW_STATUSES_enum } from "../../utils/web3/struct_decoders/jobsonchain_constants_enum";
 
 export default function JobDetails() {
   const router = useRouter();
   const { jobId } = router.query;
-
   const gContext = useContext(GlobalContext);
+  const userInfoState = gContext.userStateAccount;
+  const user = gContext.user;
 
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
 
-  useEffect(() => {
-    if (!publicKey) {
-      router.push("/");
-      toast("⚠️ Please connect your wallet");
-    }
-  }, [publicKey]);
+  // useEffect(() => {
+  //   if (!publicKey) {
+  //     router.push("/");
+  //     toast("⚠️ Please connect your wallet");
+  //   }
+  // }, [publicKey]);
+
+  const [applied, setApplied] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [withdraw, setWithdraw] = useState(false);
 
   useEffect(() => {
+    if (!jobId) return;
     const jobPubKey = new PublicKey(jobId);
-    gContext.getJobDetails(jobPubKey, connection);
+    (async () => {
+      // await gContext.getUserAppliedJobs(publicKey, connection);
+      await gContext.getJobDetails(jobPubKey, connection);
+      if (user?.user_type === "recruiter" && !publicKey) {
+        return;
+      }
+
+      const res = await findAllWorkflowOfJobPost(
+        connection,
+        jobPubKey,
+        userInfoState
+      );
+      console.log(res.data, "res.data");
+      if (res.data[0]?.is_saved) {
+        setSaved(true);
+      }
+      if (res.data[0]?.status === WORKFLOW_STATUSES_enum.APPLIED) {
+        setApplied(true);
+      }
+      if (res.data[0]?.status === WORKFLOW_STATUSES_enum.WITHDRAW) {
+        setWithdraw(true);
+      }
+    })();
+
     // console.log(gContext.candidateProfile[0]?.id, "candidateProfile");
 
     // if (gContext.user && gContext.jobDetails) {
@@ -44,33 +80,42 @@ export default function JobDetails() {
     // }
   }, [jobId]);
 
-  const applyForJob = async (job_number, companyPubKey) => {
+  const handleEditJobPost = async (jobpost_info_account) => {
+    try {
+      await gContext.getJobDetails(jobpost_info_account, connection);
+      gContext.toggleJobPostModal();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const applyForJob = async (jobInfoAccount, companyInfoAccount) => {
     if (!publicKey) {
       toast("⚠️ Please connect your wallet");
       return;
     }
+    if (applied) {
+      toast.error("⚠️ You have already applied for this job");
+      return;
+    }
 
-    const applyJobWorkflowInfo = {
-      status: "applied", //16 => 'saved' or 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
+    const jobWorkflowInfo = {
+      status: WORKFLOW_STATUSES_enum.APPLIED, //16 => 'saved' or 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
       job_applied_at: new BN(new Date().getTime()), //8 => timestamp in unix format
       last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
     };
 
-    console.log("In here");
-
-    const companyInfo = await getCompanyInfo(companyPubKey, connection);
-    const company_seq_number = companyInfo.company_seq_number;
-
-    console.log(companyInfo, "companyInfo");
+    console.log(jobWorkflowInfo, "jobWorkflowInfo");
 
     await gContext.addJobApplication(
       publicKey,
       connection,
       signTransaction,
-      applyJobWorkflowInfo,
-      company_seq_number,
-      job_number
+      jobWorkflowInfo,
+      jobInfoAccount,
+      companyInfoAccount
     );
+    setApplied(true);
     // const payload = {
     //   username: gContext.user?.username,
     //   candidateId: gContext.candidateProfile[0]?.id,
@@ -91,21 +136,83 @@ export default function JobDetails() {
     // }
   };
 
-  const saveThisJob = (jobListingId, companyName) => {
-    // const payload = {
-    //   username: gContext.user?.username,
-    //   jobListingId: jobListingId,
-    //   companyName: companyName,
-    // };
-    // if (!gContext.user) {
-    //   gContext.toggleSignInModal();
-    //   toast.error("⚠️ Please sign in to save this job");
-    // }
-    // if (gContext.user && gContext.user?.isOverviewComplete === true) {
-    //   gContext.saveJob(payload);
-    // } else {
-    //   toast.error("⚠️ Please complete your profile to save this job");
-    // }
+  const saveThisJob = async (jobInfoAccount, companyInfoAccount) => {
+    try {
+      if (!publicKey) {
+        toast("⚠️ Please connect your wallet");
+        return;
+      }
+
+      if (!publicKey) {
+        toast("⚠️ Please connect your wallet");
+        return;
+      }
+
+      const workflow = await getWorkflowInfoByUser(
+        jobInfoAccount,
+        publicKey,
+        connection
+      );
+      if (!workflow) {
+        toast.error("Workflow not found");
+        return;
+      }
+      const jobWorkflowInfo = {
+        archived: false, //1 => true or false
+        is_saved: !workflow.is_saved, //1 => true or false
+        status: workflow.status, //16 => 'saved' or 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
+        last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
+      };
+
+      await gContext.updateJobApplication(
+        publicKey,
+        connection,
+        signTransaction,
+        jobWorkflowInfo,
+        jobInfoAccount,
+        companyInfoAccount
+      );
+      setSaved(jobWorkflowInfo.is_saved);
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+  const withdrawThisJob = async (jobInfoAccount, companyInfoAccount) => {
+    try {
+      if (!publicKey) {
+        toast("⚠️ Please connect your wallet");
+        return;
+      }
+
+      const workflow = await getWorkflowInfoByUser(
+        jobInfoAccount,
+        publicKey,
+        connection
+      );
+      if (!workflow) {
+        toast.error("Workflow not found");
+        return;
+      }
+      const jobWorkflowInfo = {
+        archived: false, //1 => true or false
+        is_saved: workflow.is_saved, //1 => true or false
+        status: WORKFLOW_STATUSES_enum.WITHDRAW, //16 => 'saved' or 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
+        last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
+      };
+
+      await gContext.updateJobApplication(
+        publicKey,
+        connection,
+        signTransaction,
+        jobWorkflowInfo,
+        jobInfoAccount,
+        companyInfoAccount
+      );
+      setWithdraw(true);
+      setApplied(false);
+    } catch (err) {
+      toast.error(err.message);
+    }
   };
 
   return (
@@ -175,49 +282,107 @@ export default function JobDetails() {
                             )}
                           </p>
                         </div>
+                        <Link
+                          href={`/company/${gContext.jobDetails?.company_pubkey.toString()}`}
+                        >
+                          <a
+                            className="font-size-4 font-bold rounded-3 w-120  mb-5"
+                            // onClick={() =>
+                            //   // !gContext.hasCandidateAppliedForJob &&
+                            //   applyForJob(
+                            //     gContext.jobDetails?.pubkey,
+                            //     gContext.jobDetails?.company_pubkey
+                            //   )
+                            // }
+                          >
+                            {"View Company"}
+                          </a>
+                        </Link>
                         {/* <!-- media date end --> */}
                       </div>
                     </div>
                     <div className="row pt-9">
                       <div className="col-12">
                         {/* <!-- card-btn-group start --> */}
-                        <div className="card-btn-group">
-                          <a
-                            className="btn btn-green text-uppercase btn-medium rounded-3 w-180 mr-4 mb-5"
-                            onClick={() =>
-                              // !gContext.hasCandidateAppliedForJob &&
-                              applyForJob(
-                                gContext.jobDetails?.job_number,
-                                gContext.jobDetails?.company_pubkey
-                              )
-                            }
-                          >
-                            {gContext.hasCandidateAppliedForJob
-                              ? "Applied"
-                              : "Apply to this job"}
-                          </a>
+                        {user?.user_type === "recruiter" ? (
+                          <div className="card-btn-group">
+                            <a
+                              className="btn btn-green text-uppercase btn-medium rounded-3 w-180 mr-4 mb-5"
+                              onClick={() =>
+                                handleEditJobPost(new PublicKey(jobId))
+                              }
+                            >
+                              {"Edit Job"}
+                            </a>
+                          </div>
+                        ) : (
+                          <div className="card-btn-group">
+                            <a
+                              className="btn btn-green text-uppercase btn-medium rounded-3 w-180 mr-4 mb-5"
+                              onClick={() =>
+                                // !gContext.hasCandidateAppliedForJob &&
+                                applyForJob(
+                                  gContext.jobDetails?.pubkey,
+                                  gContext.jobDetails?.company_pubkey
+                                )
+                              }
+                            >
+                              {applied ? "Applied" : "Apply to this job"}
+                            </a>
+                            <OverlayTrigger
+                              placement="top"
+                              delay={{ show: 250, hide: 400 }}
+                              overlay={
+                                <Tooltip id="button-tooltip">
+                                  {saved ? "Unsave this job" : "Save this job"}
+                                </Tooltip>
+                              }
+                            >
+                              <a
+                                className="btn btn-outline-mercury text-black-2 text-uppercase h-px-48 rounded-3 mb-5 px-5"
+                                onClick={() =>
+                                  // !gContext.hasCandidateSavedJob &&
+                                  saveThisJob(
+                                    gContext.jobDetails?.pubkey,
+                                    gContext.jobDetails?.company_pubkey
+                                  )
+                                }
+                              >
+                                {saved ? (
+                                  <i className="bookmark-button toggle-item font-size-6 line-height-reset px-0 mr-3  text-default-color  clicked"></i>
+                                ) : (
+                                  <i className="icon icon-bookmark-2 font-weight-bold mr-4 font-size-4"></i>
+                                )}
 
-                          <a
-                            className="btn btn-outline-mercury text-black-2 text-uppercase h-px-48 rounded-3 mb-5 px-5"
-                            onClick={() =>
-                              !gContext.hasCandidateSavedJob &&
-                              saveThisJob(
-                                jobId,
-                                gContext.jobDetails?.companyName
-                              )
-                            }
-                          >
-                            {gContext.hasCandidateSavedJob ? (
-                              <a className="bookmark-button toggle-item font-size-6 line-height-reset px-0 mr-3  text-default-color  clicked"></a>
-                            ) : (
-                              <i className="icon icon-bookmark-2 font-weight-bold mr-4 font-size-4"></i>
+                                {saved ? "Saved" : "Save job"}
+                              </a>
+                            </OverlayTrigger>
+
+                            {applied && (
+                              <a
+                                className="btn btn-outline-danger text-uppercase h-px-48 rounded-3 mb-5 px-5 ml-4"
+                                onClick={() =>
+                                  // !gContext.hasCandidateSavedJob &&
+                                  withdrawThisJob(
+                                    gContext.jobDetails?.pubkey,
+                                    gContext.jobDetails?.company_pubkey
+                                  )
+                                }
+                              >
+                                <i
+                                  className="fas fa-trash"
+                                  style={{
+                                    // color: "red",
+                                    marginRight: "5px",
+                                  }}
+                                ></i>
+
+                                {"withdraw"}
+                              </a>
                             )}
+                          </div>
+                        )}
 
-                            {gContext.hasCandidateSavedJob
-                              ? "Saved"
-                              : "Save job"}
-                          </a>
-                        </div>
                         {/* <!-- card-btn-group end --> */}
                       </div>
                     </div>
@@ -364,21 +529,31 @@ export default function JobDetails() {
                           <p className="font-size-4 text-black-2 mb-7">
                             {gContext.jobDetails?.long_description}
                           </p>
-
-                          <a
-                            className="btn btn-green text-uppercase btn-medium w-180 h-px-48 rounded-3 mr-4 mt-6"
-                            onClick={() =>
-                              !gContext.hasCandidateAppliedForJob &&
-                              applyForJob(
-                                jobId,
-                                gContext.jobDetails?.companyName
-                              )
-                            }
-                          >
-                            {gContext.hasCandidateAppliedForJob
-                              ? "Applied"
-                              : "Apply to this job"}
-                          </a>
+                          {user?.user_type === "recruiter" ? (
+                            <div className="card-btn-group">
+                              <a
+                                className="btn btn-green text-uppercase btn-medium rounded-3 w-180 mr-4 mb-5"
+                                onClick={() =>
+                                  handleEditJobPost(new PublicKey(jobId))
+                                }
+                              >
+                                {"Edit Job"}
+                              </a>
+                            </div>
+                          ) : (
+                            <a
+                              className="btn btn-green text-uppercase btn-medium w-180 h-px-48 rounded-3 mr-4 mt-6"
+                              onClick={() =>
+                                // !gContext.hasCandidateAppliedForJob &&
+                                applyForJob(
+                                  gContext.jobDetails?.pubkey,
+                                  gContext.jobDetails?.company_pubkey
+                                )
+                              }
+                            >
+                              {applied ? "Applied" : "Apply to this job"}
+                            </a>
+                          )}
                         </div>
                       </div>
                     </div>

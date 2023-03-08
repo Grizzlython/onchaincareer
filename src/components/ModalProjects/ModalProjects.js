@@ -2,27 +2,23 @@ import React, { useContext, useState } from "react";
 import styled from "styled-components";
 import { Modal } from "react-bootstrap";
 import GlobalContext from "../../context/GlobalContext";
-import { Select } from "../Core";
 
 import { useEffect } from "react";
 import { toast } from "react-toastify";
-import { useRouter } from "next/router";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
-const currentEmploymentStatus = [
-  { value: "employed", label: "Employed" },
-  { value: "unemployed", label: "Unemployed" },
-  { value: "self-Employed", label: "Self-Employed" },
-  { value: "student", label: "Student" },
-];
-
-const canJoinIn = [
-  { value: "immediately", label: "Immediately" },
-  { value: "within 1 month", label: "1 Month" },
-  { value: "within 2 months", label: "2 Months" },
-  { value: "within 3 months", label: "3 Months" },
-  { value: "later", label: "More than 3 months" },
-];
+const projectSchema = {
+  archived: "",
+  project_name: "",
+  project_description: "",
+  project_image_uris: [],
+  project_link: "", 
+  project_skills:[], 
+  project_start_date: "", 
+  project_end_date: "", 
+  project_status: "", 
+  project_number: "",
+}
 
 const ModalStyled = styled(Modal)`
   /* &.modal {
@@ -31,129 +27,82 @@ const ModalStyled = styled(Modal)`
 `;
 
 const ModalProjects = (props) => {
-  const [name, setName] = useState("");
-  const [designation, setDesignation] = useState("");
-  const [location, setLocation] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [skills, setSkills] = useState("");
-  const [resume, setResume] = useState("");
-  const [github, setGithub] = useState("");
-  const [linkedin, setLinkedin] = useState("");
-  const [twitter, setTwitter] = useState("");
-  const [dribble, setDribble] = useState("");
-  const [behance, setBehance] = useState("");
-  const [currentEmploymentStatusState, setCurrentEmploymentStatusState] =
-    useState("");
-  const [canJoinInState, setCanJoinInState] = useState("");
-  const [about, setAbout] = useState("");
-
-  const router = useRouter();
 
   const gContext = useContext(GlobalContext);
+  const projects = gContext.projects;
+  const currentProjectNumber = gContext.currentProjectNumber
+  console.log(currentProjectNumber, "currentProjectNumber")
+  const [candidateProject, setCandidateProject] = useState(projectSchema);
 
-  const [candidateProjects, setCandidateProjects] = useState([
-    {
-      projectName: "",
-      description: "",
-      projectLink: "",
-      startDate: "",
-      endDate: "",
-    },
-  ]);
-
-  const handleAddProjectInput = async (e) => {
+  const handleToggleofArchive = async (e, index) => {
     e.preventDefault();
-    setCandidateProjects([
-      ...candidateProjects,
-      {
-        projectName: "",
-        description: "",
-        projectLink: "",
-        startDate: "",
-        endDate: "",
-      },
-    ]);
+    candidateProject.archived = !candidateProject.archived;
+    setCandidateProject({...candidateProject});
   };
 
-  const handleRemoveProjectInput = async (e, index) => {
-    e.preventDefault();
-    const candidateProjectsCopy = [...candidateProjects];
-
-    // prevent removing the last input
-    if (candidateProjectsCopy.length === 1) {
-      return;
-    }
-
-    candidateProjectsCopy.splice(index, 1);
-    setCandidateProjects(candidateProjectsCopy);
-  };
-
-  const handleProjects = async (e, index, key) => {
+  const handleProjects = async (e, key) => {
     const { value } = e.target;
-    const candidateProjectsCopy = [...candidateProjects];
-    candidateProjectsCopy[index][key] = value;
-    setCandidateProjects(candidateProjectsCopy);
+    const candidateProjectCopy = {...candidateProject};
+    candidateProjectCopy[key] = value;
+    setCandidateProject({...candidateProjectCopy});
   };
 
   const handleClose = () => {
     gContext.toggleProjectsModal();
   };
 
-  const { publicKey, signTransaction, connected } = useWallet();
+  const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
 
-  const handleSaveProjects = async () => {
+  useEffect(()=>{
+    if(projects.length > 0 && currentProjectNumber){
+      const fitleredProject = projects.filter(project => project.project_number === currentProjectNumber)
+      if(fitleredProject && fitleredProject.length > 0){
+        setCandidateProject({...fitleredProject[0]})
+      }
+    }
+    
+  },[currentProjectNumber])
+
+
+  const handleOrUpdateCandidateProject = async () => {
     try {
-      const payload = candidateProjects;
+        if(!publicKey){
+          toast.error("Please connect your wallet")
+          return;
+        }
+        const projectInfo = {...candidateProject};
+        console.log(projectInfo, "projectInfo in handleOrUpdateCandidateProject")
+        if(projectInfo.project_start_date) {
+          projectInfo.project_start_date = new Date(projectInfo.project_start_date).getTime().toString();
+          console.log(projectInfo.project_start_date, "projectInfo.project_start_date")
+        }
+        if(projectInfo.project_end_date) {
+          projectInfo.project_end_date = new Date(projectInfo.project_end_date).getTime().toString();
+        }
 
-      payload.map((item, index) => {
-        item["username"] = gContext.user?.username;
-      });
+        if(currentProjectNumber){
+          projectInfo.project_number = currentProjectNumber;
+          await gContext.updateProject(
+            publicKey,
+            projectInfo,
+            connection,
+            signTransaction
+          );
+        }else{
 
-      console.log(payload, "project payload");
-
-      payload.map(async (item, index) => {
-        const projectInfo = {
-          archived: false,
-          project_name: item.projectName,
-          project_description: item.description,
-          project_image_uris: ["https://dummy.org"],
-          project_link: item.projectLink,
-          project_skills: ["Developer", "Speaker"],
-          project_start_date: new Date().getTime().toString(),
-          project_end_date: new Date().getTime().toString(),
-          project_status: "Completed",
-        };
-
-        await gContext.addProjects(
-          publicKey,
-          projectInfo,
-          connection,
-          signTransaction
-        );
-      });
-
+          await gContext.addProject(
+            publicKey,
+            projectInfo,
+            connection,
+            signTransaction
+          );
+        }
       handleClose();
     } catch (error) {
       console.log(error.message);
     }
   };
-
-  // useEffect(() => {
-  //   if (!gContext.user) {
-  //     toast.error("Please login to add candidate profile");
-  //     router.push("/");
-  //     gContext.toggleSignInModal();
-  //     return;
-  //   }
-
-  //   if (gContext.user?.userType === "recruiter") {
-  //     toast.error("Only candidates can add candidate profile");
-  //     router.push("/");
-  //     return;
-  //   }
-  // }, []);
 
   return (
     <ModalStyled
@@ -183,7 +132,7 @@ const ModalProjects = (props) => {
               <div className="row">
                 <div className="col-xxxl-9 px-lg-13 px-6">
                   <h5 className="font-size-6 font-weight-semibold mb-11">
-                    Add projects
+                    {currentProjectNumber ? "Update " : "Add "} project
                   </h5>
                   <div
                     className="contact-form bg-white shadow-8 rounded-4 pl-sm-10 pl-4 pr-sm-11 pr-4 pt-15 pb-13"
@@ -193,9 +142,9 @@ const ModalProjects = (props) => {
                   >
                     <form action="/">
                       <fieldset>
-                        {candidateProjects.map((item, index) => (
+                        {candidateProject && (
                           <>
-                            <div className="row " key={index}>
+                            <div className="row">
                               <div className="col-lg-6">
                                 <div className="form-group">
                                   <label
@@ -210,9 +159,9 @@ const ModalProjects = (props) => {
                                     className="form-control h-px-48"
                                     id="weCname"
                                     placeholder="eg. Music player app"
-                                    value={item.projectName}
+                                    value={candidateProject.project_name}
                                     onChange={(e) =>
-                                      handleProjects(e, index, "projectName")
+                                      handleProjects(e, "project_name")
                                     }
                                   />
                                 </div>
@@ -231,9 +180,9 @@ const ModalProjects = (props) => {
                                     className="form-control h-px-48"
                                     id="weDesignation"
                                     placeholder="eg. Brief description"
-                                    value={item.projectDescription}
+                                    value={candidateProject.project_description}
                                     onChange={(e) =>
-                                      handleProjects(e, index, "description")
+                                      handleProjects(e, "project_description")
                                     }
                                   />
                                 </div>
@@ -253,9 +202,9 @@ const ModalProjects = (props) => {
                                     className="form-control h-px-48"
                                     id="weSdate"
                                     placeholder="eg. Project Start Date"
-                                    value={item.projectStartDate}
+                                    value={candidateProject.project_start_date}
                                     onChange={(e) =>
-                                      handleProjects(e, index, "startDate")
+                                      handleProjects(e, "project_start_date")
                                     }
                                   />
                                 </div>
@@ -274,9 +223,9 @@ const ModalProjects = (props) => {
                                     className="form-control h-px-48"
                                     id="eDate"
                                     placeholder="eg. Project end date"
-                                    value={item.projectEndDate}
+                                    value={candidateProject.project_end_date}
                                     onChange={(e) =>
-                                      handleProjects(e, index, "endDate")
+                                      handleProjects(e, "project_end_date")
                                     }
                                   />
                                 </div>
@@ -295,42 +244,34 @@ const ModalProjects = (props) => {
                                     className="form-control h-px-48"
                                     id="weDescription"
                                     placeholder="eg. Project Link"
-                                    value={item.projectLink}
+                                    value={candidateProject.project_link}
                                     onChange={(e) =>
-                                      handleProjects(e, index, "projectLink")
+                                      handleProjects(e, "project_link")
                                     }
                                   />
                                 </div>
                               </div>
                             </div>
-                            {candidateProjects.length - 1 === index && (
-                              <a
-                                className="btn btn-outline-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
-                                onClick={handleAddProjectInput}
-                              >
-                                Add more
-                              </a>
-                            )}
-                            {candidateProjects.length !== 1 && (
+                            
                               <a
                                 className="btn btn-outline-red text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
                                 onClick={(e) =>
-                                  handleRemoveProjectInput(e, index)
+                                  handleToggleofArchive(e)
                                 }
                               >
-                                Remove
+                                <i className="fa fa-archive mr-2"></i>
+                                {!candidateProject.archived ? "Archive" : "Unarchive"} 
                               </a>
-                            )}
                           </>
-                        ))}
-                        <pre>{JSON.stringify(candidateProjects, null, 2)}</pre>
+                        )}
+                        <pre>{JSON.stringify(candidateProject)}</pre>
                         <div className="row">
                           <div className="col-md-12">
                             <input
                               type="button"
                               value="Submit"
                               className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
-                              onClick={handleSaveProjects}
+                              onClick={handleOrUpdateCandidateProject}
                             />
                           </div>
                         </div>

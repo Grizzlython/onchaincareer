@@ -8,7 +8,7 @@ import GlobalContext from "../context/GlobalContext";
 import { useEffect } from "react";
 import { useState } from "react";
 import { toast } from "react-toastify";
-import Router from "next/router";
+import { useRouter } from "next/router";
 import { countries, currencies } from "../staticData";
 import { BN } from "bn.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
@@ -63,14 +63,17 @@ export default function DashboardJobPost() {
 
   const gContext = useContext(GlobalContext);
 
+  const { selectedCompanyInfo, addJobPost } = gContext;
+
   // console.log(category, "category");
 
   // console.log(skills.split(","), "skills");
   // console.log(gContext.user, "gContext");
-  const { publicKey, signTransaction, connected } = useWallet();
+  const { publicKey, wallet, signTransaction } = useWallet();
   const { connection } = useConnection();
 
   const user_info_state_account = gContext.userStateAccount;
+  const router = useRouter();
 
   useEffect(() => {
     // gContext.getCompanyProfileByUsername(gContext.user?.username);
@@ -83,14 +86,14 @@ export default function DashboardJobPost() {
       toast.error("Not allowed to view this page");
     }
 
-    if (publicKey) {
-      (async () => {
-        await gContext.getCompanyProfileByUsername(
-          user_info_state_account,
-          connection
-        );
-      })();
-    }
+    // if (publicKey) {
+    //   (async () => {
+    //     await gContext.getCompanyProfileByUsername(
+    //       user_info_state_account,
+    //       connection
+    //     );
+    //   })();
+    // }
   }, [publicKey]);
 
   const handleAddJobPost = async (e) => {
@@ -98,27 +101,6 @@ export default function DashboardJobPost() {
 
     const categories = [];
     category.map((item) => categories.push(item.value));
-
-    // console.log(categories, "categories");
-
-    // const payload = {
-    //   username: gContext.user?.username,
-    //   companyName: gContext.companyProfile[0]?.name,
-    //   title,
-    //   shortDescription,
-    //   description,
-    //   category: categories,
-    //   jobType: jobType.value,
-    //   salaryRange,
-    //   experience,
-    //   skills: skills.split(","),
-    //   qualification,
-    //   jobLocationType: jobLocationType.value,
-    //   country: country.value,
-    //   city,
-    //   currencyType: currencyType.value,
-    //   currency: currency.value,
-    // };
 
     const jobPostInfo = {
       job_title: title, //128
@@ -138,20 +120,23 @@ export default function DashboardJobPost() {
       city: city, //64
     };
 
-    const company_seq_number = gContext.companyProfile[0]?.company_seq_number;
+    const company_seq_number = selectedCompanyInfo?.company_seq_number;
 
     console.log(jobPostInfo, "payload");
-    console.log(gContext.companyProfile, "companyName");
+    console.log(selectedCompanyInfo, "companyName");
 
     console.log(company_seq_number, "company_seq_number");
 
-    await gContext.addJobPost(
+    await addJobPost(
+      wallet.adapter,
       publicKey,
       jobPostInfo,
       company_seq_number,
       connection,
       signTransaction
     );
+
+    router.push("/dashboard-main");
   };
 
   return (

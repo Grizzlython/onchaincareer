@@ -4,25 +4,13 @@ import Link from "next/link";
 import PageWrapper from "../../components/PageWrapper";
 import ProfileSidebar from "../../components/ProfileSidebar";
 
-import imgB1 from "../../assets/image/l2/png/featured-job-logo-1.png";
-import imgB2 from "../../assets/image/l1/png/feature-brand-1.png";
-import imgB3 from "../../assets/image/svg/harvard.svg";
-import imgB4 from "../../assets/image/svg/mit.svg";
-
-import imgT1 from "../../assets/image/l3/png/team-member-1.png";
-import imgT2 from "../../assets/image/l3/png/team-member-2.png";
-import imgT3 from "../../assets/image/l3/png/team-member-3.png";
-import imgT4 from "../../assets/image/l3/png/team-member-4.png";
-import imgT5 from "../../assets/image/l3/png/team-member-5.png";
-
 import imgL from "../../assets/image/svg/icon-loaction-pin-black.svg";
 import { useContext } from "react";
 import GlobalContext from "../../context/GlobalContext";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import moment from "moment";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { Button } from "../../components/Core";
+import { useConnection } from "@solana/wallet-adapter-react";
 
 export default function FullProfile() {
   const router = useRouter();
@@ -32,22 +20,78 @@ export default function FullProfile() {
 
   const applicant_info_state_account = gContext.userStateAccount;
 
-  const { wallet, publicKey, signTransaction, connected } = useWallet();
   const { connection } = useConnection();
+
+  const applicantWorkExperiences = gContext.workExperience;
+  const applicantProjects = gContext.projects;
+  const applicantEducation = gContext.education;
 
   useEffect(() => {
     // gContext.getCandidateProfileByUsername(userName);
     // gContext.getWorkExperience(userName);
     // gContext.getProjects(userName);
-    gContext.getWorkExperience(applicant_info_state_account, connection);
-    gContext.getProjects(applicant_info_state_account, connection);
-  }, [userName]);
+    if (applicant_info_state_account) {
+      (async () => {
+        await gContext.fetchAndSetWorkExperience(
+          applicant_info_state_account,
+          connection
+        );
+        await gContext.fetchAndSetProjects(
+          applicant_info_state_account,
+          connection
+        );
+        await gContext.fetchAndSetEducation(
+          applicant_info_state_account,
+          connection
+        );
+      })();
+    }
+    if (!gContext.workExperienceModalVisible) {
+      (async () => {
+        await gContext.fetchAndSetWorkExperience(
+          applicant_info_state_account,
+          connection
+        );
+      })();
+    }
+    if (!gContext.projectsModalVisible) {
+      (async () => {
+        await gContext.fetchAndSetProjects(
+          applicant_info_state_account,
+          connection
+        );
+      })();
+    }
+    if (!gContext.educationModalVisible) {
+      (async () => {
+        await gContext.fetchAndSetEducation(
+          applicant_info_state_account,
+          connection
+        );
+      })();
+    }
+  }, [
+    gContext.workExperienceModalVisible,
+    gContext.projectsModalVisible,
+    gContext.educationModalVisible,
+  ]);
 
-  const handleSocials = () => {
-    gContext.toggleCandidateSocialsModal();
+  const setWorkflowSequenceNumberAndToggleModal = (sequenceNumber) => {
+    gContext.setWorkflowSequenceNumber(sequenceNumber);
+    gContext.toggleWorkExperienceModal();
   };
 
-  const handleCandidateInfoEdit = () => {
+  const setProjectNumberAndToggleModal = (projectNumber) => {
+    gContext.setProjectNumber(projectNumber);
+    gContext.toggleProjectsModal();
+  };
+
+  const setEducationNumberAndToggleModal = (educationNumber) => {
+    gContext.setEducationNumber(educationNumber);
+    gContext.toggleEducationModal();
+  };
+
+  const updateCandidateBasicInfo = () => {
     gContext.setCandidateInfoAction("edit");
     gContext.toggleCandidateProfileModal();
   };
@@ -82,7 +126,7 @@ export default function FullProfile() {
             <div className="row">
               {/* <!-- Left Sidebar Start --> */}
               <div className="col-12 col-xxl-3 col-lg-4 col-md-5 mb-11 mb-lg-0">
-                <ProfileSidebar userName={userName} />
+                <ProfileSidebar />
               </div>
               {/* <!-- Left Sidebar End --> */}
               {/* <!-- Middle Content --> */}
@@ -123,6 +167,14 @@ export default function FullProfile() {
                           Projects
                         </Nav.Link>
                       </li>
+                      <li className="tab-menu-items nav-item pr-12">
+                        <Nav.Link
+                          eventKey="four"
+                          className="text-uppercase font-size-3 font-weight-bold text-default-color py-3 px-0"
+                        >
+                          Education
+                        </Nav.Link>
+                      </li>
                       {/* <li className="tab-menu-items nav-item pr-12">
                         <Nav.Link
                           eventKey="four"
@@ -157,17 +209,21 @@ export default function FullProfile() {
                               About
                             </h4>
                             <p
-                              className="font-size-4 mb-0"
+                              className="btn btn-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
                               style={{
                                 cursor: "pointer",
-                                // on hover
-                                color: "#0f2137",
                               }}
-                              onClick={handleCandidateInfoEdit}
+                              onClick={updateCandidateBasicInfo}
                             >
                               <i className="fa fa-pen mr-2"></i>
-                              Edit overview
+                              Update Info
                             </p>
+                            {/* <input
+                              type="button"
+                              value="Update Details"
+                              className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
+                              onClick={updateApplicantInfo}
+                            /> */}
                           </div>
                           <p className="font-size-4 mb-8">
                             {gContext.user?.bio}
@@ -199,19 +255,13 @@ export default function FullProfile() {
                       </Tab.Pane>
                       <Tab.Pane eventKey="two">
                         <div className="border-top p-5 pl-xs-12 pt-7 pb-5">
-                          {gContext.workExperience?.length === 0 ? (
+                          {!applicantWorkExperiences ||
+                          applicantWorkExperiences?.length === 0 ? (
                             <>
                               <p>No workexperience found</p>
-                              {/* <Button
-                                onClick={() => {
-                                  gContext.toggleWorkExperienceModal();
-                                }}
-                              >
-                                Add experience
-                              </Button> */}
                             </>
                           ) : (
-                            gContext.workExperience.map((workExp, index) => (
+                            applicantWorkExperiences.map((workExp, index) => (
                               <div className="w-100" key={index}>
                                 <div className="d-flex align-items-center pr-11 mb-9 flex-wrap flex-sm-nowrap">
                                   {/* <div className="square-72 d-block mr-8 mb-7 mb-sm-0">
@@ -229,46 +279,68 @@ export default function FullProfile() {
                                     </a>
 
                                     <div className="d-flex align-items-center justify-content-md-between flex-wrap">
-                                      <a className="font-size-4 text-gray mr-5">
-                                        {`${moment(workExp.startDate).format(
-                                          "DD MMM YYYY"
-                                        )} - ${moment(workExp.endDate).format(
-                                          "DD MMM YYYY"
-                                        )}`}
-                                      </a>
+                                      <>
+                                        <a className="font-size-4 text-gray mr-5">
+                                          {`${
+                                            workExp.start_date &&
+                                            workExp.start_date !== "NaN"
+                                              ? moment(
+                                                  +workExp.start_date
+                                                ).format("DD MMM YYYY")
+                                              : "Present"
+                                          } - ${
+                                            workExp.end_date &&
+                                            workExp.end_date !== "NaN"
+                                              ? moment(
+                                                  +workExp.end_date
+                                                ).format("DD MMM YYYY")
+                                              : "Present"
+                                          }`}
+                                        </a>
 
-                                      <a className="font-size-3 text-gray">
-                                        <span
-                                          className="mr-4"
-                                          css={`
-                                            margin-top: -2px;
-                                          `}
-                                        >
-                                          <img src={imgL.src} alt="" />
-                                        </span>
-                                        {workExp.location}
-                                      </a>
+                                        <a className="font-size-3 text-gray">
+                                          <span
+                                            className="mr-4"
+                                            css={`
+                                              margin-top: -2px;
+                                            `}
+                                          >
+                                            <img src={imgL.src} alt="" />
+                                          </span>
+                                          {workExp.location}
+                                        </a>
+                                      </>
                                     </div>
+                                    <a
+                                      className="btn btn-outline-green text-uppercase w-150 h-px-32 rounded-5 mr-7 mb-7 mt-7"
+                                      onClick={() => {
+                                        setWorkflowSequenceNumberAndToggleModal(
+                                          workExp.work_experience_number
+                                        );
+                                      }}
+                                    >
+                                      <i className="fa fa-pen mr-2"></i>
+                                      Update
+                                    </a>
                                   </div>
                                 </div>
                               </div>
                             ))
                           )}
                           <a
-                            className="btn btn-outline-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
+                            className="btn btn-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
                             onClick={() => {
-                              gContext.toggleWorkExperienceModal();
+                              setWorkflowSequenceNumberAndToggleModal(0);
                             }}
                           >
                             <i className="fa fa-plus mr-2"></i>
-                            Add or edit
-                            <i className="fa fa-pen ml-2"></i>
+                            Add Experience
                           </a>
                         </div>
                       </Tab.Pane>
                       <Tab.Pane eventKey="three">
                         <div className="border-top p-5 pl-xs-12 pt-7 pb-5">
-                          {gContext.projects?.length === 0 ? (
+                          {applicantProjects?.length === 0 ? (
                             <>
                               <p>No projects found</p>
                               {/* <Button
@@ -282,8 +354,12 @@ export default function FullProfile() {
                               </Button> */}
                             </>
                           ) : (
-                            gContext.projects.map((project, index) => (
-                              <div className="w-100" key={index}>
+                            applicantProjects.map((project, index) => (
+                              <div
+                                className="w-100"
+                                key={index}
+                                style={{ borderBottom: "0.5px solid #dddddd" }}
+                              >
                                 <div className="d-flex align-items-center pr-11 mb-9 flex-wrap flex-sm-nowrap">
                                   {/* <div className="square-72 d-block mr-8 mb-7 mb-sm-0">
                                 <img src={imgB1.src} alt="" />
@@ -308,27 +384,157 @@ export default function FullProfile() {
 
                                     <div className="d-flex align-items-center justify-content-md-between flex-wrap">
                                       <a className="font-size-4 text-gray mr-5">
-                                        {`${moment(
+                                        {`${
                                           project.project_start_date
-                                        ).format("DD MMM YYYY")} - ${moment(
+                                            ? moment(
+                                                +project.project_start_date
+                                              ).format("DD MMM YYYY")
+                                            : "Present"
+                                        } - ${
                                           project.project_end_date
-                                        ).format("DD MMM YYYY")}`}
+                                            ? moment(
+                                                +project.project_end_date
+                                              ).format("DD MMM YYYY")
+                                            : "Present"
+                                        }`}
                                       </a>
                                     </div>
                                   </div>
+                                  <a
+                                    className="btn btn-outline-green text-uppercase h-px-48 rounded-5 mr-7 mb-7"
+                                    onClick={() => {
+                                      setProjectNumberAndToggleModal(
+                                        project.project_number
+                                      );
+                                    }}
+                                  >
+                                    <i className="fa fa-pen mr-2"></i>
+                                    Update
+                                  </a>
                                 </div>
                               </div>
                             ))
                           )}
+                          <br></br>
                           <a
                             className="btn btn-outline-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
                             onClick={() => {
-                              gContext.toggleProjectsModal();
+                              setProjectNumberAndToggleModal(0);
                             }}
                           >
                             <i className="fa fa-plus mr-2"></i>
-                            Add or edit
-                            <i className="fa fa-pen ml-2"></i>
+                            Add
+                          </a>
+                        </div>
+                      </Tab.Pane>
+                      <Tab.Pane eventKey="four">
+                        <div className="border-top p-5 pl-xs-12 pt-7 pb-5">
+                          {applicantEducation?.length === 0 ? (
+                            <>
+                              <p>No Education found</p>
+                              {/* <Button
+                                onClick={() => {
+                                  gContext.toggleProjectsModal();
+                                }}
+                                width="80px"
+                                height="50px"
+                              >
+                                Add project
+                              </Button> */}
+                            </>
+                          ) : (
+                            applicantEducation.map((education, index) => (
+                              <div
+                                className="w-100"
+                                key={index}
+                                style={{ borderBottom: "0.5px solid #dddddd" }}
+                              >
+                                <div className="d-flex align-items-center pr-11 mb-9 flex-wrap flex-sm-nowrap">
+                                  {/* <div className="square-72 d-block mr-8 mb-7 mb-sm-0">
+                                <img src={imgB1.src} alt="" />
+                              </div> */}
+                                  <div className="w-100 mt-n2">
+                                    <h3 className="mb-0">
+                                      <a className="font-size-6 text-black-2 font-weight-semibold">
+                                        {education.school_name}
+                                      </a>
+                                    </h3>
+                                    <Link href={"#"}>
+                                      <a className="font-size-3 text-blue">
+                                        Certificates:
+                                        {education.certificate_uris &&
+                                          education.certificate_uris.length >
+                                            0 &&
+                                          education.certificate_uris.map(
+                                            (certificate_uri, index) => (
+                                              <a
+                                                href={
+                                                  certificate_uri
+                                                    ? certificate_uri
+                                                    : "#"
+                                                }
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="font-size-3 text-blue"
+                                              >
+                                                {" "}
+                                                <i className="fa fa-link mr-2"></i>
+                                                {certificate_uri}
+                                              </a>
+                                            )
+                                          )}
+                                      </a>
+                                    </Link>
+                                    <br />
+                                    {/* <a className="font-size-4 text-default-color line-height-2">
+                                      {education.activities.join(", ")}
+                                    </a> */}
+                                    <a className="font-size-4 text-default-color line-height-2">
+                                      {education.description}
+                                    </a>
+
+                                    <div className="d-flex align-items-center justify-content-md-between flex-wrap">
+                                      <a className="font-size-4 text-gray mr-5">
+                                        {`${
+                                          education.start_date
+                                            ? moment(
+                                                +education.start_date
+                                              ).format("DD MMM YYYY")
+                                            : "Present"
+                                        } - ${
+                                          education.end_date
+                                            ? moment(
+                                                +education.end_date
+                                              ).format("DD MMM YYYY")
+                                            : "Present"
+                                        }`}
+                                      </a>
+                                    </div>
+                                  </div>
+                                  <a
+                                    className="btn btn-outline-green text-uppercase h-px-48 rounded-5 mr-7 mb-7"
+                                    onClick={() => {
+                                      setEducationNumberAndToggleModal(
+                                        education.education_number
+                                      );
+                                    }}
+                                  >
+                                    <i className="fa fa-pen mr-2"></i>
+                                    Update
+                                  </a>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                          <br></br>
+                          <a
+                            className="btn btn-outline-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
+                            onClick={() => {
+                              setEducationNumberAndToggleModal(0);
+                            }}
+                          >
+                            <i className="fa fa-plus mr-2"></i>
+                            Add
                           </a>
                         </div>
                       </Tab.Pane>

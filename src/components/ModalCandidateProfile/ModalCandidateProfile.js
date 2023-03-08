@@ -7,15 +7,20 @@ import { Select } from "../Core";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import {
+  check_if_user_exists,
+  update_applicant_info,
+} from "../../utils/web3/web3_functions";
 
-const currentEmploymentStatus = [
+const currentEmploymentStatusOptions = [
   { value: "employed", label: "Employed" },
   { value: "unemployed", label: "Unemployed" },
   { value: "self-Employed", label: "Self-Employed" },
   { value: "student", label: "Student" },
 ];
 
-const canJoinIn = [
+const canJoinInOptions = [
   { value: "immediately", label: "Immediately" },
   { value: "within 1 month", label: "1 Month" },
   { value: "within 2 months", label: "2 Months" },
@@ -31,83 +36,93 @@ const ModalStyled = styled(Modal)`
 
 const ModalCandidateProfile = (props) => {
   const gContext = useContext(GlobalContext);
-
-  const [name, setName] = useState(
-    gContext.candidateProfile.length > 0
-      ? gContext.candidateProfile[0].name
-      : ""
-  );
-  const [designation, setDesignation] = useState(
-    gContext.candidateProfile.length > 0
-      ? gContext.candidateProfile[0].designation
-      : ""
-  );
-  const [location, setLocation] = useState(
-    gContext.candidateProfile.length > 0
-      ? gContext.candidateProfile[0].location
-      : ""
-  );
-  const [skills, setSkills] = useState(
-    gContext.candidateProfile.length > 0
-      ? gContext.candidateProfile[0].skills
-      : ""
-  );
+  const userInfo = gContext.user;
+  console.log("userInfo gContext =>", userInfo);
+  const [name, setName] = useState("");
+  const [designation, setDesignation] = useState("");
+  const [location, setLocation] = useState("");
+  const [skills, setSkills] = useState("");
   const [currentEmploymentStatusState, setCurrentEmploymentStatusState] =
-    useState(
-      gContext.candidateProfile.length > 0
-        ? gContext.candidateProfile[0].currentEmploymentStatus
-        : ""
-    );
-  const [canJoinInState, setCanJoinInState] = useState(
-    gContext.candidateProfile.length > 0
-      ? gContext.candidateProfile[0].canJoinIn
-      : ""
-  );
-  const [about, setAbout] = useState(
-    gContext.candidateProfile.length > 0 ? gContext.candidateProfile[0].bio : ""
-  );
+    useState(currentEmploymentStatusOptions[0]);
+  const [canJoinInState, setCanJoinInState] = useState(canJoinInOptions[0]);
+  const [about, setAbout] = useState("");
 
-  console.log("gContext.candidateProfile", gContext.candidateProfile);
-  console.log(name, designation, location, skills, about, "---states");
+  const { publicKey, signTransaction } = useWallet();
+  const { connection } = useConnection();
 
-  const router = useRouter();
+  const updateApplicantInfo = async (e) => {
+    try {
+      if (!publicKey) {
+        toast.error("Please connect your wallet");
+        return;
+      }
+      e.preventDefault();
+      const applicantInfo = {
+        username: publicKey.toString(),
+        name: name,
+        address: location,
+        image_uri: "https://dummy.org/",
+        bio: about,
+        skills: skills.split(","),
+        designation: designation,
+        current_employment_status: currentEmploymentStatusState.value,
+        can_join_in: canJoinInState.value,
+        user_type: "applicant",
+        is_company_profile_complete: false,
+        is_overview_complete: true,
+        is_projects_complete: false,
+        is_contact_info_complete: false,
+        is_education_complete: false,
+        is_work_experience_complete: false,
+      };
+      const updateApplicantInfo = await update_applicant_info(
+        publicKey,
+        applicantInfo,
+        connection,
+        signTransaction
+      );
 
-  const handleAddCandidate = async (e) => {
-    e.preventDefault();
-    const payload = {
-      username: gContext.user?.username,
-      name,
-      location,
-      skills,
-      designation,
-      bio: about,
-      currentEmploymentStatus: currentEmploymentStatusState.value,
-      canJoinIn: canJoinInState.value,
-    };
+      if (updateApplicantInfo) {
+        toast.success("Applicant info updated Successfully");
+        const userExistsRes = await check_if_user_exists(publicKey, connection);
 
-    if (gContext.candidateProfile?.length > 0) {
-      gContext.updateCandidateProfile(gContext.user?.username, payload);
-      await gContext.toggleCandidateProfileModal();
-    } else {
-      await gContext.addCandidateProfile(payload);
-      router.push("/");
-      await gContext.toggleCandidateProfileModal();
+        if (userExistsRes && userExistsRes.data) {
+          gContext.setUserFromChain(userExistsRes.data);
+        }
+        gContext.toggleCandidateProfileModal();
+      } else {
+        toast.error("Applicant info not updated");
+        gContext.toggleCandidateProfileModal();
+      }
+    } catch (err) {
+      console.log(err, "err in updateApplicantInfo");
+      toast.error(err.message);
     }
   };
 
+  const handleSkills = (e) => {
+    setSkills(e.target.value);
+  };
+
   useEffect(() => {
-    if (gContext.candidateProfile.length > 0) {
-      setName(gContext.candidateProfile[0].name);
-      setDesignation(gContext.candidateProfile[0].designation);
-      setLocation(gContext.candidateProfile[0].location);
-      setSkills(gContext.candidateProfile[0].skills);
-      setAbout(gContext.candidateProfile[0].bio);
+    if (userInfo) {
+      setName(userInfo.name);
+      setDesignation(userInfo.designation);
+      setLocation(userInfo.address);
+      setSkills(userInfo.skills ? userInfo.skills.join(",") : "");
+      setAbout(userInfo.bio);
       setCurrentEmploymentStatusState(
-        gContext.candidateProfile[0].currentEmploymentStatus
+        currentEmploymentStatusOptions.filter(
+          (option) => option.value === userInfo.current_employment_status
+        )[0]
       );
-      setCanJoinInState(gContext.candidateProfile[0].canJoinIn);
+      setCanJoinInState(
+        canJoinInOptions.filter(
+          (option) => option.value === userInfo.can_join_in
+        )[0]
+      );
     }
-  }, [gContext.candidateProfile]);
+  }, [userInfo]);
 
   return (
     <ModalStyled
@@ -238,7 +253,7 @@ const ModalCandidateProfile = (props) => {
                                 id="address"
                                 placeholder="eg. HTML, CSS, Javascript"
                                 value={skills}
-                                onChange={(e) => setSkills(e.target.value)}
+                                onChange={(e) => handleSkills(e)}
                                 maxLength="32"
                               />
                               <span className="h-100 w-px-50 pos-abs-tl d-flex align-items-center justify-content-center font-size-6"></span>
@@ -255,7 +270,7 @@ const ModalCandidateProfile = (props) => {
                                 Current employment status ?
                               </label>
                               <Select
-                                options={currentEmploymentStatus}
+                                options={currentEmploymentStatusOptions}
                                 className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
                                 border={false}
                                 value={currentEmploymentStatusState}
@@ -272,7 +287,7 @@ const ModalCandidateProfile = (props) => {
                                 Can join a company in ?
                               </label>
                               <Select
-                                options={canJoinIn}
+                                options={canJoinInOptions}
                                 className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
                                 border={false}
                                 value={canJoinInState}
@@ -307,9 +322,9 @@ const ModalCandidateProfile = (props) => {
                           <div className="col-md-12">
                             <input
                               type="button"
-                              value="Submit"
+                              value="Update Details"
                               className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
-                              onClick={handleAddCandidate}
+                              onClick={updateApplicantInfo}
                             />
                           </div>
                         </div>

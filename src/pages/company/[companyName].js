@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Nav, Tab } from "react-bootstrap";
 import Link from "next/link";
 import PageWrapper from "../../components/PageWrapper";
@@ -13,20 +13,36 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useContext } from "react";
 import GlobalContext from "../../context/GlobalContext";
+import { PublicKey } from "@solana/web3.js";
+import { useConnection } from "@solana/wallet-adapter-react";
+import { toast } from "react-toastify";
 
 export default function Company() {
-  //TODO: get company profile from backend
-
   const router = useRouter();
   const { companyName } = router.query;
-
-  console.log(companyName, "companyName");
-
+  const [selectedCompanyInfo, setSelectedCompanyInfo] = useState({})
+  let company_pubkey = companyName;
   const gContext = useContext(GlobalContext);
+  const {selectedCompanyInfo: selectedCompanyInfoContext, fetchAndSetCompanyInfo} = gContext;
+  const { connection } = useConnection();
 
   useEffect(() => {
-    gContext.getCompanyProfile(companyName);
-  }, [companyName]);
+    if(!company_pubkey || company_pubkey === "undefined"){
+      // toast.error("Company not found");
+      return;
+    }
+    
+    (async () => {
+      const companyPubKey = new PublicKey(company_pubkey);
+      await fetchAndSetCompanyInfo(companyPubKey, connection);
+    })();
+  }, [company_pubkey]);
+
+  useEffect(() => {
+    if (selectedCompanyInfoContext) {
+      setSelectedCompanyInfo(selectedCompanyInfoContext);
+    }
+  }, [selectedCompanyInfoContext])
 
   return (
     <>
@@ -49,7 +65,7 @@ export default function Company() {
               </div>
             </div>
             {/* <!-- back Button End --> */}
-            <div className="row ">
+            {selectedCompanyInfo && Object.keys(selectedCompanyInfo).length>0 && <div className="row ">
               {/* <!-- Company Profile --> */}
               <div className="col-12 col-xl-9 col-lg-8">
                 <div className="bg-white rounded-4 pt-11 shadow-9">
@@ -58,7 +74,7 @@ export default function Company() {
                       <a className="mr-xs-7 mb-5 mb-xs-0">
                         <img
                           className="square-72 rounded-6"
-                          src={gContext.companyProfile[0]?.logo}
+                          src={selectedCompanyInfo?.logo}
                           alt=""
                         />
                       </a>
@@ -67,12 +83,12 @@ export default function Company() {
                       <h2 className="mt-xs-n5">
                         <Link href="/#">
                           <a className="font-size-6 text-black-2 font-weight-semibold">
-                            {gContext.companyProfile[0]?.name.toUpperCase()}
+                            {selectedCompanyInfo?.name.toUpperCase()}
                           </a>
                         </Link>
                       </h2>
                       <span className="mb-0 text-gray font-size-4">
-                        {gContext.companyProfile[0]?.domain}
+                        {selectedCompanyInfo?.domain}
                       </span>
                     </div>
                   </div>
@@ -104,14 +120,14 @@ export default function Company() {
                             <div className="mb-8">
                               <p className="font-size-4">Company size</p>
                               <h5 className="font-size-4 font-weight-semibold text-black-2">
-                                {gContext.companyProfile[0]?.employeeSize}{" "}
+                                {selectedCompanyInfo?.employee_size}{" "}
                                 employees
                               </h5>
                             </div>
                             <div className="mb-8">
                               <p className="font-size-4">Est. Since</p>
                               <h5 className="font-size-4 font-weight-semibold text-black-2">
-                                {gContext.companyProfile[0]?.foundedIn}
+                                {selectedCompanyInfo?.founded_in}
                               </h5>
                             </div>
                           </div>
@@ -121,7 +137,7 @@ export default function Company() {
                             <div className="mb-8">
                               <p className="font-size-4">Type of corporation</p>
                               <h5 className="font-size-4 font-weight-semibold text-black-2">
-                                {gContext.companyProfile[0]?.type}
+                                {selectedCompanyInfo?.company_type}
                               </h5>
                             </div>
                             <div className="mb-8">
@@ -129,9 +145,8 @@ export default function Company() {
                               <div className="icon-link d-flex align-items-center">
                                 <Link
                                   href={
-                                    gContext.companyProfile[0]?.linkedinHandle
-                                      ? gContext.companyProfile[0]
-                                          ?.linkedinHandle
+                                    selectedCompanyInfo?.linkedin
+                                      ? selectedCompanyInfo?.linkedin
                                       : "/#"
                                   }
                                 >
@@ -146,9 +161,8 @@ export default function Company() {
                                 </Link> */}
                                 <Link
                                   href={
-                                    gContext.companyProfile[0]?.twitterHandle
-                                      ? gContext.companyProfile[0]
-                                          ?.twitterHandle
+                                    selectedCompanyInfo?.twitter
+                                      ? selectedCompanyInfo?.twitter
                                       : "/#"
                                   }
                                 >
@@ -158,8 +172,8 @@ export default function Company() {
                                 </Link>
                                 <Link
                                   href={
-                                    gContext.companyProfile[0]?.website
-                                      ? gContext.companyProfile[0]?.website
+                                    selectedCompanyInfo?.website
+                                      ? selectedCompanyInfo?.website
                                       : "/#"
                                   }
                                 >
@@ -176,7 +190,7 @@ export default function Company() {
                             <div className="mb-8">
                               <p className="font-size-4">Location</p>
                               <h5 className="font-size-4 font-weight-semibold text-black-2">
-                                {gContext.companyProfile[0]?.location}
+                                {selectedCompanyInfo?.address}
                               </h5>
                             </div>
                           </div>
@@ -185,11 +199,11 @@ export default function Company() {
                         {/* <!-- Middle Body End --> */}
                         {/* <!-- Excerpt Start --> */}
                         <h4 className="font-size-6 mb-7 text-black-2 font-weight-semibold">
-                          About Airbnb
+                          About {selectedCompanyInfo?.name}
                         </h4>
                         <div className="pt-5 ">
                           <p className="font-size-4 mb-8">
-                            {gContext.companyProfile[0]?.description}
+                            {selectedCompanyInfo?.description}
                           </p>
                         </div>
                         {/* <!-- Excerpt End --> */}
@@ -321,7 +335,11 @@ export default function Company() {
                 </div>
               </div>
               {/* <!-- end Sidebar --> */}
-            </div>
+            </div>}
+            {!selectedCompanyInfo || !Object.keys(selectedCompanyInfo).length && <div className="row">
+              No company info found
+              </div>}
+
           </div>
         </div>
       </PageWrapper>

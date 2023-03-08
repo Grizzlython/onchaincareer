@@ -6,36 +6,95 @@ import { useContext } from "react";
 import GlobalContext from "../../context/GlobalContext";
 import { useEffect } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useRouter } from "next/router";
+import { PublicKey } from "@solana/web3.js";
+import { pay_and_reveal_user_details } from "../../utils/web3/web3_functions";
 import { toast } from "react-toastify";
-import { getContactInfoByUserAccount } from "../../utils/web3/web3_functions";
 
 const Sidebar = (props) => {
   const gContext = useContext(GlobalContext);
-  const userName = gContext.user?.username;
-  console.log("userName in profileSidebar", userName);
-  // useEffect(() => {
-  //   gContext.getCandidateProfileByUsername(userName);
-  //   gContext.getCandidateSocials(userName);
-  // }, [userName]);
+  const {candidateSocials} = gContext;
 
-  const { publicKey, connected } = useWallet();
+  const router = useRouter();
+  const { publicKey, wallet, connected } = useWallet();
   const { connection } = useConnection();
 
-  const userStateAccount = gContext.userStateAccount;
-  const candidateSocialsContext = gContext.candidateSocials;
+  const [candidateProfile, setCandidateProfile] = React.useState({});
+  const [viewSocials, setViewSocials] = React.useState(false);
+  const [candidateSocialsContext, setCandidateSocialsContext] = React.useState(null);
+  const {workflow} = props;
 
-  useEffect(() => {
-    if (!publicKey) {
-      toast("⚠️ Please connect your wallet to view your profile");
-      return;
+  // useEffect(() => {
+  //   if (!userName) return;
+
+  //   const applicant_info_state_account = new PublicKey(userName);
+
+  //   (async () => {
+  //     gContext.getCandidateProfileByUsername(
+  //       applicant_info_state_account,
+  //       connection
+  //     );
+  //   })();
+  // }, [userName]);
+  // useEffect(() => {
+  //   if (!publicKey) {
+  //     router.push("/");
+  //     return;
+  //   }
+    
+  //   (async () => {
+  //     await gContext.fetchAndSetCandidateSocials(publicKey, connection);
+  //   })();
+  // }, [publicKey]);
+
+  // console.log("gContext.user", gContext.user);
+
+  useEffect(()=>{
+    if(!workflow) return;
+    if(workflow.is_paid){
+      setViewSocials(true);
+    }else{
+      setViewSocials(false);
     }
+    setCandidateSocialsContext(null);
+    setCandidateProfile(workflow.applicantInfo)
+  },[workflow])
 
-    (async () => {
-      const res = await gContext.getCandidateSocials(publicKey, connection);
-    })();
-  }, []);
+  useEffect(()=>{
+    if(viewSocials && workflow.user_pubkey){
+      (async () => {        
+        await gContext.fetchAndSetCandidateSocials(workflow.user_pubkey, connection, workflow.user_pubkey);
+      })();
+    }
+  },[viewSocials])
 
-  console.log("gContext.user", gContext.user);
+  useEffect(()=>{
+    setCandidateSocialsContext(candidateSocials);
+  },[candidateSocials])
+
+  const payAndViewSocials = (workflow) =>{
+    try{
+      (async() => {
+        const txnStatus = await pay_and_reveal_user_details(
+        wallet.adapter,
+        publicKey,
+        connection,
+        workflow.user_pubkey,
+        workflow.company_pubkey,
+        workflow.job_pubkey
+        )
+        if(!txnStatus || !txnStatus.status){
+          // toast.error(txnStatus.message)
+          return;
+        }
+        gContext.fetchAndSetWorkflowInfo(workflow.pubkey);
+      })()
+    }catch(err){
+      toast.error(err.message)
+    }
+    
+  }
+
   return (
     <>
       {/* <!-- Sidebar Start --> */}
@@ -44,45 +103,44 @@ const Sidebar = (props) => {
         <div className="pl-lg-5">
           {/* <!-- Top Start --> */}
           <div className="bg-white shadow-9 rounded-4">
-            <div className="px-5 py-11 text-center border-bottom border-mercury">
-              <Link href="/#">
-                <a className="mb-4">
-                  <img className="circle-54" src={imgP.src} alt="" />
-                </a>
-              </Link>
+            <div className="py-11 text-center border-bottom border-mercury">
+              {/* <Link href="/#"> */}
+              <a className="">
+                <img className="circle-54" src={imgP.src} alt="" />
+              </a>
+              {/* </Link> */}
               <h4 className="mb-0">
                 <a className="text-black-2 font-size-6 font-weight-semibold">
-                  {gContext.user?.name}{" "}
+                  {candidateProfile && candidateProfile.name}
                 </a>
               </h4>
               <p className="mb-8">
                 <a className="text-gray font-size-4">
-                  {gContext.user?.designation}
+                  {candidateProfile?.designation}
                 </a>
               </p>
 
-              {props.openView && (
+              {!viewSocials && (
                 <p className="mb-8">
                   <a
                     className="text-blue font-size-4"
                     style={{
                       cursor: "pointer",
                     }}
-                    // onClick={() => {
-                    //   gContext.toggleCandidateSocialsModal();
-                    // }}
+                    onClick={()=>
+                      payAndViewSocials(workflow)
+                    }
                   >
                     <i className="fa fa-unlock mr-2"></i>
                     Unlock candidate
                   </a>
                 </p>
               )}
-              {!props.openView &&
-                (!candidateSocialsContext ||
-                candidateSocialsContext.length === 0 ? (
+              {viewSocials && !workflow &&
+                (!candidateSocialsContext ? (
                   <p className="mb-8">
                     <a
-                      className="text-blue font-size-4"
+                      className="btn btn-outline-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
                       style={{
                         cursor: "pointer",
                       }}
@@ -97,7 +155,7 @@ const Sidebar = (props) => {
                 ) : (
                   <p className="mb-8">
                     <a
-                      className="text-blue font-size-4"
+                    className="btn btn-outline-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
                       style={{
                         cursor: "pointer",
                       }}
@@ -106,7 +164,7 @@ const Sidebar = (props) => {
                       }}
                     >
                       <i className="fa fa-pen mr-2"></i>
-                      Edit socials
+                      Update socials
                     </a>
                   </p>
                 ))}
@@ -145,47 +203,74 @@ const Sidebar = (props) => {
                   </p>
                 )}
               </div> */}
-              {candidateSocialsContext &&
-                candidateSocialsContext.length > 0 && (
-                  <div className="icon-link d-flex align-items-center justify-content-center flex-wrap">
-                    {candidateSocialsContext[0]?.github?.length > 0 && (
-                      <Link href={candidateSocialsContext[0]?.github}>
-                        <a className="text-smoke circle-32 bg-concrete mr-5 hover-bg-green">
-                          <i className="fab fa-github"></i>
-                        </a>
-                      </Link>
-                    )}
-                    {candidateSocialsContext[0]?.linkedin?.length > 0 && (
-                      <Link href={candidateSocialsContext[0]?.linkedin}>
-                        <a className="text-smoke circle-32 bg-concrete mr-5 hover-bg-green">
-                          <i className="fab fa-linkedin-in"></i>
-                        </a>
-                      </Link>
-                    )}
+              {candidateSocialsContext && (
+                <div className="icon-link d-flex align-items-center justify-content-center flex-wrap">
+                  {candidateSocialsContext?.github?.length > 0 && (
+                    <Link href={candidateSocialsContext?.github}>
+                      <a className="text-smoke circle-32 bg-concrete mr-5 hover-bg-green">
+                        <i className="fab fa-github"></i>
+                      </a>
+                    </Link>
+                  )}
+                  {candidateSocialsContext?.linkedin?.length > 0 && (
+                    <Link href={candidateSocialsContext?.linkedin}>
+                      <a className="text-smoke circle-32 bg-concrete mr-5 hover-bg-green">
+                        <i className="fab fa-linkedin-in"></i>
+                      </a>
+                    </Link>
+                  )}
 
-                    {candidateSocialsContext[0]?.twitter?.length > 0 && (
-                      <Link href={candidateSocialsContext[0]?.twitter}>
-                        <a className="text-smoke circle-32 bg-concrete mr-5 hover-bg-green">
-                          <i className="fab fa-twitter"></i>
-                        </a>
-                      </Link>
-                    )}
-                    {candidateSocialsContext[0]?.dribbble?.length > 0 && (
-                      <Link href={candidateSocialsContext[0]?.dribbble}>
-                        <a className="text-smoke circle-32 bg-concrete mr-5 hover-bg-green">
-                          <i className="fab fa-dribbble"></i>
-                        </a>
-                      </Link>
-                    )}
-                    {candidateSocialsContext[0]?.behance?.length > 0 && (
-                      <Link href={candidateSocialsContext[0]?.behance}>
-                        <a className="text-smoke circle-32 bg-concrete mr-5 hover-bg-green">
-                          <i className="fab fa-behance"></i>
-                        </a>
-                      </Link>
-                    )}
-                  </div>
-                )}
+                  {candidateSocialsContext?.twitter?.length > 0 && (
+                    <Link href={candidateSocialsContext?.twitter}>
+                      <a className="text-smoke circle-32 bg-concrete mr-5 hover-bg-green">
+                        <i className="fab fa-twitter"></i>
+                      </a>
+                    </Link>
+                  )}
+                  {candidateSocialsContext?.dribbble?.length > 0 && (
+                    <Link href={candidateSocialsContext?.dribbble}>
+                      <a className="text-smoke circle-32 bg-concrete mr-5 hover-bg-green">
+                        <i className="fab fa-dribbble"></i>
+                      </a>
+                    </Link>
+                  )}
+                  {candidateSocialsContext?.behance?.length > 0 && (
+                    <Link href={candidateSocialsContext?.behance}>
+                      <a className="text-smoke circle-32 bg-concrete mr-5 hover-bg-green">
+                        <i className="fab fa-behance"></i>
+                      </a>
+                    </Link>
+                  )}
+                  {candidateSocialsContext?.facebook?.length > 0 && (
+                    <Link href={candidateSocialsContext?.facebook}>
+                      <a className="text-smoke circle-32 bg-concrete mr-5 hover-bg-green">
+                        <i className="fab fa-facebook"> </i>
+                      </a>
+                    </Link>
+                  )}
+                  {candidateSocialsContext?.solgames?.length > 0 && (
+                    <Link href={candidateSocialsContext?.solgames}>
+                      <a className="text-smoke circle-32 bg-concrete mr-5 hover-bg-green">
+                        <i className="fab fa-facebook"> </i>
+                      </a>
+                    </Link>
+                  )}
+                  {candidateSocialsContext?.twitch?.length > 0 && (
+                    <Link href={candidateSocialsContext?.twitch}>
+                      <a className="text-smoke circle-32 bg-concrete mr-5 hover-bg-green">
+                        <i className="fab fa-twitch"> </i>
+                      </a>
+                    </Link>
+                  )}
+                  {candidateSocialsContext?.instagram?.length > 0 && (
+                    <Link href={candidateSocialsContext?.instagram}>
+                      <a className="text-smoke circle-32 bg-concrete mr-5 hover-bg-green">
+                        <i className="fab fa-instagram"> </i>
+                      </a>
+                    </Link>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* <!-- Top End --> */}
@@ -196,8 +281,8 @@ const Sidebar = (props) => {
               <div className="mb-7">
                 <p className="font-size-4 mb-0">Location</p>
                 <h5 className="font-size-4 font-weight-semibold mb-0 text-black-2 text-break">
-                  <i class="fa fa-location-arrow mr-2"></i>
-                  {gContext.user?.address}
+                  
+                  {viewSocials ? (<><i class="fa fa-location-arrow mr-2"></i> candidateProfile </> )?.address : (<><i className="fa fa-lock mr-2"></i> Locked </>) }
                 </h5>
               </div>
               {/* <!-- Single List --> */}
@@ -205,13 +290,8 @@ const Sidebar = (props) => {
               <div className="mb-7">
                 <p className="font-size-4 mb-0">E-mail</p>
                 <h5 className="font-size-4 font-weight-semibold mb-0">
-                  <a
-                    className="text-black-2 text-break"
-                    href={`mailto:${
-                      candidateSocialsContext && candidateSocialsContext?.email
-                    }`}
-                  >
-                    {props.openView ? (
+                  <a className="text-black-2 text-break" href={"/"}>
+                    {!viewSocials ? (
                       <>
                         <i className="fa fa-lock mr-2"></i>
                         Locked
@@ -232,7 +312,7 @@ const Sidebar = (props) => {
                 <p className="font-size-4 mb-0">Phone</p>
                 <h5 className="font-size-4 font-weight-semibold mb-0">
                   <a className="text-black-2 text-break" href="tel:+999565562">
-                    {props.openView && candidateSocialsContext ? (
+                    {!viewSocials ? (
                       <>
                         <i className="fa fa-lock mr-2"></i>
                         Locked
@@ -253,25 +333,19 @@ const Sidebar = (props) => {
               {/* <!-- Single List --> */}
               <div className="mb-7">
                 <p className="font-size-4 mb-0">Website Linked</p>
-                <h5 className="font-size-4 font-weight-semibold mb-0">
-                  {props.openView && candidateSocialsContext ? (
-                    <a className="text-break">
+                <h5 className=" font-size-4 font-weight-semibold mb-0">
+                  {!viewSocials || !candidateSocialsContext ? (
+                    <a className="text-black-2 text-break">
                       <i className="fa fa-lock mr-2"></i>
                       Locked
                     </a>
-                  ) : !candidateSocialsContext ? (
-                    <a href="">
-                      <i className="fa fa-link mr-2">NA</i>
-                    </a>
                   ) : (
-                    candidateSocialsContext && (
-                      <Link href={candidateSocialsContext?.website}>
+                      <Link href={"/"}>
                         <a className="text-break">
                           <i className="fa fa-link mr-2"></i>
                           {candidateSocialsContext?.website}
                         </a>
                       </Link>
-                    )
                   )}
                 </h5>
               </div>

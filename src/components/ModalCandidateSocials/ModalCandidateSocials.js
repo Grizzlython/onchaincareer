@@ -7,6 +7,9 @@ import { Select } from "../Core";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { getContactInfoByUserAccount } from "../../utils/web3/web3_functions";
+import { userTypeEnum } from "../../utils/constants";
 
 const currentEmploymentStatus = [
   { value: "employed", label: "Employed" },
@@ -30,6 +33,11 @@ const ModalStyled = styled(Modal)`
 `;
 
 const ModalCandidateSocials = (props) => {
+  const gContext = useContext(GlobalContext);
+  const isCandidate = gContext.user && gContext.user.user_type === userTypeEnum.APPLICANT;
+  const candidateSocialsContext = gContext.candidateSocials;
+  const showUpdateButton = candidateSocialsContext && candidateSocialsContext.is_initialized
+  console.log(candidateSocialsContext, "---candidateSocialsContext---",isCandidate);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [resume, setResume] = useState("");
@@ -39,32 +47,81 @@ const ModalCandidateSocials = (props) => {
   const [dribble, setDribble] = useState("");
   const [behance, setBehance] = useState("");
   const [website, setWebsite] = useState("");
+  const [facebook, setFacebook] = useState("");
+  const [solgames, setSolgames] = useState("");
+  const [twitch, setTwitch] = useState("");
+  const [instagram, setInstagram] = useState("");
 
-  const router = useRouter();
-
-  const gContext = useContext(GlobalContext);
 
   const handleClose = () => {
     gContext.toggleCandidateSocialsModal();
   };
 
-  const handleAddCandidateSocials = async () => {
-    const payload = {
-      username: gContext.user?.username,
-      email,
-      phone,
-      resume,
-      github,
-      linkedin,
-      twitter,
-      dribble,
-      behance,
-      website,
-    };
+  useEffect(()=>{
+    if(candidateSocialsContext){
+      setEmail(candidateSocialsContext.email||"");
+      setPhone(candidateSocialsContext.phone||"");
+      setResume(candidateSocialsContext.resume_uri||"");
+      setGithub(candidateSocialsContext.github||"");
+      setLinkedin(candidateSocialsContext.linkedin||"");
+      setTwitter(candidateSocialsContext.twitter||"");
+      setDribble(candidateSocialsContext.dribble||"");
+      setBehance(candidateSocialsContext.behance||"");
+      setWebsite(candidateSocialsContext.website||"");
+      setFacebook(candidateSocialsContext.facebook||"");
+      setSolgames(candidateSocialsContext.solgames||"");
+      setTwitch(candidateSocialsContext.twitch||"");
+      setInstagram(candidateSocialsContext.instagram||"");
+    }
+  },[candidateSocialsContext])
 
-    await gContext.addCandidateSocials(payload);
-    handleClose();
+  const { publicKey, connected, signTransaction } = useWallet();
+  const { connection } = useConnection();
+
+  const handleAddorUpdateCandidateSocials = async () => {
+    try{
+      const contactInfo = {
+        email: email, //64
+        phone: phone, //16
+        resume_uri: resume, //128
+        github: github, //128
+        linkedin: linkedin, //128
+        twitter: twitter, //128
+        dribble: dribble, //128
+        behance: behance, //128
+        twitch: facebook, //128
+        solgames: solgames, //128
+        facebook: twitch, //128
+        instagram: instagram, //128
+        website: website, //128
+      };
+
+      if(showUpdateButton){
+        await gContext.updateCandidateSocials(
+          publicKey,
+          contactInfo,
+          connection,
+          signTransaction
+        );
+      }else{
+        await gContext.addCandidateSocials(
+          publicKey,
+          contactInfo,
+          connection,
+          signTransaction
+        );
+      }
+      
+      toast.success(`Candidate socials ${showUpdateButton? "updated":"added" } successfully`);
+  
+      handleClose();
+    }catch(err){
+      toast.error(err.message);
+      handleClose();
+    }
+    
   };
+
   return (
     <ModalStyled
       {...props}
@@ -93,7 +150,7 @@ const ModalCandidateSocials = (props) => {
               <div className="row">
                 <div className="col-xxxl-9 px-lg-13 px-6">
                   <h5 className="font-size-6 font-weight-semibold mb-11">
-                    Add candidate socials
+                    {showUpdateButton ? "Update ": "Add "} {isCandidate ? "candidate":"recruiter"} socials
                   </h5>
                   <div
                     className="contact-form bg-white shadow-8 rounded-4 pl-sm-10 pl-4 pr-sm-11 pr-4 pt-15 pb-13"
@@ -173,7 +230,7 @@ const ModalCandidateSocials = (props) => {
                                 type="text"
                                 className="form-control h-px-48"
                                 id="github"
-                                placeholder="eg. https://github.com/nithin0111"
+                                placeholder="eg. https://github.com"
                                 value={github}
                                 onChange={(e) => setGithub(e.target.value)}
                               />
@@ -191,7 +248,7 @@ const ModalCandidateSocials = (props) => {
                                 type="text"
                                 className="form-control h-px-48"
                                 id="linkedin"
-                                placeholder="eg. https://www.linkedin.com/in/nithin0111/"
+                                placeholder="eg. https://www.linkedin.com/in/"
                                 value={linkedin}
                                 onChange={(e) => setLinkedin(e.target.value)}
                               />
@@ -209,7 +266,7 @@ const ModalCandidateSocials = (props) => {
                                 type="text"
                                 className="form-control h-px-48"
                                 id="twitter"
-                                placeholder="eg. https://twitter.com/nithin0111"
+                                placeholder="eg. https://twitter.com"
                                 value={twitter}
                                 onChange={(e) => setTwitter(e.target.value)}
                               />
@@ -222,13 +279,13 @@ const ModalCandidateSocials = (props) => {
                                 htmlFor="dribble"
                                 className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
                               >
-                                Dribble handle (For designers)
+                                Dribble handle
                               </label>
                               <input
                                 type="text"
                                 className="form-control h-px-48"
                                 id="dribble"
-                                placeholder="eg. https://twitter.com/nithin0111"
+                                placeholder="eg. https://twitter.com"
                                 value={dribble}
                                 onChange={(e) => setDribble(e.target.value)}
                               />
@@ -240,15 +297,87 @@ const ModalCandidateSocials = (props) => {
                                 htmlFor="behance"
                                 className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
                               >
-                                Behance handle (For designers)
+                                Behance handle
                               </label>
                               <input
                                 type="text"
                                 className="form-control h-px-48"
                                 id="behance"
-                                placeholder="eg. https://twitter.com/nithin0111"
+                                placeholder="eg. https://twitter.com"
                                 value={behance}
                                 onChange={(e) => setBehance(e.target.value)}
+                              />
+                            </div>
+                          </div>
+                          <div className="col-lg-6">
+                            <div className="form-group">
+                              <label
+                                htmlFor="behance"
+                                className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                              >
+                                Facebook handle
+                              </label>
+                              <input
+                                type="text"
+                                className="form-control h-px-48"
+                                id="behance"
+                                placeholder="eg. https://facebook.com"
+                                value={behance}
+                                onChange={(e) => setFacebook(e.target.value)}
+                              />
+                            </div>
+                          </div>
+                          <div className="col-lg-6">
+                            <div className="form-group">
+                              <label
+                                htmlFor="behance"
+                                className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                              >
+                                Twitch 
+                              </label>
+                              <input
+                                type="text"
+                                className="form-control h-px-48"
+                                id="behance"
+                                placeholder="eg. https://www.twitch.tv/"
+                                value={behance}
+                                onChange={(e) => setTwitch(e.target.value)}
+                              />
+                            </div>
+                          </div>
+                          <div className="col-lg-6">
+                            <div className="form-group">
+                              <label
+                                htmlFor="behance"
+                                className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                              >
+                                Solgames handle
+                              </label>
+                              <input
+                                type="text"
+                                className="form-control h-px-48"
+                                id="behance"
+                                placeholder="eg. https://solgames.fun"
+                                value={behance}
+                                onChange={(e) => setSolgames(e.target.value)}
+                              />
+                            </div>
+                          </div>
+                          <div className="col-lg-6">
+                            <div className="form-group">
+                              <label
+                                htmlFor="behance"
+                                className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                              >
+                                Instagram 
+                              </label>
+                              <input
+                                type="text"
+                                className="form-control h-px-48"
+                                id="behance"
+                                placeholder="eg. https://www.instagram.com/"
+                                value={behance}
+                                onChange={(e) => setInstagram(e.target.value)}
                               />
                             </div>
                           </div>
@@ -275,7 +404,7 @@ const ModalCandidateSocials = (props) => {
                               type="button"
                               value="Submit"
                               className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
-                              onClick={handleAddCandidateSocials}
+                              onClick={handleAddorUpdateCandidateSocials}
                             />
                           </div>
                         </div>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import imgB1 from "../../assets/image/l1/png/brand-light-logo-1.png";
 import imgB2 from "../../assets/image/l1/png/brand-light-logo-2.png";
@@ -6,8 +6,13 @@ import imgB3 from "../../assets/image/l1/png/brand-light-logo-3.png";
 import imgB4 from "../../assets/image/l1/png/brand-light-logo-4.png";
 import imgB5 from "../../assets/image/l1/png/brand-light-logo-5.png";
 import imgB6 from "../../assets/image/l1/png/brand-light-logo-6.png";
+import GlobalContext from "../../context/GlobalContext";
 
 const Brands = () => {
+  const gContext = useContext(GlobalContext);
+  useEffect(() => {
+    // const companies = await gcon
+  },[])
   return (
     <>
       {/* <!-- Brands Area --> */}

@@ -27,7 +27,7 @@
     if(tokenToTransfer <= 0){
         return {status: false, error: "You can not transfer, Token to transfer should be greater than 0."}
     }
-    const tokenToTransferLamports = tokenToTransfer * 1000000000 
+    const tokenToTransferLamports = tokenToTransfer * 1000000 //USDC on devnet and mainnet has 6 decimals
     const transaction = await createTransferTransaction(provider.publicKey,connection, fromCustomTokenAccountPubkey, toCustomTokenAccountPubkey, tokenToTransferLamports);
     if (transaction) {
         try {

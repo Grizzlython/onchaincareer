@@ -29,6 +29,8 @@ import ModalJobPost from "../ModalJobPost";
 import ModalProjects from "../ModalProjects";
 import ModalWorkExperience from "../ModalWorkExperience";
 import ModalCandidateSocials from "../ModalCandidateSocials";
+import ModalUserType from "../ModalUserType/ModalUserType";
+import ModalEducation from "../ModalEducation";
 
 const Loader = styled.div`
   position: fixed;
@@ -115,6 +117,9 @@ const Layout = ({ children, pageContext }) => {
           <ModalApplication />
           <ModalSignIn />
           <ModalSignUp />
+          <ModalUserType />
+          <ModalJobPost />
+          <ModalEducation />
         </div>
       </ThemeProvider>
     );
@@ -152,6 +157,9 @@ const Layout = ({ children, pageContext }) => {
           <ModalSignIn />
           <ModalSignUp />
           <ModalProjects />
+          <ModalJobPost />
+          <ModalUserType />
+          <ModalEducation />
         </div>
       </ThemeProvider>
     );
@@ -187,6 +195,9 @@ const Layout = ({ children, pageContext }) => {
           <ModalProjects />
           <ModalWorkExperience />
           <ModalCandidateSocials />
+          <ModalUserType />
+          <ModalJobPost />
+          <ModalEducation />
         </div>
       </ThemeProvider>
     </>

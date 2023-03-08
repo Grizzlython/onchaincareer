@@ -15,7 +15,16 @@ import { menuItems, userMenuItems } from "./menuItems";
 import imgP from "../../assets/image/header-profile.png";
 import { useEffect } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { toast } from "react-toastify";
+import {
+  add_user_info,
+  check_if_user_exists,
+} from "../../utils/web3/web3_functions";
+import { Connection } from "@solana/web3.js";
+import dynamic from "next/dynamic";
+import ConnectToPhantom from "../ConnectToPhantom";
+import { userTypeEnum } from "../../utils/constants";
 
 const SiteHeader = styled.header`
   .dropdown-toggle::after {
@@ -71,18 +80,58 @@ const Header = () => {
       setShowReveal(false);
     }
   });
+  const { publicKey, connected } = useWallet();
+  const { connection } = useConnection();
 
   useEffect(() => {
-    if (gContext.user) {
-      if (gContext.user?.userType === "candidate") {
-        setCMenuItems(userMenuItems);
-      } else {
-        setCMenuItems(menuItems);
+    if (publicKey) {
+      if (gContext.user) {
+        if (gContext.user?.user_type === "recruiter") {
+          setCMenuItems(menuItems);
+        } else {
+          setCMenuItems(userMenuItems);
+        }
       }
     } else {
       setCMenuItems(userMenuItems);
     }
-  }, [gContext.user]);
+  }, [gContext.user, publicKey]);
+
+  // console.log(cMenuItems, "---menu items---");
+
+  useEffect(() => {
+    if (publicKey && connected) {
+      (async () => {
+        toast.success("👍 Wallet Connected");
+        const userExistsRes = await check_if_user_exists(publicKey, connection);
+
+        if (!userExistsRes.status) {
+          await gContext.toggleUserTypeModal();
+        }
+        if (userExistsRes.data) {
+          gContext.setUserFromChain(userExistsRes.data);
+          gContext.updateUserStateAccount(
+            userExistsRes.applicantInfoStateAccount
+          );
+        }
+      })();
+    }
+  }, [publicKey, connected]);
+
+  useEffect(() => {
+    if (connection) {
+      (async () => {
+        await gContext.fetchAndSetAllListedCompanies(connection);
+        await gContext.fetchAndSetAllJobListings(connection);
+      })();
+    }
+  }, [connection]);
+
+  // const WalletMultiButtonDynamic = dynamic(
+  //   async () =>
+  //     (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
+  //   { ssr: false }
+  // );
 
   return (
     <>
@@ -259,94 +308,86 @@ const Header = () => {
               </div>
             )}
 
-            {gContext.user?.email?.length > 0 && (
+            {publicKey && (
               <div className="header-btn-devider ml-auto ml-lg-5 pl-2 d-none d-xs-flex align-items-center">
-                <div>
-                  <Link href="/#">
-                    <a className="px-3 ml-7 font-size-7 notification-block flex-y-center position-relative">
-                      <i className="fas fa-bell heading-default-color"></i>
-                      <span className="font-size-3 count font-weight-semibold text-white bg-primary circle-24 border border-width-3 border border-white">
-                        3
-                      </span>
-                    </a>
-                  </Link>
-                </div>
-                <div>
-                  <Dropdown className="show-gr-dropdown py-5">
-                    <Dropdown.Toggle
-                      as="a"
-                      className="proile media ml-7 flex-y-center"
+                <Dropdown className="show-gr-dropdown py-5">
+                  <Dropdown.Toggle
+                    as="a"
+                    className="proile media ml-7 flex-y-center"
+                  >
+                    <div className="circle-40">
+                      <img src={imgP.src} alt="" />
+                    </div>
+                    <i className="fas fa-chevron-down heading-default-color ml-6"></i>
+                  </Dropdown.Toggle>
+                  {size.width <= 991 ? (
+                    <Dropdown.Menu
+                      className="gr-menu-dropdown border-0 border-width-2 py-2 w-auto bg-default"
+                      key="1"
                     >
-                      <div className="circle-40">
-                        <img src={imgP.src} alt="" />
-                      </div>
-                      <i className="fas fa-chevron-down heading-default-color ml-6"></i>
-                    </Dropdown.Toggle>
-                    {size.width <= 991 ? (
-                      <Dropdown.Menu
-                        className="gr-menu-dropdown border-0 border-width-2 py-2 w-auto bg-default"
-                        key="1"
-                      >
+                      <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
+                        👋 Welcome {gContext.user?.user_type?.toUpperCase()}
+                        {gContext.user &&
+                          gContext.user?.username.slice(0, 5) +
+                            "..." +
+                            gContext.user?.username.slice(-5)}
+                      </a>
+
+                      <Link href="/#">
                         <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
-                          👋 Welcome {gContext.user?.username}
+                          Edit Profile
                         </a>
-                        <Link href="/#">
-                          <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
-                            Settings
-                          </a>
-                        </Link>
-                        <Link href="/#">
-                          <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
-                            Edit Profile
-                          </a>
-                        </Link>
-                        <Link href="/#">
+                      </Link>
+                      {/* <Link href="/#">
                           <a
                             className=" dropdown-item py-2 text-red font-size-3 font-weight-semibold line-height-1p2 text-uppercase"
                             onClick={() => gContext.logoutUser()}
                           >
                             Log Out
                           </a>
-                        </Link>
-                      </Dropdown.Menu>
-                    ) : (
-                      <div
-                        className="dropdown-menu gr-menu-dropdown dropdown-right border-0 border-width-2 py-2 w-auto bg-default"
-                        key="2"
+                        </Link> */}
+                    </Dropdown.Menu>
+                  ) : (
+                    <div
+                      className="dropdown-menu gr-menu-dropdown dropdown-right border-0 border-width-2 py-2 w-auto bg-default"
+                      key="2"
+                    >
+                      <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
+                        👋 Welcome {gContext.user?.user_type?.toUpperCase()}{" "}
+                        <br />{" "}
+                        {gContext.user &&
+                          gContext.user?.username.slice(0, 5) +
+                            "..." +
+                            gContext.user?.username.slice(-5)}
+                        {/* {gContext.user?.username.splice(0, 5) +
+                            "..." +
+                            gContext.user?.username.slice(-5)} */}
+                      </a>
+
+                      <Link
+                        href={
+                          gContext.user?.user_type === "recruiter"
+                            ? "/dashboard-main"
+                            : "/candidate-view"
+                        }
                       >
                         <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
-                          👋 Welcome {gContext.user?.username}
+                          {gContext.user?.user_type === "recruiter"
+                            ? "View Company Dashboard"
+                            : "View Profile"}
                         </a>
-                        <Link href="/#">
-                          <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
-                            Settings
-                          </a>
-                        </Link>
-                        <Link
-                          href={
-                            gContext.user?.userType === "recruiter"
-                              ? "/dashboard-main"
-                              : "/candidate-view"
-                          }
-                        >
-                          <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
-                            {gContext.user?.userType === "recruiter"
-                              ? "View Company Dashboard"
-                              : "View Profile"}
-                          </a>
-                        </Link>
-                        <Link href="/#">
+                      </Link>
+                      {/* <Link href="/#">
                           <a
                             className=" dropdown-item py-2 text-red font-size-3 font-weight-semibold line-height-1p2 text-uppercase"
                             onClick={() => gContext.logoutUser()}
                           >
                             Log Out
                           </a>
-                        </Link>
-                      </div>
-                    )}
-                  </Dropdown>
-                </div>
+                        </Link> */}
+                    </div>
+                  )}
+                </Dropdown>
               </div>
             )}
 
@@ -372,7 +413,9 @@ const Header = () => {
                 >
                   Sign Up
                 </a> */}
-                <WalletMultiButton></WalletMultiButton>
+                {/* <ConnectToPhantom /> */}
+                <WalletMultiButton />
+                {/* <WalletMultiButtonDynamic></WalletMultiButtonDynamic> */}
               </div>
             )}
 

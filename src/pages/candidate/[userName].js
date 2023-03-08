@@ -4,41 +4,52 @@ import Link from "next/link";
 import PageWrapper from "../../components/PageWrapper";
 import ProfileSidebar from "../../components/ProfileSidebar";
 
-import imgB1 from "../../assets/image/l2/png/featured-job-logo-1.png";
-import imgB2 from "../../assets/image/l1/png/feature-brand-1.png";
-import imgB3 from "../../assets/image/svg/harvard.svg";
-import imgB4 from "../../assets/image/svg/mit.svg";
-
-import imgT1 from "../../assets/image/l3/png/team-member-1.png";
-import imgT2 from "../../assets/image/l3/png/team-member-2.png";
-import imgT3 from "../../assets/image/l3/png/team-member-3.png";
-import imgT4 from "../../assets/image/l3/png/team-member-4.png";
-import imgT5 from "../../assets/image/l3/png/team-member-5.png";
-
 import imgL from "../../assets/image/svg/icon-loaction-pin-black.svg";
 import { useContext } from "react";
 import GlobalContext from "../../context/GlobalContext";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import moment from "moment";
-import { Button } from "../../components/Core";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { PublicKey } from "@solana/web3.js";
 
 export default function CandidateProfile() {
   const router = useRouter();
   const { userName } = router.query;
 
   const gContext = useContext(GlobalContext);
+  const {workflowSelectedToView} = gContext;
+  const { publicKey } = useWallet();
+  const { connection } = useConnection();
+  const [candidateProfile, setCandidateProfile] = React.useState({});
 
   useEffect(() => {
-    gContext.getCandidateProfileByUsername(userName);
-    gContext.getWorkExperience(userName);
-    gContext.getProjects(userName);
+    // if (!publicKey) return;
+
+    // const applicantStateAccount = new PublicKey(userName);
+
+    // gContext.getCandidateProfileByUsername(applicantStateAccount, connection);
+    // gContext.fetchAndSetWorkExperience(applicantStateAccount, connection);
+    // gContext.fetchAndSetProjects(applicantStateAccount, connection);
   }, [userName]);
 
-  const handleSocials = () => {
-    gContext.setCandidateInfoAction("edit");
-    gContext.toggleCandidateSocialsModal();
-  };
+  // const handleSocials = () => {
+  //   gContext.setCandidateInfoAction("edit");
+  //   gContext.toggleCandidateSocialsModal();
+  // };
+  // const candidateProfile = gContext.candidateProfile;
+
+  useEffect(()=>{
+    if(!workflowSelectedToView || !Object.keys(workflowSelectedToView).length) return;
+    console.log(workflowSelectedToView,'workflowSelectedToView')
+    setCandidateProfile(workflowSelectedToView.applicantInfo);
+    const applicantStateAccount = new PublicKey(workflowSelectedToView.user_pubkey);
+    gContext.getCandidateProfileByUsername(applicantStateAccount, connection);
+    gContext.fetchAndSetWorkExperience(applicantStateAccount, connection);
+    gContext.fetchAndSetProjects(applicantStateAccount, connection);
+    
+  },[workflowSelectedToView])
+
 
   return (
     <>
@@ -64,7 +75,7 @@ export default function CandidateProfile() {
             <div className="row">
               {/* <!-- Left Sidebar Start --> */}
               <div className="col-12 col-xxl-3 col-lg-4 col-md-5 mb-11 mb-lg-0">
-                <ProfileSidebar userName={userName} openView={true} />
+                <ProfileSidebar workflow={workflowSelectedToView} />
               </div>
               {/* <!-- Left Sidebar End --> */}
               {/* <!-- Middle Content --> */}
@@ -124,7 +135,7 @@ export default function CandidateProfile() {
                             About
                           </h4>
                           <p className="font-size-4 mb-8">
-                            {gContext.candidateProfile[0]?.bio}
+                            {candidateProfile?.bio}
                           </p>
                         </div>
                         {/* <!-- Excerpt End --> */}
@@ -134,15 +145,13 @@ export default function CandidateProfile() {
                             Skills
                           </h4>
                           <ul className="list-unstyled d-flex align-items-center flex-wrap">
-                            {gContext.candidateProfile[0]?.skills
-                              .split(",")
-                              .map((skill, index) => (
-                                <li key={index}>
-                                  <a className="bg-polar text-black-2  mr-6 px-7 mt-2 mb-2 font-size-3 rounded-3 min-height-32 d-flex align-items-center">
-                                    {skill}
-                                  </a>
-                                </li>
-                              ))}
+                            {candidateProfile?.skills?.map((skill, index) => (
+                              <li key={index}>
+                                <a className="bg-polar text-black-2  mr-6 px-7 mt-2 mb-2 font-size-3 rounded-3 min-height-32 d-flex align-items-center">
+                                  {skill}
+                                </a>
+                              </li>
+                            ))}
                           </ul>
                         </div>
                         {/* <!-- Skills End --> */}
@@ -158,13 +167,13 @@ export default function CandidateProfile() {
                           {gContext.workExperience?.length === 0 ? (
                             <>
                               <p>No workexperience found</p>
-                              <Button
+                              {/* <Button
                                 onClick={() => {
                                   gContext.toggleWorkExperienceModal();
                                 }}
                               >
                                 Add experience
-                              </Button>
+                              </Button> */}
                             </>
                           ) : (
                             gContext.workExperience.map((workExp, index) => (
@@ -183,7 +192,7 @@ export default function CandidateProfile() {
                                     </h3>
                                     <Link href="/#">
                                       <a className="font-size-4 text-default-color line-height-2">
-                                        {workExp.companyName}
+                                        {workExp.company_name}
                                       </a>
                                     </Link>
                                     <div className="d-flex align-items-center justify-content-md-between flex-wrap">
@@ -222,7 +231,7 @@ export default function CandidateProfile() {
                           {gContext.projects?.length === 0 ? (
                             <>
                               <p>No projects found</p>
-                              <Button
+                              {/* <Button
                                 onClick={() => {
                                   gContext.toggleProjectsModal();
                                 }}
@@ -230,7 +239,7 @@ export default function CandidateProfile() {
                                 height="50px"
                               >
                                 Add project
-                              </Button>
+                              </Button> */}
                             </>
                           ) : (
                             gContext.projects.map((project, index) => (
@@ -243,30 +252,30 @@ export default function CandidateProfile() {
                                     <h3 className="mb-0">
                                       <Link href="/#">
                                         <a className="font-size-6 text-black-2 font-weight-semibold">
-                                          {project.projectName}
+                                          {project.project_name}
                                         </a>
                                       </Link>
                                     </h3>
-                                    <Link href={project.projectLink}>
+                                    <Link href={project.project_link}>
                                       <a className="font-size-3 text-blue">
                                         <i className="fa fa-link mr-2"></i>
-                                        {project.projectLink}
+                                        {project.project_link}
                                       </a>
                                     </Link>
                                     <br />
 
                                     <a className="font-size-4 text-default-color line-height-2">
-                                      {project.description}
+                                      {project.project_description}
                                     </a>
 
                                     <div className="d-flex align-items-center justify-content-md-between flex-wrap">
                                       <Link href="/#">
                                         <a className="font-size-4 text-gray mr-5">
-                                          {`${moment(project.startDate).format(
-                                            "DD MMM YYYY"
-                                          )} - ${moment(project.endDate).format(
-                                            "DD MMM YYYY"
-                                          )}`}
+                                          {`${moment(
+                                            project.project_start_date
+                                          ).format("DD MMM YYYY")} - ${moment(
+                                            project.project_end_date
+                                          ).format("DD MMM YYYY")}`}
                                         </a>
                                       </Link>
                                     </div>

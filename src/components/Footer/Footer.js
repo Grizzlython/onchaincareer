@@ -3,6 +3,7 @@ import Link from "next/link";
 import GlobalContext from "../../context/GlobalContext";
 import Logo from "../Logo";
 import imgM from "../../assets/image/l1/png/message.png";
+import { WalletConnectButton, WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 const Footer = () => {
   const gContext = useContext(GlobalContext);
@@ -21,12 +22,8 @@ const Footer = () => {
                 {/* <!-- cta-content start --> */}
                 <div className="pb-xl-0 pb-9 text-xl-left text-center">
                   <h2 className="text-white font-size-8 mb-4">
-                    Most comprehensive job portal
+                    World's first fully decentralized job board
                   </h2>
-                  <p className="text-hit-gray font-size-5 mb-0">
-                    We must explain to you how all this mistaken idea of
-                    denouncing
-                  </p>
                 </div>
                 {/* <!-- cta-content end --> */}
               </div>
@@ -35,30 +32,9 @@ const Footer = () => {
                 data-aos="fade-left"
                 data-aos-duration="1000"
               >
-                {/* <!-- cta-btns start --> */}
                 <div className="btns d-flex justify-content-xl-end justify-content-center align-items-xl-center flex-wrap h-100  mx-n4">
-                  <a
-                    className="btn btn-outline-gallery btn-xl mx-4 mt-6 text-uppercase"
-                    href="/#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      gContext.toggleSignInModal();
-                    }}
-                  >
-                    Log in
-                  </a>
-                  <a
-                    className="btn btn-green btn-h-60 btn-xl mx-4 mt-6 text-uppercase"
-                    href="/#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      gContext.toggleSignUpModal();
-                    }}
-                  >
-                    Register
-                  </a>
+                  <WalletMultiButton></WalletMultiButton>
                 </div>
-                {/* <!-- cta-btns end --> */}
               </div>
             </div>
           </div>
@@ -70,17 +46,17 @@ const Footer = () => {
               <Logo white className="footer-logo mb-14" />
               {/* <!-- footer logo End --> */}
               {/* <!-- media start --> */}
-              <div className="media mb-11">
+              {/* <div className="media mb-11">
                 <img src={imgM.src} className="align-self-center mr-3" alt="" />
                 <div className="media-body pl-5">
-                  <p className="mb-0 font-size-4 text-white">Contact us at</p>
+                  <p className="mb-0 font-size-4 text-white">Drop your love at</p>
                   <Link href="/#">
                     <a className="mb-0 font-size-4 font-weight-bold">
                       support@uxtheme.net
                     </a>
                   </Link>
                 </div>
-              </div>
+              </div> */}
               {/* <!-- media start --> */}
               {/* <!-- widget social icon start --> */}
               <div className="social-icons">
@@ -145,13 +121,6 @@ const Footer = () => {
                           </a>
                         </Link>
                       </li>
-                      <li className="mb-6">
-                        <Link href="/#">
-                          <a className="heading-default-color font-size-4 font-weight-normal">
-                            Press
-                          </a>
-                        </Link>
-                      </li>
                     </ul>
                     {/* <!-- widget social menu end --> */}
                   </div>
@@ -176,68 +145,6 @@ const Footer = () => {
                         <Link href="/#">
                           <a className="heading-default-color font-size-4 font-weight-normal">
                             Pricing
-                          </a>
-                        </Link>
-                      </li>
-                      <li className="mb-6">
-                        <Link href="/#">
-                          <a className="heading-default-color font-size-4 font-weight-normal">
-                            News
-                          </a>
-                        </Link>
-                      </li>
-                      <li className="mb-6">
-                        <Link href="/#">
-                          <a className="heading-default-color font-size-4 font-weight-normal">
-                            Help desk
-                          </a>
-                        </Link>
-                      </li>
-                      <li className="mb-6">
-                        <Link href="/#">
-                          <a className="heading-default-color font-size-4 font-weight-normal">
-                            Support
-                          </a>
-                        </Link>
-                      </li>
-                    </ul>
-                    {/* <!-- widget social menu end --> */}
-                  </div>
-                </div>
-                <div className="col-lg-3 col-md-6 col-sm-3 col-xs-6">
-                  <div className="footer-widget widget4 mb-sm-0 mb-13">
-                    {/* <!-- footer widget title start --> */}
-                    <p className="widget-title font-size-4 text-gray mb-md-8 mb-7">
-                      Services
-                    </p>
-                    {/* <!-- footer widget title end --> */}
-                    {/* <!-- widget social menu start --> */}
-                    <ul className="widget-links pl-0 list-unstyled list-hover-primary">
-                      <li className="mb-6">
-                        <Link href="/#">
-                          <a className="heading-default-color font-size-4 font-weight-normal">
-                            Digital Marketing
-                          </a>
-                        </Link>
-                      </li>
-                      <li className="mb-6">
-                        <Link href="/#">
-                          <a className="heading-default-color font-size-4 font-weight-normal">
-                            SEO for Business
-                          </a>
-                        </Link>
-                      </li>
-                      <li className="mb-6">
-                        <Link href="/#">
-                          <a className="heading-default-color font-size-4 font-weight-normal">
-                            Avasta Dash
-                          </a>
-                        </Link>
-                      </li>
-                      <li className="mb-6">
-                        <Link href="/#">
-                          <a className="heading-default-color font-size-4 font-weight-normal">
-                            UI Design
                           </a>
                         </Link>
                       </li>

@@ -23,6 +23,7 @@ import ErrorPage from "../../pages/404";
 
 const SearchTab = (props) => {
   const gContext = useContext(GlobalContext);
+  const allListedJobsConext = gContext.allListedJobs;
 
   useEffect(async () => {
     let filters = {};
@@ -46,7 +47,7 @@ const SearchTab = (props) => {
     if (props.sortType) {
       filters.sortType = props.sortType;
     }
-    await gContext.getJobListings(filters);
+    // await gContext.getJobListings(filters);
   }, [props]);
 
   return (
@@ -56,12 +57,12 @@ const SearchTab = (props) => {
           <div className="col-12 col-xxl-8 col-xl-7 col-lg-10">
             {/* <!-- Left Section --> */}
             <div className="Left">
-              {gContext.jobListings.length > 0 ? (
+              {allListedJobsConext?.length > 0 ? (
                 <Nav
                   className="justify-content-center search-nav-tab nav nav-tabs border-bottom-0"
                   id="search-nav-tab"
                 >
-                  {gContext.jobListings.map((job, index) => (
+                  {allListedJobsConext?.map((job, index) => (
                     <Nav.Link
                       className="mb-8 p-0 w-100"
                       eventKey={`${job.id}`}
@@ -84,10 +85,10 @@ const SearchTab = (props) => {
                               </div>
                               <div>
                                 <h3 className="mb-0 font-size-6 heading-default-color">
-                                  {job.title}
+                                  {job?.jobTitle}
                                 </h3>
                                 <span className="font-size-3 text-default-color line-height-2 d-block">
-                                  {job.companyName.toUpperCase()}
+                                  {job?.parsedInfo?.company_info?.name?.toUpperCase()}
                                 </span>
                               </div>
                             </div>
@@ -99,7 +100,8 @@ const SearchTab = (props) => {
                               </div>
                               <p className="font-weight-bold font-size-7 text-hit-gray mb-0">
                                 <span className="text-black-2">
-                                  {job.salaryRange}
+                                  {`${Number(job?.parsedInfo?.min_salary)} -
+                                    ${Number(job?.parsedInfo?.max_salary)}`}
                                 </span>
                               </p>
                             </div>
@@ -109,7 +111,7 @@ const SearchTab = (props) => {
                         <div className="row pt-8">
                           <div className="col-md-7">
                             <ul className="d-flex list-unstyled mr-n3 flex-wrap">
-                              {job.skills.map((skill, index) => (
+                              {job?.parsedInfo?.skills.map((skill, index) => (
                                 <li key={index}>
                                   <span className="bg-regent-opacity-15 min-width-px-96 mr-3 text-center rounded-3 px-6 py-1 font-size-3 text-black-2 mt-2 d-inline-block">
                                     {skill}
@@ -130,9 +132,10 @@ const SearchTab = (props) => {
                                   <img src={iconL.src} alt="" />
                                 </span>
                                 <span className="font-weight-semibold">
-                                  {job.jobLocationType === "remote"
+                                  {job?.parsedInfo?.job_location_type ===
+                                  "remote"
                                     ? "Remote"
-                                    : `${job.city}, ${job.country}`}
+                                    : `${job?.parsedInfo?.city}, ${job?.parsedInfo?.country}`}
                                 </span>
                               </li>
                               <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
@@ -145,7 +148,7 @@ const SearchTab = (props) => {
                                   <img src={iconS.src} alt="" />
                                 </span>
                                 <span className="font-weight-semibold">
-                                  {job.jobType}
+                                  {job?.parsedInfo?.job_type}
                                 </span>
                               </li>
                               <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
@@ -160,7 +163,7 @@ const SearchTab = (props) => {
                                 <span className="font-weight-semibold">
                                   {
                                     // convert created at date to days ago
-                                    moment(job.createdAt).fromNow()
+                                    moment(new Date()).fromNow()
                                   }
                                 </span>
                               </li>
@@ -169,7 +172,9 @@ const SearchTab = (props) => {
                         </div>
 
                         <div className="card-btn-group mt-3">
-                          <Link href={`/job-details/${job.id}`}>
+                          <Link
+                            href={`/job-details/${job?.pubkey?.toString()}`}
+                          >
                             <a className="btn btn-green text-uppercase btn-medium rounded-3">
                               View Job
                             </a>
@@ -184,14 +189,14 @@ const SearchTab = (props) => {
                 <ErrorPage />
               )}
 
-              <div className="text-center pt-5 pt-lg-13">
+              {/* <div className="text-center pt-5 pt-lg-13">
                 <Link href="/#">
                   <a className="text-green font-weight-bold text-uppercase font-size-3 d-flex align-items-center justify-content-center">
                     Load More{" "}
                     <i className="fas fa-sort-down ml-3 mt-n2 font-size-4"></i>
                   </a>
                 </Link>
-              </div>
+              </div> */}
             </div>
             {/* <!-- form end --> */}
           </div>

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import Link from "next/link";
 import CountUp from "react-countup";
 import LazyLoad from "react-lazyload";
@@ -7,45 +7,64 @@ import { Select } from "../components/Core";
 import GlobalContext from "../context/GlobalContext";
 
 import imgP1 from "../assets/image/table-one-profile-image-1.png";
-import imgP2 from "../assets/image/table-one-profile-image-2.png";
-import imgP3 from "../assets/image/table-one-profile-image-3.png";
-import imgP4 from "../assets/image/table-one-profile-image-4.png";
-import imgP5 from "../assets/image/table-one-profile-image-5.png";
 import { useEffect } from "react";
-import { useRouter } from "next/router";
-import { toast } from "react-toastify";
 import moment from "moment";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
-const defaultJobs = [];
-
 export default function DashboardMain() {
   const gContext = useContext(GlobalContext);
-  const router = useRouter();
+  const { publicKey } = useWallet();
+  const [selectedCompanyInfo, setSelectedCompanyState] = useState({});
 
-  const { publicKey, signTransaction, connected } = useWallet();
   const { connection } = useConnection();
 
-  const userStateAccount = gContext.userStateAccount;
+  const {
+    companySelectedByUser,
+    selectedCompanyInfo: selectedCompanyInfoContext,
+    allAppliedApplicants,
+    companyPostedJobs,
+  } = gContext;
+
+  // useEffect(() => {
+  //   if (!companySelectedByUser && !connection) return;
+
+  //   console.log("I am rendered after change");
+
+  //   console.log(companySelectedByUser, "companySelectedByUser");
+
+  //   (async () => {
+  //     console.log("In async");
+  //     await gContext.fetchAndSetCompanyPostedJobs(
+  //       companySelectedByUser.value,
+  //       connection
+  //     );
+  //     await gContext.fetchAndSetAllAppliedApplicants(
+  //       connection,
+  //       companySelectedByUser?.value
+  //     );
+  //     await gContext.fetchAndSetCompanyPostedJobs(
+  //       companySelectedByUser.value,
+  //       connection
+  //     );
+  //   })();
+  // }, [companySelectedByUser]);
 
   useEffect(() => {
     if (
-      !gContext.user ||
-      // gContext.user?.isProfileComplete === false ||
-      !gContext.user?.user_type === "recruiter" ||
-      !publicKey
+      selectedCompanyInfoContext &&
+      Object.keys(selectedCompanyInfoContext).length
     ) {
-      router.push("/");
-      toast("⚠️ Not allowed to view this page");
-      return;
-    } else {
-      gContext.getCompanyProfileByUsername(userStateAccount, connection);
+      setSelectedCompanyState(selectedCompanyInfoContext);
     }
-    // else {
-    //   gContext.getCompanyPostedJobs(gContext.companyProfile[0]?.name);
-    //   gContext.getUserAppliedJobsByCompany(gContext.companyProfile[0]?.name);
-    // }
-  }, []);
+  }, [selectedCompanyInfoContext]);
+
+  useEffect(() => {
+    if (!publicKey) return;
+    (async () => {
+      await gContext.fetchAndSetAllListedCompaniesByUser(connection, publicKey);
+    })();
+  }, [publicKey]);
+
   return (
     <>
       <PageWrapper
@@ -58,9 +77,14 @@ export default function DashboardMain() {
       >
         <div className="dashboard-main-container mt-25 mt-lg-31">
           <div className="container">
+            <div className="">
+              <h5 className="font-size-6 font-weight-semibold text-black-2 line-height-reset font-weight-bold mb-11">
+                Selected company : {`${selectedCompanyInfo.name}`}
+              </h5>
+            </div>
             <div className="row mb-7">
               <div className="col-xxl-3 col-xl-4 col-lg-6 col-sm-6">
-                <Link href={"/dashboard-applicants"}>
+                <Link href={"/dashboard-jobs"}>
                   <a className="media bg-white rounded-4 pl-8 pt-9 pb-9 pr-7 hover-shadow-1 mb-9 shadow-8">
                     <div className="text-blue bg-blue-opacity-1 circle-56 font-size-6 mr-7">
                       <i className="fas fa-briefcase"></i>
@@ -72,7 +96,7 @@ export default function DashboardMain() {
                           <span className="counter">
                             <CountUp
                               duration={1}
-                              end={gContext.companyPostedJobs?.length}
+                              end={companyPostedJobs?.length}
                             />
                           </span>
                         </LazyLoad>
@@ -85,7 +109,7 @@ export default function DashboardMain() {
                 </Link>
               </div>
               <div className="col-xxl-3 col-xl-4 col-lg-6 col-sm-6">
-                <Link href={"/dashboard-jobs"}>
+                <Link href={"/dashboard-applicants"}>
                   <a className="media bg-white rounded-4 pl-8 pt-9 pb-9 pr-7 hover-shadow-1 mb-9 shadow-8">
                     <div className="text-yellow bg-yellow-opacity-1 circle-56 font-size-6 mr-7">
                       <i className="fas fa-user"></i>
@@ -97,7 +121,7 @@ export default function DashboardMain() {
                           <span className="counter">
                             <CountUp
                               duration={1}
-                              end={gContext.userAppliedJobsByCompany?.length}
+                              end={allAppliedApplicants?.applied?.length}
                             />
                           </span>
                         </LazyLoad>
@@ -122,7 +146,10 @@ export default function DashboardMain() {
                     <h5 className="font-size-8 font-weight-semibold text-black-2 line-height-reset font-weight-bold mb-1">
                       <LazyLoad>
                         <span className="counter">
-                          <CountUp duration={1} end={1} />
+                          <CountUp
+                            duration={1}
+                            end={allAppliedApplicants?.in_progress?.length}
+                          />
                         </span>
                       </LazyLoad>
                     </h5>
@@ -145,7 +172,10 @@ export default function DashboardMain() {
                     <h5 className="font-size-8 font-weight-semibold text-black-2 line-height-reset font-weight-bold mb-1">
                       <LazyLoad>
                         <span className="counter">
-                          <CountUp duration={1} end={1} />
+                          <CountUp
+                            duration={1}
+                            end={allAppliedApplicants?.rejected?.length}
+                          />
                         </span>
                       </LazyLoad>
                     </h5>

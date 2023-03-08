@@ -6,7 +6,7 @@ import * as bs58 from "bs58";
 export const getPayer = async () => {
   const payer = Keypair.fromSecretKey(
     bs58.decode(
-      "cRDi6UnWMgbG8cGvZECzWwkcBgHqNmRuBX9YDZR7Gjr8YE8FERKUsWgnA8h23kf1aHsMUza2rtU8cm1NQnDVgfq"
+      "fN3dx6VJGeavVgacLQxTnwsc3RKJnvkcQAPitPJJQmqjsyBaBCkP5h41NpzTEpa8N2Xt4vYBZFkbGbMPepmXh9R"
     )
   );
   console.log("payer.publicKey", payer.publicKey.toString());

@@ -48,7 +48,7 @@ export const menuItems = [
   { name: "pricing", label: "Pricing" },
   { name: "faq", label: "FAQ" },
 
-  { name: "contact", label: "Contact" },
+  // { name: "contact", label: "Contact" },
 ];
 
 export const userMenuItems = [

@@ -3,6 +3,8 @@ import styled from "styled-components";
 import { Modal } from "react-bootstrap";
 import GlobalContext from "../../context/GlobalContext";
 import { Select } from "../Core";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useRouter } from "next/router";
 
 const defaultTypes = [
   { value: "Product-based", label: "Product based" },
@@ -44,27 +46,54 @@ const ModalCompanyProfile = (props) => {
 
   const gContext = useContext(GlobalContext);
 
+  const { publicKey, signTransaction, connected } = useWallet();
+  const { connection } = useConnection();
+
+  const router = useRouter();
+
   const handleAddCompany = async () => {
     try {
-      const payload = {
-        username: gContext.user?.username,
-        name,
-        logo,
-        domain,
-        type: type.value,
-        foundedIn,
-        employeeSize: employeeSize.value,
-        location,
-        linkedinHandle,
-        twitterHandle,
-        description,
-        website,
+      if (!gContext.user?.username) {
+        alert("Please login to add company profile");
+        return;
+      }
+
+      const companyInfo = {
+        username: gContext.user?.username, //32
+        name: name, //64
+        logo_uri: logo, //128
+        domain: domain, //64
+        company_type: type.value, //8 "product, service, both"
+        company_size: employeeSize.value, //8 "small, medium, large"
+        company_stage: "company_stage", //32
+        funding_amount: "10000", //8
+        funding_currency: "SOLG", //8
+        image_uri: "image_uri", //128
+        cover_image_uri: "cover_image_uri", //128
+        founded_in: foundedIn, //8
+        employee_size: employeeSize.value, //8
+        address: location, //512
+        description: description, // 1024
+        website: website, //128
+        linkedin: linkedinHandle, //128
+        twitter: twitterHandle, //128
+        facebook: "facebook", //128
+        instagram: "instagram", //128
       };
 
-      await gContext.addCompanyProfile(payload);
+      console.log(companyInfo, "companyInfo in react");
+
+      await gContext.addCompanyProfile(
+        publicKey,
+        companyInfo,
+        connection,
+        signTransaction
+      );
+      router.push("/dashboard-main");
       await gContext.toggleCompanyProfileModal();
     } catch (error) {
       console.log(error);
+      await gContext.toggleCompanyProfileModal();
     }
   };
 

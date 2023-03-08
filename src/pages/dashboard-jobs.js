@@ -6,9 +6,7 @@ import { useContext } from "react";
 import GlobalContext from "../context/GlobalContext";
 import moment from "moment";
 import { useEffect } from "react";
-import { useRouter } from "next/router";
-import { toast } from "react-toastify";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useConnection } from "@solana/wallet-adapter-react";
 
 const defaultJobs = [
   { value: "pd", label: "Product Designer" },
@@ -19,24 +17,37 @@ const defaultJobs = [
 ];
 
 export default function DashboardJobs() {
-  const router = useRouter();
   const gContext = useContext(GlobalContext);
-  const { publicKey, connected } = useWallet();
   const { connection } = useConnection();
-  useEffect(() => {
-    if (
-      !gContext.user ||
-      gContext.user?.isProfileComplete === false ||
-      !gContext.user?.userType === "recruiter"
-    ) {
-      router.push("/");
-      toast("⚠️ Not allowed to view this page");
-    } else {
-      if (publicKey) {
-        gContext.getCompanyPostedJobs(publicKey, connection);
-      }
+  const {
+    companyPostedJobs,
+    companySelectedByUser,
+    selectedCompanyInfo: selectedCompanyInfoContext,
+  } = gContext;
+
+  // const [postedJobs, setPostedJobs] = useState([]);
+
+  // useEffect(() => {
+  //   if (!companySelectedByUser && !companyPostedJobs) return;
+  //   setPostedJobs(companyPostedJobs);
+  // }, [companySelectedByUser, companyPostedJobs]);
+
+  const getAllJobWorkflows = async (jobpost_info_account) => {
+    const jobWorkflows = await gContext.getAllWorkflowsOfJob(
+      jobpost_info_account,
+      connection
+    );
+    // return jobWorkflows;
+  };
+
+  const handleEditJobPost = async (jobpost_info_account) => {
+    try {
+      await gContext.getJobDetails(jobpost_info_account, connection);
+      gContext.toggleJobPostModal();
+    } catch (error) {
+      console.log(error);
     }
-  }, []);
+  };
   return (
     <>
       <PageWrapper
@@ -53,7 +64,8 @@ export default function DashboardJobs() {
               <div className="row mb-11 align-items-center">
                 <div className="col-lg-6 mb-lg-0 mb-4">
                   <h3 className="font-size-6 mb-0">
-                    Posted Jobs ({gContext.companyPostedJobs?.length})
+                    Posted Jobs (
+                    {companyPostedJobs && companyPostedJobs?.length})
                   </h3>
                 </div>
                 <div className="col-lg-6">
@@ -102,6 +114,12 @@ export default function DashboardJobs() {
                           scope="col"
                           className="pl-4 border-0 font-size-4 font-weight-normal"
                         >
+                          Is archived
+                        </th>
+                        <th
+                          scope="col"
+                          className="pl-4 border-0 font-size-4 font-weight-normal"
+                        >
                           Total Applicants
                         </th>
                         <th
@@ -115,61 +133,91 @@ export default function DashboardJobs() {
                       </tr>
                     </thead>
                     <tbody>
-                      {gContext.companyPostedJobs?.map((job, index) => (
-                        <tr className="border border-color-2" key={index}>
-                          <th
-                            scope="row"
-                            className="pl-6 border-0 py-7 min-width-px-235"
-                          >
-                            <div className="">
-                              <Link href={`/job-details/${job.id}`}>
-                                <a className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                                  {job.title}
-                                </a>
-                              </Link>
-                            </div>
-                          </th>
-                          <td className="table-y-middle py-7 min-width-px-135">
-                            <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                              {job.jobType}
-                            </h3>
-                          </td>
-                          <td className="table-y-middle py-7 min-width-px-125">
-                            <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                              {job.jobLocationType === "remote"
-                                ? "Remote"
-                                : `${job.city} , ${job.country}`}
-                            </h3>
-                          </td>
-                          <td className="table-y-middle py-7 min-width-px-155">
-                            <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                              {moment(job.createdAt).format("DD MMM YYYY")}
-                            </h3>
-                          </td>
-                          <td className="table-y-middle py-7 min-width-px-155">
-                            <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                      {companyPostedJobs &&
+                        companyPostedJobs.length > 0 &&
+                        companyPostedJobs?.map((job, index) => (
+                          <tr className="border border-color-2" key={index}>
+                            <th
+                              scope="row"
+                              className="pl-6 border-0 py-7 min-width-px-235"
+                            >
+                              <div className="">
+                                <Link
+                                  href={`
+                                   /job-details/${job?.pubkey.toString()}
+                                  `}
+                                >
+                                  <a className="font-size-4 mb-0 font-weight-semibold text-black-2">
+                                    {job?.parsedInfo?.job_title}
+                                  </a>
+                                </Link>
+                              </div>
+                            </th>
+                            <td className="table-y-middle py-7 min-width-px-135">
+                              <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                                {job?.parsedInfo?.job_type}
+                              </h3>
+                            </td>
+                            <td className="table-y-middle py-7 min-width-px-125">
+                              <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                                {job?.parsedInfo?.jobLocationType === "remote"
+                                  ? "Remote"
+                                  : `${job?.parsedInfo?.city} , ${job?.parsedInfo?.country}`}
+                              </h3>
+                            </td>
+                            <td className="table-y-middle py-7 min-width-px-155">
+                              <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                                {moment(new Date()).format("DD MMM YYYY")}
+                              </h3>
+                            </td>
+                            <td className="table-y-middle py-7 min-width-px-125">
+                              <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                                {job?.archived ? "True" : "False"}
+                              </h3>
+                            </td>
+                            <td className="table-y-middle py-7 min-width-px-155">
+                              {/* <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
                               {job.totalApplicants}
-                            </h3>
-                          </td>
+                            </h3> */}
+                              {gContext.allWorkflowsOfJob ? (
+                                gContext.allWorkflowsOfJob
+                              ) : (
+                                <Link
+                                  href={`/dashboard-applicants?job=${job?.pubkey.toString()}`}
+                                >
+                                  <a
+                                    className=" py-1 my-5 font-size-4 font-weight-semibold flex-y-center"
+                                    style={{
+                                      cursor: "pointer",
+                                    }}
+                                    // onClick={() =>
+                                    //   getAllJobWorkflows(job?.pubkey)
+                                    // }
+                                  >
+                                    <i className="fas fa-eye mr-7"></i>View
+                                  </a>
+                                </Link>
+                              )}
+                            </td>
 
-                          <td className="table-y-middle py-7 min-width-px-80">
-                            <a
-                              href="/#"
-                              className="font-size-3 font-weight-bold text-green text-uppercase"
-                            >
-                              Edit
-                            </a>
-                          </td>
-                          <td className="table-y-middle py-7 min-width-px-100">
-                            <a
-                              href="/#"
-                              className="font-size-3 font-weight-bold text-red-2 text-uppercase"
-                            >
-                              Delete
-                            </a>
-                          </td>
-                        </tr>
-                      ))}
+                            <td className="table-y-middle py-7 min-width-px-80">
+                              <a
+                                className="font-size-3 font-weight-bold text-green text-uppercase"
+                                onClick={() => {
+                                  handleEditJobPost(job?.pubkey);
+                                }}
+                                style={{ cursor: "pointer" }}
+                              >
+                                Edit
+                              </a>
+                            </td>
+                            <td className="table-y-middle py-7 min-width-px-100">
+                              <a className="font-size-3 font-weight-bold text-red-2 text-uppercase">
+                                Delete
+                              </a>
+                            </td>
+                          </tr>
+                        ))}
                     </tbody>
                   </table>
                 </div>

@@ -31,67 +31,47 @@ const ModalStyled = styled(Modal)`
 `;
 
 const ModalWorkExperience = (props) => {
-  const router = useRouter();
 
   const gContext = useContext(GlobalContext);
-
+  const applicantWorkExperiences = gContext.workExperience;
+  const to_be_updated_work_experience_number = gContext.currentWorkflowSequenceNumber;
+  console.log(to_be_updated_work_experience_number,'to_be_updated_work_experience_number')
   const [workExperience, setWorkExperience] = useState(
-    gContext.workExperience.length > 0
-      ? gContext.workExperience
-      : [
-          {
-            companyName: "",
-            designation: "",
-            isCurrentlyWorkingHere: false,
-            startDate: "",
-            endDate: "",
-            description: "",
-            location: "",
-          },
-        ]
+    {
+      archived: false,
+      company_name: "",
+      designation: "",
+      is_currently_working_here: false,
+      start_date: "",
+      end_date: "",
+      description: "",
+      location: "",
+      website:""
+    },
   );
 
-  const handleAddWorkExperienceInput = async (e) => {
+  // const handleAddWorkExperienceInput = async (e) => {
+  //   e.preventDefault();
+  // };
+
+  const handleToggleofArchive = async (e) => {
     e.preventDefault();
-    setWorkExperience([
-      ...workExperience,
-      {
-        companyName: "",
-        designation: "",
-        isCurrentlyWorkingHere: false,
-        startDate: "",
-        endDate: "",
-        description: "",
-        location: "",
-      },
-    ]);
+    workExperience.archived = !workExperience.archived
+    setWorkExperience({...workExperience});
   };
 
-  const handleRemoveWorkExperienceInput = async (e, index) => {
-    e.preventDefault();
-    const workExperienceCopy = [...workExperience];
-
-    // prevent removing the last input
-    if (workExperienceCopy.length === 1) {
-      return;
-    }
-
-    workExperienceCopy.splice(index, 1);
-    setWorkExperience(workExperienceCopy);
-  };
-
-  const handleWorkExperience = async (e, index, key) => {
-    if (key === "isCurrentlyWorkingHere") {
+  const handleWorkExperience = async (e, key) => {
+    if (key === "is_currently_working_here") {
       const selectValue = e.value;
-      console.log(selectValue, "selectValue");
-      const workExperienceCopy = [...workExperience];
-      workExperienceCopy[index][key] = selectValue;
+      console.log(selectValue,'selectValue')
+      const workExperienceCopy = {...workExperience};
+      workExperienceCopy[key] = selectValue;
       setWorkExperience(workExperienceCopy);
       return;
     }
     const { value } = e.target;
-    const workExperienceCopy = [...workExperience];
-    workExperienceCopy[index][key] = value;
+    const workExperienceCopy = {...workExperience};
+    workExperienceCopy[key] = value;
     setWorkExperience(workExperienceCopy);
   };
 
@@ -102,54 +82,63 @@ const ModalWorkExperience = (props) => {
   const { publicKey, signTransaction, connected } = useWallet();
   const { connection } = useConnection();
 
-  const handleSaveWorkExperience = async () => {
+  const addOrUpdateWorkExperience = async () => {
     try {
-      const payload = workExperience;
+        if(!publicKey){
+          toast.error("Please connect your wallet")
+          return;
+        }
+        if(workExperience.start_date) {
+          workExperience.start_date = new Date(workExperience.start_date).getTime().toString();
+        }
+        if(workExperience.end_date) {
+          workExperience.end_date = new Date(workExperience.end_date).getTime().toString();
+        }
 
-      // add username to the payload
-      payload.map((item, index) => {
-        item["username"] = gContext.user?.username;
-      });
+        if(!workExperience.is_currently_working_here && !workExperience.end_date){
+          workExperience.end_date = new Date().getTime().toString();
+        }
 
-      console.log(payload, "payload");
-      // if (gContext.workExperience.length > 0) {
-      //   workExperience.map(async (item, index) => {
-      //     await gContext.updateWorkExperience(item.id, item);
-      //   });
-      // } else {
-      //   await gContext.addWorkExperience(payload);
-      // }
+        if(workExperience.is_currently_working_here){
+          workExperience.end_date = null; 
+        }
 
-      workExperience.map(async (item, index) => {
         const payload = {
-          archived: false, //1
-          company_name: item.companyName, //64
-          designation: item.designation, //128
-          is_currently_working_here: false, //1
-          start_date: new Date().getTime().toString(), //64
-          end_date: new Date().getTime().toString(), //64
-          description: item.description, //512
-          location: item.location, //256
-          website: "website url", //128
+          ...workExperience
         };
-        await gContext.addWorkExperience(
-          publicKey,
-          payload,
-          connection,
-          signTransaction
-        );
-      });
-      handleClose();
+        if(to_be_updated_work_experience_number){
+          payload.work_experience_number = to_be_updated_work_experience_number;
+          await gContext.updateWorkExperience(
+            publicKey,
+            payload,
+            connection,
+            signTransaction
+          );
+          toast.success("Work experience updated successfully");
+        }else{
+          await gContext.addWorkExperience(
+            publicKey,
+            payload,
+            connection,
+            signTransaction
+          );
+          toast.success("Work experience added successfully");
+        }
+        handleClose();
     } catch (error) {
-      console.log(error.message);
+      console.log(error.message,'Error in adding work experience');
+      toast.error(error.message);
     }
   };
 
-  // useEffect(() => {
-  //   if (gContext.workExperience.length > 0) {
-  //     setWorkExperience(gContext.workExperience);
-  //   }
-  // }, [gContext.workExperience]);
+  useEffect(() => {
+    if (applicantWorkExperiences.length > 0 && to_be_updated_work_experience_number) {
+      const workEx = applicantWorkExperiences.filter(work => work.work_experience_number === to_be_updated_work_experience_number);
+      if(workEx.length > 0) {
+        setWorkExperience({...workEx[0]});
+      }
+    }
+  },[to_be_updated_work_experience_number])
 
   return (
     <ModalStyled
@@ -179,7 +168,7 @@ const ModalWorkExperience = (props) => {
               <div className="row">
                 <div className="col-xxxl-9 px-lg-13 px-6">
                   <h5 className="font-size-6 font-weight-semibold mb-11">
-                    Add work experience
+                    {to_be_updated_work_experience_number ? "Update" : "Add" } work experience
                   </h5>
                   <div
                     className="contact-form bg-white shadow-8 rounded-4 pl-sm-10 pl-4 pr-sm-11 pr-4 pt-15 pb-13"
@@ -189,9 +178,9 @@ const ModalWorkExperience = (props) => {
                   >
                     <form action="/">
                       <fieldset>
-                        {workExperience.map((item, index) => (
+                        {workExperience && (
                           <div className="mb-8">
-                            <div className="row" key={index}>
+                            <div className="row">
                               <div className="col-lg-6">
                                 <div className="form-group">
                                   <label
@@ -206,12 +195,12 @@ const ModalWorkExperience = (props) => {
                                     className="form-control h-px-48"
                                     id="weCname"
                                     placeholder="eg. Solgames"
-                                    value={item.companyName}
+                                    value={workExperience.company_name}
                                     onChange={(e) =>
                                       handleWorkExperience(
                                         e,
-                                        index,
-                                        "companyName"
+                                        
+                                        "company_name"
                                       )
                                     }
                                   />
@@ -231,11 +220,11 @@ const ModalWorkExperience = (props) => {
                                     className="form-control h-px-48"
                                     id="weDesignation"
                                     placeholder="eg. Frontend Developer"
-                                    value={item.designation}
+                                    value={workExperience.designation}
                                     onChange={(e) =>
                                       handleWorkExperience(
                                         e,
-                                        index,
+                                        
                                         "designation"
                                       )
                                     }
@@ -256,11 +245,11 @@ const ModalWorkExperience = (props) => {
                                     className="form-control h-px-48"
                                     id="weDescription"
                                     placeholder="eg. Brief description"
-                                    value={item.description}
+                                    value={workExperience.description}
                                     onChange={(e) =>
                                       handleWorkExperience(
                                         e,
-                                        index,
+                                        
                                         "description"
                                       )
                                     }
@@ -285,8 +274,8 @@ const ModalWorkExperience = (props) => {
                                     onChange={(e) =>
                                       handleWorkExperience(
                                         e,
-                                        index,
-                                        "isCurrentlyWorkingHere"
+                                        
+                                        "is_currently_working_here"
                                       )
                                     }
                                   />
@@ -307,18 +296,18 @@ const ModalWorkExperience = (props) => {
                                     className="form-control h-px-48"
                                     id="weSdate"
                                     placeholder="eg. Frontend Developer"
-                                    value={item.startDate}
+                                    value={workExperience.start_date}
                                     onChange={(e) =>
                                       handleWorkExperience(
                                         e,
-                                        index,
-                                        "startDate"
+                                        
+                                        "start_date"
                                       )
                                     }
                                   />
                                 </div>
                               </div>
-                              {item.isCurrentlyWorkingHere === false && (
+                              {workExperience.is_currently_working_here === false && (
                                 <div className="col-lg-6">
                                   <div className="form-group">
                                     <label
@@ -333,12 +322,10 @@ const ModalWorkExperience = (props) => {
                                       className="form-control h-px-48"
                                       id="eDate"
                                       placeholder="eg. Frontend Developer"
-                                      value={item.endDate}
+                                      value={workExperience.end_date}
                                       onChange={(e) =>
                                         handleWorkExperience(
-                                          e,
-                                          index,
-                                          "endDate"
+                                          e, "end_date"
                                         )
                                       }
                                     />
@@ -359,44 +346,55 @@ const ModalWorkExperience = (props) => {
                                     className="form-control h-px-48"
                                     id="weLocation"
                                     placeholder="eg. New York, US"
-                                    value={item.location}
+                                    value={workExperience.location}
                                     onChange={(e) =>
-                                      handleWorkExperience(e, index, "location")
+                                      handleWorkExperience(e,  "location")
+                                    }
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-lg-6">
+                                <div className="form-group">
+                                  <label
+                                    htmlFor="weLocation"
+                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                  >
+                                    Website
+                                  </label>
+                                  <input
+                                    type="text"
+                                    name="weLocation"
+                                    className="form-control h-px-48"
+                                    id="weLocation"
+                                    placeholder="eg. https://www.google.com"
+                                    value={workExperience.website}
+                                    onChange={(e) =>
+                                      handleWorkExperience(e,  "website")
                                     }
                                   />
                                 </div>
                               </div>
                             </div>
-                            {workExperience.length - 1 === index && (
-                              <a
-                                className="btn btn-outline-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
-                                onClick={handleAddWorkExperienceInput}
-                              >
-                                <i className="fa fa-plus mr-2"></i>
-                                Add more
-                              </a>
-                            )}
-                            {workExperience.length !== 1 && (
+                            
                               <a
                                 className="btn btn-outline-red text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
                                 onClick={(e) =>
-                                  handleRemoveWorkExperienceInput(e, index)
+                                  handleToggleofArchive(e)
                                 }
                               >
-                                <i className="fa fa-pen mr-2"></i>
-                                Remove
+                                <i className="fa fa-archive mr-2"></i>
+                                {!workExperience.archived ? "Archive" : "Unarchive"} 
                               </a>
-                            )}
                           </div>
-                        ))}
-                        <pre>{JSON.stringify(workExperience, null, 2)}</pre>
+                        )}
+                        <pre>{JSON.stringify(workExperience)}</pre>
                         <div className="row">
                           <div className="col-md-12">
                             <input
                               type="button"
                               value="Submit"
                               className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
-                              onClick={handleSaveWorkExperience}
+                              onClick={addOrUpdateWorkExperience}
                             />
                           </div>
                         </div>

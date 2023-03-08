@@ -3,13 +3,14 @@ import Link from "next/link";
 import GlobalContext from "../../context/GlobalContext";
 import { useEffect } from "react";
 import { useContext } from "react";
+import { defaultCategories } from "../../staticData";
 
 const Categories = () => {
   const gContext = useContext(GlobalContext);
 
-  useEffect(() => {
-    gContext.getCategories({ limit: 8 });
-  }, []);
+  // useEffect(() => {
+  //   // gContext.getCategories({ limit: 8 });
+  // }, []);
 
   return (
     <>
@@ -49,12 +50,12 @@ const Categories = () => {
           {/* <!-- End Section Top --> */}
           <div className="row justify-content-center">
             {/* <!-- Single Category --> */}
-            {gContext.categories.map((category, index) => (
+            {defaultCategories.map((category, index) => (
               <div
                 className="col-12 col-xl-3 col-lg-4 col-sm-6 col-xs-8"
                 key={index}
               >
-                <Link href={`/search-jobs?category=${category.categoryName}`}>
+                <Link href={`/search-jobs?category=${category.value}`}>
                   <a className="bg-white border border-color-2 rounded-4 pl-9 pt-10 pb-3 pr-7 hover-shadow-1 mb-9 d-block w-100">
                     <div className="text-blue bg-blue-opacity-1 square-70 rounded-4 mb-7 font-size-7">
                       <i className="fa fa-briefcase"></i>
@@ -64,7 +65,7 @@ const Categories = () => {
                       <h5 className="font-size-5 font-weight-semibold text-black-2 line-height-1">
                         {
                           // capitalize first letter of each word
-                          category.categoryName
+                          category.label
                             .split(" ")
                             .map(
                               (word) => word[0].toUpperCase() + word.slice(1)
@@ -72,9 +73,9 @@ const Categories = () => {
                             .join(" ")
                         }
                       </h5>
-                      <p className="font-size-4 font-weight-normal text-gray">
+                      {/* <p className="font-size-4 font-weight-normal text-gray">
                         <span>{category.jobsInCategory}</span> Jobs posted
-                      </p>
+                      </p> */}
                     </div>
                   </a>
                 </Link>

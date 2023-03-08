@@ -2,6 +2,7 @@ const path = require("path");
 
 /** @type {import('next').NextConfig} */
 module.exports = {
+  productionBrowserSourceMaps: true,
   reactStrictMode: false,
   webpack5: true,
   webpack: (config) => {

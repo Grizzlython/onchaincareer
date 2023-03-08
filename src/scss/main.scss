@@ -29,8 +29,6 @@
 
 ******************************************************/
 
-
-
 @import "theme-mode-control/theme-mode-activation";
 @import "controls/theme-functions";
 @import "controls/theme-variables";
@@ -148,7 +146,6 @@
 */
 @import "theme-custom-styles";
 
-
-
-
-
+.dashboard-main-container {
+  min-height: 81vh !important;
+}

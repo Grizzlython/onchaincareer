@@ -460,12 +460,12 @@ export class EducationInfoState {
     borsh.str("start_date"),
     borsh.str("end_date"),
     borsh.str("grade"),
-    borsh.str("activities"),
-    borsh.str("subjects"),
+    borsh.vec(borsh.str(), "activities"),
+    borsh.vec(borsh.str(), "subjects"),
     borsh.str("description"),
     borsh.bool("is_college"),
     borsh.bool("is_studying"),
-    borsh.str("certificate_uris"),
+    borsh.vec(borsh.str(), "certificate_uris"),
     borsh.str("education_number"),
   ]);
 
@@ -492,12 +492,12 @@ export class EducationInfoState {
       borsh.str("start_date"),
       borsh.str("end_date"),
       borsh.str("grade"),
-      borsh.str("activities"),
-      borsh.str("subjects"),
+      borsh.vec(borsh.str(), "activities"),
+      borsh.vec(borsh.str(), "subjects"),
       borsh.str("description"),
       borsh.bool("is_college"),
       borsh.bool("is_studying"),
-      borsh.str("certificate_uris"),
+      borsh.vec(borsh.str(), "certificate_uris"),
       borsh.str("education_number"),
     ]);
 
@@ -518,12 +518,12 @@ export class EducationInfoState {
       borsh.str("start_date"),
       borsh.str("end_date"),
       borsh.str("grade"),
-      borsh.str("activities"),
-      borsh.str("subjects"),
+      borsh.vec(borsh.str(), "activities"),
+      borsh.vec(borsh.str(), "subjects"),
       borsh.str("description"),
       borsh.bool("is_college"),
       borsh.bool("is_studying"),
-      borsh.str("certificate_uris"),
+      borsh.vec(borsh.str(), "certificate_uris"),
       borsh.str("education_number"),
     ]);
 

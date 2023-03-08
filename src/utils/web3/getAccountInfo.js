@@ -11,14 +11,14 @@ export const getAccountInfo = async(
     const info = await connection.getAccountInfo(accountPub, COMMITMENT);
 
     if(info === null){
-      throw new Error(FAILED_TO_FIND_ACCOUNT);
+      throw Error(FAILED_TO_FIND_ACCOUNT);
     }
 
     if (!info.owner.equals(TOKEN_PROGRAM_ID)) {
-      throw new Error(INVALID_ACCOUNT_OWNER);
+      throw Error(INVALID_ACCOUNT_OWNER);
     }
     
     if (info.data.length !== AccountLayout.span) {
-      throw new Error('Invalid account size');
+      throw Error('Invalid account size');
     }
 }

@@ -11,17 +11,17 @@ export const getTokenSwapStateAccountData = async (
     const tokenSwapStateAccount = await connection.getAccountInfo(address);
 
     if (tokenSwapStateAccount == null) {
-        throw new Error(`State account not found: ${address.toString()}`)
+        throw Error(`State account not found: ${address.toString()}`)
     }
     // @ts-ignore
     if (!tokenSwapStateAccount.owner.equals(programId)) {
-        throw new Error(`State account does not associate with program: ${address.toString()}`)
+        throw Error(`State account does not associate with program: ${address.toString()}`)
     }
 
     const data = TokenSwapLayout.decode(tokenSwapStateAccount.data);
 
     if (!data.isInitialized) {
-        throw new Error(`Token swap state account not initialized: ${address.toString()}`)
+        throw Error(`Token swap state account not initialized: ${address.toString()}`)
     }
 
     const poolToken = new PublicKey(data.tokenPool);
