@@ -13,7 +13,7 @@ import ErrorPage from "../../pages/404";
 import Loader from "../../components/Loader";
 import { EXPLORER_ADDRESS_URL, EXPLORER_CLUSTER } from "../../utils/constants";
 
-const SearchTab = (props) => {
+const SearchJobsList = (props) => {
   const gContext = useContext(GlobalContext);
   const { loading } = gContext;
   const allListedJobs = props.allListedJobs;
@@ -28,7 +28,7 @@ const SearchTab = (props) => {
       filters.category = null;
       filters.categoryRegex = null;
     }
-    if (props.jobType && props.jobType !== "all") {
+    if (props.jobType && props.jobType !== "All") {
       filters.jobType = props.jobType;
       filters.jobTypeRegex = new RegExp(filters.jobType, "i");
     } else {
@@ -44,14 +44,14 @@ const SearchTab = (props) => {
       filters.jobTitleRegex = null;
     }
 
-    if (props.country && props.country !== "any") {
+    if (props.country && props.country !== "Any") {
       filters.country = props.country;
       filters.countryRegex = new RegExp(filters.country);
     } else {
       filters.country = null;
       filters.countryRegex = null;
     }
-    if (props.sortType && props.sortType !== "any") {
+    if (props.sortType && props.sortType !== "Any") {
       filters.sortType = props.sortType;
     } else {
       filters.sortType = null;
@@ -104,16 +104,16 @@ const SearchTab = (props) => {
       });
 
       if (filters.sortType && filteredJobs && filteredJobs.length) {
-        if (filters.sortType === "latest") {
+        if (filters.sortType === "Latest") {
           filteredJobs.sort((a, b) =>
-            moment(b.parsedInfo.created_at).diff(
-              moment(a.parsedInfo.created_at)
+            moment(b.parsedInfo.created_at.toNumber()).diff(
+              moment(a.parsedInfo.created_at.toNumber())
             )
           );
-        } else if (filters.sortType === "oldest") {
+        } else if (filters.sortType === "Oldest") {
           filteredJobs.sort((a, b) =>
-            moment(a.parsedInfo.created_at).diff(
-              moment(b.parsedInfo.created_at)
+            moment(a.parsedInfo.created_at.toNumber()).diff(
+              moment(b.parsedInfo.created_at.toNumber())
             )
           );
         }
@@ -148,9 +148,13 @@ const SearchTab = (props) => {
                         href={`/job-details/${job?.pubkey?.toString()}`}
                       >
                         {/* <!-- Single Featured Job --> */}
-                        <div className="pt-9 px-xl-9 px-lg-7 px-7 pb-7 light-mode-texts bg-white rounded hover-shadow-3 hover-border-green">
+                        <div className="pt-9 light-mode-texts bg-white rounded hover-shadow-3 hover-border-green p-6">
                           <div className="row">
-                            <div className="col-md-6">
+                            <div className="col-md-12" style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              flexWrap: "wrap",
+                            }}>
                               <div className="media align-items-center">
                                 <div className="square-72 d-block mr-8">
                                   <img
@@ -175,15 +179,10 @@ const SearchTab = (props) => {
                                   </span>
                                 </div>
                               </div>
-                            </div>
-                            <div className="col-md-6 text-right pt-7 pt-md-5">
-                              <div className="media justify-content-md-end">
-                                {/* <div className="image mr-5 mt-2">
-                                  <img src={imgF.src} alt="" />
-                                </div> */}
-                                <p className="font-weight-bold font-size-7 text-hit-gray mb-0">
+                              <div className="mt-2">
+                                <p className="font-weight-semibold font-size-6 text-hit-gray mb-0">
                                   <span className="text-primary mr-2">
-                                    {job?.parsedInfo?.currency}{" "}
+                                    {job?.parsedInfo?.currency}
                                   </span>
                                   <span className="text-black-2">
                                     {` ${Number(job?.parsedInfo?.min_salary)} -
@@ -192,10 +191,17 @@ const SearchTab = (props) => {
                                 </p>
                               </div>
                             </div>
+                            {/* <div className="col-md-4 text-right pt-7 pt-md-5"> */}
+                            {/* </div> */}
                           </div>
 
                           <div className="row pt-8">
-                            <div className="col-md-7">
+                            <div className="col-md-8" style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              flexWrap: "wrap",
+                              flexDirection: "column",
+                            }}>
                               <ul className="d-flex list-unstyled mr-n3 flex-wrap">
                                 {job?.parsedInfo?.skills.map((skill, index) => (
                                   <li key={index}>
@@ -205,10 +211,44 @@ const SearchTab = (props) => {
                                   </li>
                                 ))}
                               </ul>
+                              <div style={{
+                                color: "#000",
+                                fontSize: "14px",
+                                maxHeight: "150px",
+                                overflow: "hidden",
+                                overflowY: "auto",
+                                paddingTop: "10px",
+                                marginBottom: "10px",
+                                borderTop: "1px solid #e5e5e5",
+                              }}>
+                                {job.parsedInfo.short_description}
+                              </div>
+                              <ul className="list-unstyled" style={{
+                              float: "left",
+                              marginBottom: "0px",
+                            }}>
+                              <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
+                                <span className="mr-4">Categories:</span>
+                                <span className="font-weight-semibold">
+                                  {job?.parsedInfo?.category.join(",")} , Tech Skills, Hello World
+                                </span>
+                              </li>
+                              </ul>
                             </div>
-                            <div className="col-md-5">
-                              <ul className="d-flex list-unstyled mr-n3 flex-wrap mr-n8 justify-content-md-end">
-                                <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
+                            <div className="col-md-4" style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              flexWrap: "wrap",
+                              flexDirection: "column",
+                              marginRight: "0px",
+                              paddingRight: "10px",
+                              textAlign: "right",
+                            }}>
+                              <ul className="list-unstyled mr-n3 flex-wrap mr-n8" style={{
+                                float: "left",
+                                marginLeft: "50px",
+                              }} >
+                                <li className="mt-2 font-size-small text-black-2 d-flex">
                                   <span
                                     className="mr-4"
                                     css={`
@@ -219,12 +259,12 @@ const SearchTab = (props) => {
                                   </span>
                                   <span className="font-weight-semibold">
                                     {job?.parsedInfo?.job_location_type ===
-                                    "remote"
+                                      "remote"
                                       ? "Remote"
                                       : `${job?.parsedInfo?.city}, ${job?.parsedInfo?.country}`}
                                   </span>
                                 </li>
-                                <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
+                                <li className="mt-2 font-size-small text-black-2 d-flex">
                                   <span
                                     className="mr-4"
                                     css={`
@@ -237,7 +277,7 @@ const SearchTab = (props) => {
                                     {job?.parsedInfo?.job_type}
                                   </span>
                                 </li>
-                                <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
+                                <li className="mt-2 font-size-small text-black-2 d-flex">
                                   <span
                                     className="mr-4"
                                     css={`
@@ -255,40 +295,33 @@ const SearchTab = (props) => {
                                   </span>
                                 </li>
                               </ul>
-                              <ul className="d-flex list-unstyled mr-n3 flex-wrap mr-n8 justify-content-md-end">
-                                <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
-                                  <span className="mr-4">Categories:</span>
-                                  <span className="font-weight-semibold">
-                                    {job?.parsedInfo?.category.join(",")}
-                                  </span>
-                                </li>
-                              </ul>
+                              <div style={{
+                                float: "left",
+                              }}>
+
+                                <a
+                                  className="btn btn-outline-green text-uppercase btn-medium rounded-3 mb-2"
+                                  href={`${EXPLORER_ADDRESS_URL}${job?.pubkey?.toString()}${EXPLORER_CLUSTER}`}
+                                  target="_blank"
+                                >
+                                  <i className="fa fa-globe mr-3"></i>
+                                  View on chain
+                                </a>
+                                <Link
+                                  href={`/job-details/${job?.pubkey?.toString()}`}
+                                >
+                                  <a className="btn btn-green text-uppercase btn-medium rounded-3">
+                                    View Job
+                                  </a>
+                                </Link>
+                              </div>
                             </div>
+                            
                             {/* <div className="col-md-5"></div> */}
                           </div>
+                          
+                          
 
-                          <div
-                            className="card-btn-group mt-3"
-                            style={{
-                              display: "flex",
-                            }}
-                          >
-                            <Link
-                              href={`/job-details/${job?.pubkey?.toString()}`}
-                            >
-                              <a className="btn btn-green text-uppercase btn-medium rounded-3">
-                                View Job
-                              </a>
-                            </Link>
-                            <a
-                              className="btn btn-outline-green text-uppercase btn-medium rounded-3 ml-3"
-                              href={`${EXPLORER_ADDRESS_URL}${job?.pubkey?.toString()}${EXPLORER_CLUSTER}`}
-                              target="_blank"
-                            >
-                              <i className="fa fa-globe mr-3"></i>
-                              View on chain
-                            </a>
-                          </div>
                         </div>
                         {/* <!-- End Single Featured Job --> */}
                       </Nav.Link>
@@ -323,4 +356,4 @@ const SearchTab = (props) => {
     </>
   );
 };
-export default SearchTab;
+export default SearchJobsList;

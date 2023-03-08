@@ -1,27 +1,6 @@
 import * as borsh from "@project-serum/borsh";
 export const JobPostInfoState_SIZE =
-  1 +
-  1 +
-  32 +
-  32 +
-  8 +
-  8 +
-  128 +
-  256 +
-  1024 +
-  148 +
-  16 +
-  8 +
-  8 +
-  8 +
-  8 +
-  8 +
-  660 +
-  512 +
-  32 +
-  64 +
-  64 +
-  8;
+1+1+32+32+8+8+128+256+1024+80+10+8+8+8+8+8+160+128+10+32+32+8;
 export class JobPostInfoState {
   is_initialized; //1
   archived; //1

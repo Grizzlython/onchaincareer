@@ -33,9 +33,12 @@ const ModalStyled = styled(Modal)`
 
 const ModalWorkExperience = (props) => {
   const gContext = useContext(GlobalContext);
+
   const applicantWorkExperiences = gContext.workExperience;
+
   const to_be_updated_work_experience_number =
     gContext.currentWorkflowSequenceNumber;
+
   const [workExperience, setWorkExperience] = useState({
     archived: false,
     company_name: "",
@@ -69,13 +72,14 @@ const ModalWorkExperience = (props) => {
   const handleWorkExperience = async (e, key) => {
     if (key === "is_currently_working_here") {
       const selectValue = e.value;
-      console.log(selectValue, "selectValue");
       const workExperienceCopy = { ...workExperience };
       workExperienceCopy[key] = selectValue;
       setWorkExperience(workExperienceCopy);
       return;
     }
+
     const { value } = e.target;
+
     const workExperienceCopy = { ...workExperience };
     workExperienceCopy[key] = value;
     setWorkExperience(workExperienceCopy);
@@ -88,18 +92,34 @@ const ModalWorkExperience = (props) => {
   const { publicKey, signTransaction, connected } = useWallet();
   const { connection } = useConnection();
 
+  const resetForm = () => {
+    setWorkExperience({
+      archived: false,
+      company_name: "",
+      designation: "",
+      is_currently_working_here: false,
+      start_date: "",
+      end_date: "",
+      description: "",
+      location: "",
+      website: "",
+    });
+  };
+
   const addOrUpdateWorkExperience = async () => {
     try {
       if (!publicKey) {
         toast.error("Please connect your wallet");
         return;
       }
-      if (workExperience.start_date) {
+
+      console.log(workExperience, "workExperience");
+      if (workExperience.start_date && workExperience.start_date !== "NaN") {
         workExperience.start_date = new Date(workExperience.start_date)
           .getTime()
           .toString();
       }
-      if (workExperience.end_date) {
+      if (workExperience.end_date && workExperience.end_date !== "NaN") {
         workExperience.end_date = new Date(workExperience.end_date)
           .getTime()
           .toString();
@@ -131,6 +151,14 @@ const ModalWorkExperience = (props) => {
 
       let notFilled = Object.keys(payload).filter((key) => payload[key] === "");
 
+      // replace underscore with space and capitalize first letter
+      notFilled = notFilled.map((key) => {
+        return key
+          .split("_")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+      });
+
       if (notFilled && notFilled.length > 0) {
         toast.error(`Please fill ${notFilled.join(", ")}`);
         return;
@@ -144,7 +172,8 @@ const ModalWorkExperience = (props) => {
           connection,
           signTransaction
         );
-        toast.success("Work experience updated successfully");
+        // toast.success("Work experience updated successfully");
+        resetForm();
       } else {
         await gContext.addWorkExperience(
           publicKey,
@@ -152,7 +181,8 @@ const ModalWorkExperience = (props) => {
           connection,
           signTransaction
         );
-        toast.success("Work experience added successfully");
+        // toast.success("Work experience added successfully");
+        resetForm();
       }
       handleClose();
     } catch (error) {
@@ -171,7 +201,18 @@ const ModalWorkExperience = (props) => {
           work.work_experience_number === to_be_updated_work_experience_number
       );
       if (workEx.length > 0) {
-        setWorkExperience({ ...workEx[0] });
+        const tempWorkEx = { ...workEx[0] };
+        if (tempWorkEx.start_date && tempWorkEx.start_date !== "NaN") {
+          tempWorkEx.start_date = new Date(parseInt(tempWorkEx.start_date))
+            .toISOString()
+            .slice(0, 10);
+        }
+        if (tempWorkEx.end_date && tempWorkEx.end_date !== "NaN") {
+          tempWorkEx.end_date = new Date(parseInt(tempWorkEx.end_date))
+            .toISOString()
+            .slice(0, 10);
+        }
+        setWorkExperience({ ...tempWorkEx });
       }
     }
   }, [to_be_updated_work_experience_number]);
@@ -198,7 +239,16 @@ const ModalWorkExperience = (props) => {
         >
           <i className="fas fa-times"></i>
         </button>
-        <div className="mt-12" id="dashboard-body">
+        <div
+          className="mt-12"
+          id="dashboard-body"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+          }}
+        >
           {loading ? (
             <Loader />
           ) : (
@@ -309,8 +359,16 @@ const ModalWorkExperience = (props) => {
                                         { value: true, label: "Yes" },
                                         { value: false, label: "No" },
                                       ]}
-                                      className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
-                                      border={false}
+                                      value={{
+                                        value:
+                                          workExperience.is_currently_working_here,
+                                        label:
+                                          workExperience.is_currently_working_here
+                                            ? "Yes"
+                                            : "No",
+                                      }}
+                                      className="basic-multi-select"
+                                      border={true}
                                       onChange={(e) =>
                                         handleWorkExperience(
                                           e,
@@ -451,7 +509,7 @@ const ModalWorkExperience = (props) => {
                               </div>
                             </div>
                           )}
-                          <pre>{JSON.stringify(workExperience)}</pre>
+
                           <div className="row">
                             <div className="col-md-12">
                               <input

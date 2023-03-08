@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import SEO from "@bradgarropy/next-seo";
 import PageWrapper from "../components/PageWrapper";
 
 import imgF1 from "../assets/image/l2/png/featured-job-logo-1.png";
@@ -10,6 +11,25 @@ import iconL from "../assets/image/svg/icon-location.svg";
 export default function JobDetails() {
   return (
     <>
+      <SEO
+        description="Search for your dream job on OnChainCareer's secure and decentralized job marketplace. Our cutting-edge blockchain technology ensures reliable and transparent job solutions for job seekers, employers, and stakeholders. Find your next career opportunity today!"
+        keywords={[
+          "OnChainCareer",
+          "blockchain",
+          "decentralized",
+          "job marketplace",
+          "job platform",
+          "job search",
+          "job listings",
+          "job opportunities",
+          "job seekers",
+          "employers",
+          "secure",
+          "reliable",
+          "transparent",
+          "job solutions",
+        ]}
+      />
       <PageWrapper headerConfig={{ button: "profile" }}>
         <div className="jobDetails-section bg-default-1 pt-28 pt-lg-27 pb-xl-25 pb-12">
           <div className="container">

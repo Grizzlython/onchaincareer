@@ -20,14 +20,14 @@ import {
 } from "../staticData";
 
 export default function AddCompany() {
-  const [updatedLogo, setUpdatedLogo] = useState(null);
-  const [updatedCover, setUpdatedCover] = useState(null);
+  const [updatedLogo, setUpdatedLogo] = useState("");
+  const [updatedCover, setUpdatedCover] = useState("");
   const [name, setName] = useState("");
   const [domain, setDomain] = useState("");
   const [companyType, setCompanyType] = useState(defaultCompanyTypeOptions[0]);
   const [companySize, setCompanySize] = useState(""); //"small, medium, large"
   const [companyStage, setCompanyStage] = useState("");
-  const [fundingAmount, setFundingAmount] = useState("0");
+  const [fundingAmount, setFundingAmount] = useState("");
   const [fundingCurrency, setFundingCurrency] = useState(currencies[0]);
   const [imageUri, setImageUri] = useState("");
   const [coverImageUri, setCoverImageUri] = useState("");
@@ -38,7 +38,7 @@ export default function AddCompany() {
   const [website, setWebsite] = useState("");
   const [linkedinHandle, setLinkedinHandle] = useState("");
   const [twitterHandle, setTwitterHandle] = useState("");
-  const [facebookHandle, setFacebookHandle] = useState("");
+  const [youtubeHandle, setYoutubeHandle] = useState("");
   const [instagramHandle, setInstagramHandle] = useState("");
 
   const gContext = useContext(GlobalContext);
@@ -65,6 +65,19 @@ export default function AddCompany() {
     // free memory when ever this component is unmounted
     return () => URL.revokeObjectURL(objectUrl);
   }, [selectedFile]);
+
+  useEffect(() => {
+    if (!selectedCover) {
+      setCoverPreview(undefined);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(selectedCover);
+    setCoverPreview(objectUrl);
+
+    // free memory when ever this component is unmounted
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedCover]);
 
   // useEffect(() => {
   //   if (!setUpdatedCover) {
@@ -102,6 +115,13 @@ export default function AddCompany() {
       e.preventDefault();
       const file = e.target.files[0];
 
+      // if file size greater than 512kb
+
+      if (file.size > 512000) {
+        toast.error("File size should be less than 512kb");
+        return;
+      }
+
       // const formData = new FormData();
 
       // formData.append("file", file);
@@ -118,7 +138,19 @@ export default function AddCompany() {
   const handleCoverUpload = (e) => {
     try {
       e.preventDefault();
+      console.log(e, "e");
       const file = e.target.files[0];
+      console.log(file.size, "file");
+
+      // convert file.size to mb
+      const fileSize = file.size / 1000000;
+      console.log(fileSize, "fileSize");
+
+      // if file size greater than 1mb
+      if (file.size > 1000000) {
+        toast.error("File size should be less than 1mb");
+        return;
+      }
 
       // const formData = new FormData();
 
@@ -131,7 +163,7 @@ export default function AddCompany() {
 
       console.log(file, "cover imagefile");
       setUpdatedCover(file);
-      onSelectFile(e);
+      onSelectCover(e);
       return;
     } catch (error) {
       console.log(error, "image upload error");
@@ -201,11 +233,11 @@ export default function AddCompany() {
         company_stage: companyStage, //32
         funding_amount: fundingAmount, //8
         funding_currency:
-          fundingCurrency && fundingCurrency.label.length > 0
-            ? fundingCurrency.label
+          fundingCurrency && fundingCurrency.value.length > 0
+            ? fundingCurrency.value
             : "", //8
         image_uri: imageUri, //128
-        cover_image_uri: coverImageUri, //128
+        cover_image_uri: updatedCover, //128
         founded_in: foundedIn, //8
         employee_size:
           employeeSize && employeeSize.value.length > 0
@@ -216,7 +248,7 @@ export default function AddCompany() {
         website: website, //128
         linkedin: linkedinHandle, //128
         twitter: twitterHandle, //128
-        facebook: facebookHandle, //128
+        youtube: youtubeHandle, //128
         instagram: instagramHandle, //128
       };
 
@@ -324,10 +356,16 @@ export default function AddCompany() {
                           <div
                             id="userActions"
                             className="square-144 m-auto px-6 mb-7"
+                            style={{
+                              cursor: "crosshair",
+                            }}
                           >
                             <label
                               htmlFor="fileUpload"
                               className="mb-0 font-size-4 text-smoke"
+                              style={{
+                                cursor: "crosshair",
+                              }}
                             >
                               {updatedLogo
                                 ? updatedLogo.name
@@ -341,19 +379,25 @@ export default function AddCompany() {
                               accept="image/*"
                             />
                           </div>
-                          <p>Upload logo</p>
+                          <p className="pt-2 text-black">Upload Logo</p>
                         </div>
                         <div
                           className="upload-
-                        file mb-16 text-center ml-4"
+                        file mb-16 text-center ml-12"
                         >
                           <div
                             id="userActions"
                             className="square-144 m-auto px-6 mb-7"
+                            style={{
+                              cursor: "crosshair",
+                            }}
                           >
                             <label
                               htmlFor="coverUpload"
                               className="mb-0 font-size-4 text-smoke"
+                              style={{
+                                cursor: "crosshair",
+                              }}
                             >
                               {updatedCover
                                 ? updatedCover.name
@@ -367,32 +411,7 @@ export default function AddCompany() {
                               accept="image/*"
                             />
                           </div>
-                          <p>Upload cover</p>
-                        </div>
-                        <div
-                          className="upload-
-                        file mb-16 text-center ml-4"
-                        >
-                          <div
-                            id="userActions"
-                            className="square-144 m-auto px-6 mb-7"
-                          >
-                            <label
-                              htmlFor="coverUpload"
-                              className="mb-0 font-size-4 text-smoke"
-                            >
-                              {updatedCover
-                                ? updatedCover.name
-                                : "Browse or Drag and Drop your cover image here"}
-                            </label>
-                            <input
-                              type="file"
-                              id="coverUpload"
-                              className="sr-only"
-                              onChange={(e) => handleCoverUpload(e)}
-                              accept="image/*"
-                            />
-                          </div>
+                          <p className="pt-2 text-black">Upload Cover</p>
                         </div>
                         {preview && (
                           <div className="ml-10">
@@ -444,7 +463,7 @@ export default function AddCompany() {
                                   placeholder="eg. Apple"
                                   value={name}
                                   onChange={(e) => setName(e.target.value)}
-                                  maxLength={32}
+                                  maxLength={64}
                                 />
                               </div>
                             </div>
@@ -478,8 +497,8 @@ export default function AddCompany() {
 
                                 <Select
                                   options={defaultCompanyTypeOptions}
-                                  className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
-                                  border={false}
+                                  className="basic-multi-select"
+                                  border={true}
                                   value={companyType}
                                   onChange={setCompanyType}
                                 />
@@ -517,8 +536,8 @@ export default function AddCompany() {
                                 </label>
                                 <Select
                                   options={defaultEmployees}
-                                  className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
-                                  border={false}
+                                  className="basic-multi-select"
+                                  border={true}
                                   value={employeeSize}
                                   onChange={setEmployeeSize}
                                 />
@@ -545,6 +564,45 @@ export default function AddCompany() {
                               </div>
                             </div>
                             <div className="col-lg-6">
+                              <div className="form-group position-relative">
+                                <label
+                                  htmlFor="address"
+                                  className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                >
+                                  Funding Currency
+                                </label>
+                                <Select
+                                  options={currencies}
+                                  className="basic-multi-select"
+                                  border={true}
+                                  value={fundingCurrency}
+                                  onChange={(e) => setFundingCurrency(e.value)}
+                                />
+                                <span className="h-100 w-px-50 pos-abs-tl d-flex align-items-center justify-content-center font-size-6"></span>
+                              </div>
+                            </div>
+                            <div className="col-lg-6">
+                              <div className="form-group">
+                                <label
+                                  htmlFor="fundingAmount"
+                                  className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                >
+                                  Funding Amount
+                                </label>
+                                <input
+                                  type="text"
+                                  className="form-control h-px-48"
+                                  id="fundingAmount"
+                                  placeholder="Funding Amount"
+                                  value={fundingAmount}
+                                  onChange={(e) =>
+                                    setFundingAmount(e.target.value)
+                                  }
+                                  maxLength={32}
+                                />
+                              </div>
+                            </div>
+                            <div className="col-lg-6">
                               <div className="form-group">
                                 <label
                                   htmlFor="linkedin"
@@ -561,7 +619,7 @@ export default function AddCompany() {
                                   onChange={(e) =>
                                     setLinkedinHandle(e.target.value)
                                   }
-                                  maxLength={32}
+                                  maxLength={64}
                                 />
                               </div>
                             </div>
@@ -582,35 +640,35 @@ export default function AddCompany() {
                                   onChange={(e) =>
                                     setTwitterHandle(e.target.value)
                                   }
-                                  maxLength={32}
+                                  maxLength={64}
                                 />
                               </div>
                             </div>
                             <div className="col-lg-6">
                               <div className="form-group">
                                 <label
-                                  htmlFor="twitter"
+                                  htmlFor="youtube"
                                   className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
                                 >
-                                  Facebook handle
+                                  Youtube handle
                                 </label>
                                 <input
                                   type="text"
                                   className="form-control h-px-48"
-                                  id="twitter"
-                                  placeholder="Facebook handle"
-                                  value={facebookHandle}
+                                  id="youtube"
+                                  placeholder="Youtube handle"
+                                  value={youtubeHandle}
                                   onChange={(e) =>
-                                    setFacebookHandle(e.target.value)
+                                    setYoutubeHandle(e.target.value)
                                   }
-                                  maxLength={32}
+                                  maxLength={64}
                                 />
                               </div>
                             </div>
                             <div className="col-lg-6">
                               <div className="form-group">
                                 <label
-                                  htmlFor="twitter"
+                                  htmlFor="instagram"
                                   className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
                                 >
                                   Instagram handle
@@ -618,13 +676,13 @@ export default function AddCompany() {
                                 <input
                                   type="text"
                                   className="form-control h-px-48"
-                                  id="twitter"
+                                  id="instagram"
                                   placeholder="Instagram handle"
                                   value={instagramHandle}
                                   onChange={(e) =>
                                     setInstagramHandle(e.target.value)
                                   }
-                                  maxLength={32}
+                                  maxLength={64}
                                 />
                               </div>
                             </div>
@@ -638,6 +696,17 @@ export default function AddCompany() {
                                 >
                                   About Comapny
                                 </label>
+                                <div
+                                  style={{
+                                    position: "absolute",
+                                    right: "20px",
+                                    top: "0",
+                                    color: "#000",
+                                  }}
+                                >
+                                  <span>{description?.length}</span>/
+                                  <span>356</span>{" "}
+                                </div>
                                 <textarea
                                   name="textarea"
                                   id="aboutTextarea"
@@ -649,7 +718,7 @@ export default function AddCompany() {
                                   onChange={(e) =>
                                     setDescription(e.target.value)
                                   }
-                                  maxLength={512}
+                                  maxLength={356}
                                 ></textarea>
                               </div>
                             </div>
@@ -668,7 +737,7 @@ export default function AddCompany() {
                                   placeholder="https://www.example.com"
                                   value={website}
                                   onChange={(e) => setWebsite(e.target.value)}
-                                  maxLength={32}
+                                  maxLength={64}
                                 />
                               </div>
                               <input

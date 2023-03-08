@@ -65,6 +65,8 @@ const GlobalProvider = ({ children }) => {
     theme: "dark",
     style: "style1", //style1, style2
   });
+
+  const [profileLoading, setProfileLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -117,6 +119,9 @@ const GlobalProvider = ({ children }) => {
     useState(0);
   const [currentProjectNumber, setCurrentProjectNumber] = useState(0);
   const [currentEducationNumber, setCurrentEducationNumber] = useState(0);
+
+  const [userStateAccount, setUserStateAccount] = useState(null);
+  const [isUserApplicant, setIsUserApplicant] = useState(true);
 
   const router = useRouter();
 
@@ -389,12 +394,19 @@ const GlobalProvider = ({ children }) => {
       );
       console.log(response, "addCompanyProfile response");
       toast.success("😃 Company profile created successfully");
-      setLoading(false);
+      await fetchAndSetAllListedCompaniesByUser(
+        connection,
+        owner
+      );
+      // setLoading(false);
       // getUserProfileByUserName(user.username);
     } catch (error) {
       toast.error("⚠️ Error creating company profile");
       setLoading(false);
-      throw Error(error.message);
+      return {
+        status: false,
+        message: error.message,
+      }
     }
   };
 
@@ -509,17 +521,25 @@ const GlobalProvider = ({ children }) => {
         connection,
         signTransaction
       );
-      setJobPost(response);
 
-      console.log(response, "addJobPost_response");
-      await fetchAndSetCompanyPostedJobs(
-        selectedCompanyPubkey,
-        connection,
-        false
-      );
-      setLoading(false);
-      toast.success("😃 Job post created successfully");
-      return response;
+      if (response && response !== "undefined") {
+        setJobPost(response);
+
+        console.log(response, "addJobPost_response");
+        await fetchAndSetCompanyPostedJobs(
+          selectedCompanyPubkey,
+          connection,
+          false
+        );
+        setLoading(false);
+        toast.success("😃 Job post created successfully");
+
+        return response;
+      } else {
+        setLoading(false);
+        toast.error("⚠️ Error creating job post");
+        return;
+      }
     } catch (error) {
       toast.error("⚠️ Error creating job post");
       setLoading(false);
@@ -627,7 +647,7 @@ const GlobalProvider = ({ children }) => {
     updateWorkflowInfo,
     jobInfoAccount,
     companyInfoAccount,
-    applicantInfoAccount = null
+    applicantInfoAccount = null //it's not applicant info account, it's the user account
   ) => {
     try {
       // const response = await axios.post(
@@ -643,7 +663,7 @@ const GlobalProvider = ({ children }) => {
         updateWorkflowInfo,
         jobInfoAccount,
         companyInfoAccount,
-        applicantInfoAccount,
+        applicantInfoAccount
       );
 
       console.log(response, "update response");
@@ -670,7 +690,6 @@ const GlobalProvider = ({ children }) => {
     } catch (error) {
       toast.error("⚠️ Error while fetching user interacted workflows");
       setLoading(false);
-      throw Error(error.message);
     }
   };
 
@@ -1151,9 +1170,6 @@ const GlobalProvider = ({ children }) => {
     }
   };
 
-  const [userStateAccount, setUserStateAccount] = useState(null);
-  const [isUserApplicant, setIsUserApplicant] = useState(true);
-
   const setUserFromChain = async (payload, connection) => {
     try {
       console.log(payload, "payload in setUserFromChain");
@@ -1182,6 +1198,7 @@ const GlobalProvider = ({ children }) => {
       console.log("In fetchAndSetAllListedCompanies context function");
       setLoading(true);
       const response = await findAllCompanyInfosOfUser(connection);
+      console.log(response, "response in fetchAndSetAllListedCompanies");
       setAllListedCompanies(response.data);
       setLoading(false);
       // toast.success("😃 All listed companies fetched successfully");
@@ -1203,15 +1220,9 @@ const GlobalProvider = ({ children }) => {
       //   response = await fetchAllJobs(connection, company_info_account);
       // } else {
       // }
-
-      console.log("In fetchAndSetAllJobListings context function");
-
       setLoading(true);
 
       const response = await fetchAllJobs(connection);
-
-      console.log(response, "response in fetchAndSetAllJobListings");
-
       if (response) {
         const jobsInfo = response;
         // console.log(jobsInfo, "jobsInfo in fetchAndSetAllJobListings");
@@ -1231,8 +1242,6 @@ const GlobalProvider = ({ children }) => {
         // // const jobWithPubKey = {
 
         // // }
-
-        console.log(jobsInfo, "response in fetchAndSetAllJobListings");
         setAllListedJobs(jobsInfo);
         setLoading(false);
       }
@@ -1280,7 +1289,7 @@ const GlobalProvider = ({ children }) => {
         // response = await findAllWorkflowOfJobPost(connection, null, null, null);
         return;
       }
-      const allWorkflows= { ...allWorkflows_initial };
+      const allWorkflows = { ...allWorkflows_initial };
       const response = await findAllWorkflowOfJobPost(
         connection,
         null,
@@ -1584,6 +1593,8 @@ const GlobalProvider = ({ children }) => {
         toggleRecruiterProfileModal,
         setRecruiterUser,
         updateJobPostLongDescription,
+        profileLoading,
+        setProfileLoading,
       }}
     >
       {children}

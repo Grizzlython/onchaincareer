@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import Link from "next/link";
 import CountUp from "react-countup";
 import LazyLoad from "react-lazyload";
+import SEO from "@bradgarropy/next-seo";
 import PageWrapper from "../components/PageWrapper";
 import GlobalContext from "../context/GlobalContext";
 import Loader from "../components/Loader";
@@ -9,6 +10,8 @@ import Loader from "../components/Loader";
 import { useEffect } from "react";
 import { Chart as ChartJS, registerables } from "chart.js";
 import { Bar } from "react-chartjs-2";
+import { publicKey } from "@project-serum/borsh";
+import { useRouter } from "next/router";
 ChartJS.register(...registerables);
 
 export default function DashboardMain() {
@@ -46,6 +49,14 @@ export default function DashboardMain() {
   //     );
   //   })();
   // }, [companySelectedByUser]);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!publicKey) {
+      router.push("/");
+      return;
+    }
+  }, [publicKey]);
 
   useEffect(() => {
     if (
@@ -59,9 +70,12 @@ export default function DashboardMain() {
   useEffect(() => {
     if (allAppliedApplicants) {
       const barData = {
-        labels: ["POSTED JOBS", ...Object.keys(allAppliedApplicants).map((key) =>
-          key.toUpperCase().split("_").join(" ")
-        )],
+        labels: [
+          "POSTED JOBS",
+          ...Object.keys(allAppliedApplicants).map((key) =>
+            key.toUpperCase().split("_").join(" ")
+          ),
+        ],
         datasets: [
           {
             label: "Jobs by Statuses",
@@ -82,7 +96,8 @@ export default function DashboardMain() {
             borderWidth: 1,
             hoverBackgroundColor: "#0B5345",
             hoverBorderColor: "#0069b4",
-            data: [(companyPostedJobs && companyPostedJobs.length) || 0,
+            data: [
+              (companyPostedJobs && companyPostedJobs.length) || 0,
               ...Object.keys(allAppliedApplicants).map(
                 (key) => allAppliedApplicants[key].length
               ),
@@ -96,6 +111,25 @@ export default function DashboardMain() {
 
   return (
     <>
+      <SEO
+        description="Search for your dream job on OnChainCareer's secure and decentralized job marketplace. Our cutting-edge blockchain technology ensures reliable and transparent job solutions for job seekers, employers, and stakeholders. Find your next career opportunity today!"
+        keywords={[
+          "OnChainCareer",
+          "blockchain",
+          "decentralized",
+          "job marketplace",
+          "job platform",
+          "job search",
+          "job listings",
+          "job opportunities",
+          "job seekers",
+          "employers",
+          "secure",
+          "reliable",
+          "transparent",
+          "job solutions",
+        ]}
+      />
       <PageWrapper
         headerConfig={{
           button: "profile",

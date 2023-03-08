@@ -49,3 +49,11 @@ export const categoryOptions = [
   { value: "Project Management", label: "Project Management" },
   { value: "Human Resource", label: "Human Resource" },
 ];
+
+export const defaultEmployees = [
+  { value: "Any", label: "Any Size" },
+  { value: "10-50", label: "10-50" },
+  { value: "50-100", label: "50-100" },
+  { value: "100-500", label: "100-500" },
+  { value: "500+", label: "500+" },
+];

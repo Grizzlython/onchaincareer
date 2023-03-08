@@ -28,8 +28,10 @@ export default function FullProfile() {
 
   const applicantWorkExperiences = gContext.workExperience;
   const applicantProjects = gContext.projects;
-  const applicantEducation = gContext.education;
-  const { loading } = gContext;
+  const applicantEducation = gContext.educations;
+  const { loading, profileLoading } = gContext;
+
+  console.log(applicantEducation, "applicantEducation");
 
   useEffect(() => {
     if (!applicant_info_state_account) return;
@@ -50,6 +52,7 @@ export default function FullProfile() {
         );
       })();
     }
+    gContext.setProfileLoading(true);
     if (!gContext.workExperienceModalVisible) {
       (async () => {
         await gContext.fetchAndSetWorkExperience(
@@ -74,6 +77,7 @@ export default function FullProfile() {
         );
       })();
     }
+    gContext.setProfileLoading(false);
   }, [
     gContext.workExperienceModalVisible,
     gContext.projectsModalVisible,
@@ -125,7 +129,7 @@ export default function FullProfile() {
     <>
       <PageWrapper headerConfig={{ button: "profile" }}>
         <div className="bg-default-2 pt-22 pt-lg-25 pb-13 pb-xxl-32">
-          {loading ? (
+          {profileLoading ? (
             <Loader />
           ) : (
             <div className="container">
@@ -286,7 +290,7 @@ export default function FullProfile() {
                             {!applicantWorkExperiences ||
                             applicantWorkExperiences?.length === 0 ? (
                               <>
-                                <p>No workexperience found</p>
+                                <p>No Work-Experience added</p>
                               </>
                             ) : (
                               applicantWorkExperiences?.map(
@@ -357,14 +361,15 @@ export default function FullProfile() {
                                 )
                               )
                             )}
+
                             <a
-                              className="btn btn-green text-uppercase w-180 h-px-48 rounded-5 mr-7 mb-7"
+                              className="btn btn-outline-green text-uppercase w-220 h-px-48 rounded-5 mr-7 mb-7"
                               onClick={() => {
                                 setWorkflowSequenceNumberAndToggleModal(0);
                               }}
                             >
                               <i className="fa fa-plus mr-2"></i>
-                              Add Experience
+                              Add work experience
                             </a>
                           </div>
                         </Tab.Pane>
@@ -372,7 +377,7 @@ export default function FullProfile() {
                           <div className="border-top p-5 pl-xs-12 pt-7 pb-5">
                             {applicantProjects?.length === 0 ? (
                               <>
-                                <p>No projects found</p>
+                                <p>No Projects Added</p>
                                 {/* <Button
                                 onClick={() => {
                                   gContext.toggleProjectsModal();
@@ -455,7 +460,7 @@ export default function FullProfile() {
                               }}
                             >
                               <i className="fa fa-plus mr-2"></i>
-                              Add
+                              Add projects
                             </a>
                           </div>
                         </Tab.Pane>
@@ -463,7 +468,7 @@ export default function FullProfile() {
                           <div className="border-top p-5 pl-xs-12 pt-7 pb-5">
                             {applicantEducation?.length === 0 ? (
                               <>
-                                <p>No Education found</p>
+                                <p>No Education Added</p>
                                 {/* <Button
                                 onClick={() => {
                                   gContext.toggleProjectsModal();
@@ -568,7 +573,7 @@ export default function FullProfile() {
                               }}
                             >
                               <i className="fa fa-plus mr-2"></i>
-                              Add
+                              Add education
                             </a>
                           </div>
                         </Tab.Pane>

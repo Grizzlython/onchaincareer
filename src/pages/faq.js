@@ -12,29 +12,18 @@ export default function Faq() {
           <div className="container">
             <div className="row">
               <div
-                className="col-xl-6 col-md-7 pr-xl-15"
-                data-aos="fade-right"
+                className="col-xl-6 col-md-11"
+                data-aos="fade-left"
                 data-aos-duration="1000"
+                style={{
+                  marginLeft: "25%",
+                }}
               >
                 <div className="">
                   <h3 className="font-size-9 font-weight-bold mb-7 mb-lg-13">
                     Frequently Asked Questions
                   </h3>
-                  <p className="font-size-4 mb-2">
-                    Not seeing your question here?
-                  </p>
-                  <Link href="/#">
-                    <a className="font-size-3 font-weight-bold text-green text-uppercase">
-                      Chat with us
-                    </a>
-                  </Link>
                 </div>
-              </div>
-              <div
-                className="col-xl-6 col-md-11"
-                data-aos="fade-left"
-                data-aos-duration="1000"
-              >
                 <div className="faq-content pt-lg-4 pt-6">
                   <div
                     className="accordion rounded-10 border-green border-top-5 pl-1"
@@ -48,19 +37,13 @@ export default function Faq() {
                           onClick={() => setOpenItem(1)}
                           aria-expanded={openItem === 1}
                         >
-                          How does the Jobium.com work?
+                          How does the onchaincareer.io work?
                         </button>
                       </div>
                       <Collapse in={openItem === 1}>
                         <div className="pr-7">
                           <div className="mt-n3 font-size-4 text-gray font-weight-normal pb-7 pr-7 pt-6">
-                            Yes. You can cancel your subscription anytime. Your
-                            subscription will continue to be active until the
-                            end of your current term (month or year) but it will
-                            not auto-renew. Unless you delete your account
-                            manually, your account and all data will be deleted
-                            60 days from the day your subscription becomes and
-                            inactive.
+                          It is a decentralized job portal that uses blockchain technology to securely store and manage job postings, applications, and payment transactions, enabling users to interact directly without intermediaries.
                           </div>
                         </div>
                       </Collapse>
@@ -73,19 +56,18 @@ export default function Faq() {
                           onClick={() => setOpenItem(2)}
                           aria-expanded={openItem === 2}
                         >
-                          Do you offer non-profit and educational discounts?
+                          What are the benefits of using a decentralized job portal?
                         </button>
                       </div>
                       <Collapse in={openItem === 2}>
                         <div className="pr-7">
                           <div className="mt-n3 font-size-4 text-gray font-weight-normal pb-7 pr-7 pt-6">
-                            Yes. You can cancel your subscription anytime. Your
-                            subscription will continue to be active until the
-                            end of your current term (month or year) but it will
-                            not auto-renew. Unless you delete your account
-                            manually, your account and all data will be deleted
-                            60 days from the day your subscription becomes
-                            inactive.
+                            <ul>
+                              <li>Decentralized control and privacy protection</li>
+                              <li>Lower fees and reduced risk of fraud</li>
+                              <li>Direct interaction between job seekers and employers</li>
+                              <li>Immutable and transparent record of transactions</li>
+                            </ul>
                           </div>
                         </div>
                       </Collapse>
@@ -98,19 +80,17 @@ export default function Faq() {
                           onClick={() => setOpenItem(3)}
                           aria-expanded={openItem === 3}
                         >
-                          Can I cancel my subscription anytime?
+                          Boons of using a decentralized job portal?
                         </button>
                       </div>
                       <Collapse in={openItem === 3}>
                         <div className="pr-7">
                           <div className="mt-n3 font-size-4 text-gray font-weight-normal pb-7 pr-7 pt-6">
-                            Yes. You can cancel your subscription anytime. Your
-                            subscription will continue to be active until the
-                            end of your current term (month or year) but it will
-                            not auto-renew. Unless you delete your account
-                            manually, your account and all data will be deleted
-                            60 days from the day your subscription becomes
-                            inactive.
+                            <ul>
+                              <li>Filtered user base compared to centralized job portals</li>
+                              <li>Technical requirements and knowledge makes it ideal for knowledge savy candidates</li>
+                              <li>Full autonomy and control on the data </li>
+                            </ul>
                           </div>
                         </div>
                       </Collapse>
@@ -123,19 +103,13 @@ export default function Faq() {
                           onClick={() => setOpenItem(4)}
                           aria-expanded={openItem === 4}
                         >
-                          How does the Jobium.com work?
+                          Is the platform secure for sensitive information?
                         </button>
                       </div>
                       <Collapse in={openItem === 4}>
                         <div className="pr-7">
                           <div className="mt-n3 font-size-4 text-gray font-weight-normal pb-7 pr-7 pt-6">
-                            Yes. You can cancel your subscription anytime. Your
-                            subscription will continue to be active until the
-                            end of your current term (month or year) but it will
-                            not auto-renew. Unless you delete your account
-                            manually, your account and all data will be deleted
-                            60 days from the day your subscription becomes
-                            inactive.
+                          Yes, a decentralized job portal may have its own cryptocurrency or use an existing one to enable secure and transparent payment transactions between job seekers and employers.
                           </div>
                         </div>
                       </Collapse>
@@ -148,119 +122,89 @@ export default function Faq() {
                           onClick={() => setOpenItem(5)}
                           aria-expanded={openItem === 5}
                         >
-                          How does the Jobium.com work?
+                          Is it possible to search for remote jobs on a decentralized job portal?
                         </button>
                       </div>
                       <Collapse in={openItem === 5}>
                         <div className="pr-7">
                           <div className="mt-n3 font-size-4 text-gray font-weight-normal pb-7 pr-7 pt-6">
-                            Yes. You can cancel your subscription anytime. Your
-                            subscription will continue to be active until the
-                            end of your current term (month or year) but it will
-                            not auto-renew. Unless you delete your account
-                            manually, your account and all data will be deleted
-                            60 days from the day your subscription becomes
-                            inactive.
+                          Yes, a decentralized job portal may offer the ability to search for and apply to remote jobs, as well as on-site positions.
                           </div>
                         </div>
                       </Collapse>
                     </div>
                     <div className="border-bottom overflow-hidden">
-                      <div className="mb-0 border-bottom-0" id="heading2-6">
+                      <div className="mb-0 border-bottom-0" id="heading2-5">
                         <button
                           className="btn-reset font-size-5 font-weight-semibold text-left px-0 pb-6 pt-7 accordion-trigger arrow-icon w-100 border-left-0 border-right-0 focus-reset mt-n2"
                           type="button"
                           onClick={() => setOpenItem(6)}
                           aria-expanded={openItem === 6}
                         >
-                          Do you offer non-profit and educational discounts?
+                          Can I apply for jobs from different countries on a decentralized job portal?
                         </button>
                       </div>
                       <Collapse in={openItem === 6}>
                         <div className="pr-7">
                           <div className="mt-n3 font-size-4 text-gray font-weight-normal pb-7 pr-7 pt-6">
-                            Yes. You can cancel your subscription anytime. Your
-                            subscription will continue to be active until the
-                            end of your current term (month or year) but it will
-                            not auto-renew. Unless you delete your account
-                            manually, your account and all data will be deleted
-                            60 days from the day your subscription becomes
-                            inactive.
+                          Yes, a decentralized job portal may have job listings from various countries and regions, enabling users to apply for and secure employment globally.
                           </div>
                         </div>
                       </Collapse>
                     </div>
                     <div className="border-bottom overflow-hidden">
-                      <div className="mb-0 border-bottom-0" id="heading2-7">
+                      <div className="mb-0 border-bottom-0" id="heading2-5">
                         <button
                           className="btn-reset font-size-5 font-weight-semibold text-left px-0 pb-6 pt-7 accordion-trigger arrow-icon w-100 border-left-0 border-right-0 focus-reset mt-n2"
                           type="button"
                           onClick={() => setOpenItem(7)}
                           aria-expanded={openItem === 7}
                         >
-                          Can I cancel my subscription anytime?
+                          Are the job postings on a decentralized job portal updated in real-time?
                         </button>
                       </div>
                       <Collapse in={openItem === 7}>
                         <div className="pr-7">
                           <div className="mt-n3 font-size-4 text-gray font-weight-normal pb-7 pr-7 pt-6">
-                            Yes. You can cancel your subscription anytime. Your
-                            subscription will continue to be active until the
-                            end of your current term (month or year) but it will
-                            not auto-renew. Unless you delete your account
-                            manually, your account and all data will be deleted
-                            60 days from the day your subscription becomes
-                            inactive.
+                          It depends on the specific decentralized job portal, but some platforms may offer real-time updates to job postings and application status.
                           </div>
                         </div>
                       </Collapse>
                     </div>
                     <div className="border-bottom overflow-hidden">
-                      <div className="mb-0 border-bottom-0" id="heading2-8">
+                      <div className="mb-0 border-bottom-0" id="heading2-5">
                         <button
                           className="btn-reset font-size-5 font-weight-semibold text-left px-0 pb-6 pt-7 accordion-trigger arrow-icon w-100 border-left-0 border-right-0 focus-reset mt-n2"
                           type="button"
                           onClick={() => setOpenItem(8)}
                           aria-expanded={openItem === 8}
                         >
-                          How does the Jobium.com work?
+                          How does a decentralized job portal compare to traditional job portals in terms of job listings and opportunities?
                         </button>
                       </div>
                       <Collapse in={openItem === 8}>
                         <div className="pr-7">
                           <div className="mt-n3 font-size-4 text-gray font-weight-normal pb-7 pr-7 pt-6">
-                            Yes. You can cancel your subscription anytime. Your
-                            subscription will continue to be active until the
-                            end of your current term (month or year) but it will
-                            not auto-renew. Unless you delete your account
-                            manually, your account and all data will be deleted
-                            60 days from the day your subscription becomes
-                            inactive.
+                          A decentralized job portal may have a smaller user base and job listings compared to traditional, centralized job portals, but it also offers unique opportunities and benefits such as increased security and privacy, lower fees, and direct interaction between job seekers and employers.
                           </div>
                         </div>
                       </Collapse>
                     </div>
                     <div className="border-bottom overflow-hidden">
-                      <div className="mb-0 border-bottom-0" id="heading2-9">
+                      <div className="mb-0 border-bottom-0" id="heading2-5">
                         <button
                           className="btn-reset font-size-5 font-weight-semibold text-left px-0 pb-6 pt-7 accordion-trigger arrow-icon w-100 border-left-0 border-right-0 focus-reset mt-n2"
                           type="button"
                           onClick={() => setOpenItem(9)}
                           aria-expanded={openItem === 9}
                         >
-                          Do you offer non-profit and educational discounts?
+                          Can I connect with other job seekers on the platform?
                         </button>
                       </div>
                       <Collapse in={openItem === 9}>
-                        <div className="cpr-7">
+                        <div className="pr-7">
                           <div className="mt-n3 font-size-4 text-gray font-weight-normal pb-7 pr-7 pt-6">
-                            Yes. You can cancel your subscription anytime. Your
-                            subscription will continue to be active until the
-                            end of your current term (month or year) but it will
-                            not auto-renew. Unless you delete your account
-                            manually, your account and all data will be deleted
-                            60 days from the day your subscription becomes
-                            inactive.
+                          It depends on the specific decentralized job portal, but some platforms may offer community features, such as forums or messaging, to connect and network with other job seekers.
                           </div>
                         </div>
                       </Collapse>

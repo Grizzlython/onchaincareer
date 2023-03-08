@@ -157,7 +157,7 @@ const ProfileSidebar = (props) => {
               {/* <Link href="/#"> */}
               <a className="">
                 <img
-                  className="circle-54"
+                  className="profile-pic"
                   src={
                     candidateProfile &&
                     candidateProfile.image_uri &&
@@ -168,8 +168,9 @@ const ProfileSidebar = (props) => {
                   alt=""
                 />
               </a>
+
               {/* </Link> */}
-              <h4 className="mb-0">
+              <h4 className="mb-0 mt-2">
                 <a className="text-black-2 font-size-6 font-weight-semibold">
                   {candidateProfile && candidateProfile.name}
                 </a>

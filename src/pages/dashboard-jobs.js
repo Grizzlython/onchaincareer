@@ -109,7 +109,7 @@ export default function DashboardJobs() {
                 <div className="table-responsive ">
                   {loading ? (
                     <Loader />
-                  ) : (
+                  ) : ( filteredJobs && filteredJobs.length > 0 ? (
                     <table className="table table-striped">
                       <thead>
                         <tr>
@@ -160,7 +160,7 @@ export default function DashboardJobs() {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredJobs && filteredJobs.length > 0 ? (
+                        {filteredJobs && (
                           filteredJobs?.map((job, index) => (
                             <tr className="border border-color-2" key={index}>
                               <td className="table-y-middle py-7 min-width-px-235">
@@ -240,20 +240,28 @@ export default function DashboardJobs() {
                               <td className="table-y-middle py-7 min-width-px-10"></td>
                             </tr>
                           ))
-                        ) : (
-                          <div
-                            style={{
-                              marginTop: "50px",
-                            }}
-                          >
-                            <p>
-                              No <strong>posted</strong> jobs
-                            </p>
-                          </div>
                         )}
                       </tbody>
-                    </table>
-                  )}
+                    </table>): (
+                          <div
+                          style={{
+                            textAlign: "center",
+                            padding: "50px 20px",
+                            fontSize: "20px",
+                            fontWeight: "normal",
+                            width: "100%",
+                            background: "#eee",
+                            display: "flex",
+                            justifyContent: "center",
+                            
+                          }}
+                        >
+                          No Jobs Posted yet
+                        </div>
+                        )
+                  )
+                  
+                  }
                 </div>
               </div>
             </div>

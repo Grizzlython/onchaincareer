@@ -3,7 +3,7 @@ import Link from "next/link";
 import PageWrapper from "../../components/PageWrapper";
 
 import imgF1 from "../../assets/image/l2/png/featured-job-logo-1.png";
-import iconD from "../../assets/image/svg/icon-dolor.svg";
+import copyIcon from "../../assets/image/copy.png";
 import imgF from "../../assets/image/svg/icon-fire-rounded.svg";
 
 import iconB from "../../assets/image/svg/icon-briefcase.svg";
@@ -31,6 +31,18 @@ import { Nav, Tab } from "react-bootstrap";
 import { filter } from "lodash";
 import Loader from "../../components/Loader";
 import { userTypeEnum } from "../../utils/constants";
+import {CopyToClipboard} from 'react-copy-to-clipboard';
+
+import {
+  LinkedinIcon,
+  LinkedinShareButton,
+  TelegramIcon,
+  TelegramShareButton,
+  TwitterIcon,
+  TwitterShareButton,
+  WhatsappIcon,
+  WhatsappShareButton,
+} from "react-share";
 
 export default function JobDetails() {
   const router = useRouter();
@@ -63,6 +75,7 @@ export default function JobDetails() {
     (async () => {
       // await gContext.getUserAppliedJobs(publicKey, connection);
       await getJobDetails(jobPubKey, connection);
+      console.log(user, "user jobid");
       if (user?.user_type === userTypeEnum.APPLICANT && publicKey) {
         const res = await findAllWorkflowOfJobPost(
           connection,
@@ -81,10 +94,11 @@ export default function JobDetails() {
         }
       }
     })();
-  }, [jobId, publicKey]);
+  }, [jobId, user]);
 
   useEffect(() => {
-    if (!jobDetails) return;
+    if (!jobDetails || !user || !userStateAccount) return;
+
 
     (async () => {
       if (
@@ -102,7 +116,7 @@ export default function JobDetails() {
         connection
       );
     })();
-  }, [jobDetails]);
+  }, [jobDetails, user]);
 
   const handleEditJobPost = async (jobpost_info_account) => {
     try {
@@ -123,41 +137,38 @@ export default function JobDetails() {
       return;
     }
 
-    const jobWorkflowInfo = {
-      status: WORKFLOW_STATUSES_enum.APPLIED, //16 => 'saved' or 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
-      // job_applied_at: new BN(new Date().getTime()), //8 => timestamp in unix format
-      // last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
-    };
-
-    console.log(jobWorkflowInfo, "jobWorkflowInfo");
-
-    await addJobApplication(
-      publicKey,
-      connection,
-      signTransaction,
-      jobWorkflowInfo,
+    const workflow = await getWorkflowInfoByUser(
       jobInfoAccount,
-      companyInfoAccount
+      publicKey,
+      connection
     );
-    setApplied(true);
-    // const payload = {
-    //   username: gContext.user?.username,
-    //   candidateId: gContext.candidateProfile[0]?.id,
-    //   jobListingId: jobListingId,
-    //   companyName: companyName,
-    //   status: "PENDING",
-    // };
-    // if (!gContext.user) {
-    //   gContext.toggleSignInModal();
-    //   toast.error("⚠️ Please sign in to apply for a job");
-    // } else {
-    //   if (gContext.user && gContext.user?.isOverviewComplete === true) {
-    //     gContext.addJobApplication(payload);
-    //   } else {
-    //     toast.error("⚠️ Please complete your profile to apply for a job");
-    //     //TODO: navigate to user profile page
-    //   }
-    // }
+    const jobWorkflowInfo = {
+      status: WORKFLOW_STATUSES_enum.APPLIED, //10 => 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
+    };
+    if (!workflow) {
+      await addJobApplication(
+        publicKey,
+        connection,
+        signTransaction,
+        jobWorkflowInfo,
+        jobInfoAccount,
+        companyInfoAccount
+      );
+      setApplied(true);
+    }else{
+      
+      jobWorkflowInfo.is_saved = workflow.is_saved,
+      await updateJobApplication(
+        publicKey,
+        connection,
+        signTransaction,
+        jobWorkflowInfo,
+        jobInfoAccount,
+        companyInfoAccount
+      );
+      setApplied(true);
+    }
+    
   };
 
   const saveThisJob = async (jobInfoAccount, companyInfoAccount) => {
@@ -173,25 +184,40 @@ export default function JobDetails() {
         connection
       );
       if (!workflow) {
-        toast.error("Workflow not found");
-        return;
+        console.log("Workflow not found, creating new workflow with status saved");
+        const jobWorkflowInfo = {
+          is_saved: true, 
+        };
+    
+        console.log(jobWorkflowInfo, "jobWorkflowInfo");
+    
+        await addJobApplication(
+          publicKey,
+          connection,
+          signTransaction,
+          jobWorkflowInfo,
+          jobInfoAccount,
+          companyInfoAccount
+        );
+        setSaved(true);
+      }else{
+        const jobWorkflowInfo = {
+          archived: false, //1 => true or false
+          is_saved: !workflow.is_saved, //1 => true or false
+          status: workflow.status, //16 => 'saved' or 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
+          // last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
+        };
+  
+        await updateJobApplication(
+          publicKey,
+          connection,
+          signTransaction,
+          jobWorkflowInfo,
+          jobInfoAccount,
+          companyInfoAccount
+        );
+        setSaved(jobWorkflowInfo.is_saved);
       }
-      const jobWorkflowInfo = {
-        archived: false, //1 => true or false
-        is_saved: !workflow.is_saved, //1 => true or false
-        status: workflow.status, //16 => 'saved' or 'applied' or 'in_progress' or 'accepted' or 'rejected' or 'withdraw'
-        // last_updated_at: new BN(new Date().getTime()), //8 => timestamp in unix format
-      };
-
-      await updateJobApplication(
-        publicKey,
-        connection,
-        signTransaction,
-        jobWorkflowInfo,
-        jobInfoAccount,
-        companyInfoAccount
-      );
-      setSaved(jobWorkflowInfo.is_saved);
     } catch (err) {
       toast.error(err.message);
     }
@@ -329,6 +355,8 @@ export default function JobDetails() {
                               {"View Company"}
                             </a>
                           </Link>
+                          
+
                           {/* <!-- media date end --> */}
                         </div>
                       </div>
@@ -336,7 +364,9 @@ export default function JobDetails() {
                         <div className="col-12">
                           {/* <!-- card-btn-group start --> */}
                           {canEdit && !isUserApplicant ? (
-                            <div className="card-btn-group">
+                            <div className="card-btn-group" style={{
+                              float: "left"
+                            }}>
                               <a
                                 className="btn btn-green text-uppercase btn-medium rounded-3 w-180 mr-4 mb-5"
                                 onClick={() =>
@@ -347,7 +377,9 @@ export default function JobDetails() {
                               </a>
                             </div>
                           ) : isUserApplicant ? (
-                            <div className="card-btn-group">
+                            <div className="card-btn-group" style={{
+                              float: "left"
+                            }}>
                               <a
                                 className="btn btn-green text-uppercase btn-medium rounded-3 w-180 mr-4 mb-5"
                                 onClick={() =>
@@ -417,7 +449,85 @@ export default function JobDetails() {
                           ) : (
                             <></>
                           )}
-
+      <div style={{
+        float: "right",
+        textAlign: "center"
+      }}>
+                            <p style={{
+                              marginTop: "-10px",
+                              marginBottom: "5px",
+                              fontSize: "16px",
+                            }}>Share on: </p>
+                            <CopyToClipboard text={`https://onchaincareer.io/job/${jobId}`}
+                              onCopy={() => {
+                                toast.success("Link copied to clipboard")
+                              }}
+                              style={{
+                                marginRight: "5px",
+                                cursor: "pointer",
+                                width: "26px",
+                                marginTop: "5px"
+                              }}>
+                                <img src={copyIcon.src} alt="" />
+                            </CopyToClipboard>
+                            <TwitterShareButton
+                              title="Onchaincareer Job post"
+                              via="https://onchaincareer.io"
+                              hashtags={[
+                                "onchaincareer",
+                                "job",
+                                "blockchain",
+                                "crypto",
+                                "solana",
+                                "solana job",
+                                "job post",
+                                "hiring",
+                                "career"
+                              ]}
+                              related={[
+                                "https://onchaincareer.io",
+                                "https://twitter.com/onchaincareer",
+                                "https://www.linkedin.com/company/onchaincareer",
+                                "https://www.facebook.com/onchaincareer",
+                                "https://www.instagram.com/onchaincareer",
+                              ]}
+                              url={`https://onchaincareer.io/job/${jobId}`}
+                              style={{
+                                marginRight: "5px",
+                              }}
+                            >
+                              <TwitterIcon size={32} round />
+                            </TwitterShareButton>
+                            <LinkedinShareButton
+                              title="onchaincareer Job post"
+                              summary="Hi, I found this job on Onchaincareer. Check it out!"
+                              source="https://onchaincareer.io"
+                              url={`https://onchaincareer.io/job/${jobId}`}
+                              style={{
+                                marginRight: "5px",
+                              }}
+                            >
+                              <LinkedinIcon size={32} round />
+                            </LinkedinShareButton>
+                            <TelegramShareButton
+                              title="onchaincareer Job post"
+                              url={`https://onchaincareer.io/job/${jobId}`}
+                              style={{
+                                marginRight: "5px",
+                              }}
+                            >
+                              <TelegramIcon size={32} round />
+                            </TelegramShareButton>
+                            <WhatsappShareButton
+                              title="onchaincareer Job post"
+                              url={`https://onchaincareer.io/job/${jobId}`}
+                              style={{
+                                marginRight: "5px",
+                              }}
+                            >
+                              <WhatsappIcon size={32} round />
+                            </WhatsappShareButton>
+                          </div>
                           {/* <!-- card-btn-group end --> */}
                         </div>
                       </div>
@@ -487,7 +597,11 @@ export default function JobDetails() {
                                     <p className="font-size-5 text-gray mb-0">
                                       {jobDetails?.jobLocationType === "remote"
                                         ? "Remote"
-                                        : `${jobDetails?.city} , ${jobDetails?.country}`}
+                                        : `${
+                                            jobDetails?.city.length > 0
+                                              ? jobDetails?.city + ","
+                                              : ""
+                                          }  ${jobDetails?.country}`}
                                     </p>
                                   </div>
                                 </div>
@@ -556,7 +670,7 @@ export default function JobDetails() {
                                       Required experience
                                     </span>
                                     <h6 className="font-size-5 text-black-2 font-weight-semibold mb-9">
-                                      {Math.round(
+                                      {Math.floor(
                                         Number(
                                           gContext.jobDetails
                                             ?.experience_in_months
@@ -793,7 +907,7 @@ export default function JobDetails() {
                                       </a>
                                     </Link>
                                     <a
-                                      className="btn btn-outline-gray text-black text-uppercase btn-medium rounded-3 ml-3"
+                                      className="btn btn-outline-green text-uppercase btn-medium rounded-3 ml-3"
                                       href={`https://explorer.solana.com/address/${job?.pubkey?.toString()}?cluster=devnet`}
                                       target="_blank"
                                     >

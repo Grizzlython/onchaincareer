@@ -1,8 +1,20 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import GlobalContext from "../context/GlobalContext";
 import Loader from "../components/Loader";
 import Link from "next/link";
+import SEO from "@bradgarropy/next-seo";
+import {
+  categoryOptions,
+  defaultJobTypes,
+  sortTypes,
+} from "../utils/constants";
+import { Select } from "../components/Core";
+import {
+  canJoinInFilters,
+  currentEmploymentStatusFilters,
+} from "../staticData";
+import AllCandidatesTab from "../sections/search/AllCandidatesTab";
 
 const AllCandidates = () => {
   const gContext = useContext(GlobalContext);
@@ -10,7 +22,6 @@ const AllCandidates = () => {
   const { allCandidates, loading } = gContext;
 
   const { connection } = useConnection();
-  console.log(allCandidates, "allCandidates");
   useEffect(() => {
     if (!connection) return;
 
@@ -25,158 +36,193 @@ const AllCandidates = () => {
 
   // },[allCandidates])
 
+  console.log(allCandidates, "allCandidates");
+
+  const [employmentStatus, setEmploymentStatus] = useState("Any");
+  const [joiningBy, setJoiningBy] = useState("Any");
+  const [sortType, setSortType] = useState("Any");
+  const [searchString, setSearchString] = useState("");
+
   return (
     <>
+      <SEO
+        description="Search for your dream job on OnChainCareer's secure and decentralized job marketplace. Our cutting-edge blockchain technology ensures reliable and transparent job solutions for job seekers, employers, and stakeholders. Find your next career opportunity today!"
+        keywords={[
+          "OnChainCareer",
+          "blockchain",
+          "decentralized",
+          "job marketplace",
+          "job platform",
+          "job search",
+          "job listings",
+          "job opportunities",
+          "job seekers",
+          "employers",
+          "secure",
+          "reliable",
+          "transparent",
+          "job solutions",
+        ]}
+      />
       <div className="pt-11 pt-lg-27 pb-7 pb-lg-26 ">
         {loading ? (
           <Loader />
         ) : (
           <div className="container">
-            <div className="row align-items-center pb-14">
-              <div className="">
-                <div className="text-center text-lg-left mb-13 mb-lg-0">
-                  <h2 className="font-size-9 font-weight-bold">
-                    All Candidates
-                  </h2>
+            <div>
+              <h3
+                style={{
+                  textAlign: "center",
+                }}
+              >
+                All Candidates
+              </h3>
+            </div>
+            <div className="row justify-content-center ">
+              {/* <div className="col-lg-4">
+                <p className="font-size-4 mb-0 mr-6 py-2 text-center text-black">
+                  Filter by name and designation:
+                </p>
+                <div className="h-px-48">
+                  <input
+                    type="text"
+                    className="form-control h-px-48"
+                    id="namedash"
+                    placeholder="eg. Frontend Developer"
+                    value={searchString}
+                    onChange={(e) => setSearchString(e.target.value)}
+                  />
+                </div>
+              </div> */}
+              <div className="col-12 col-lg-10 col-xl-12 mt-8 mb-12">
+                <div
+                  className="search-filter from-group d-flex align-items-center flex-wrap"
+                  style={{
+                    justifyContent: "center",
+                  }}
+                >
+                  <div
+                    className="mr-5"
+                    style={{
+                      textAlign: "center",
+                    }}
+                  >
+                    <label
+                      style={{
+                        color: "black",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      Employment status
+                    </label>
+                    <Select
+                      options={currentEmploymentStatusFilters}
+                      className="font-size-4"
+                      // border={false}
+                      css={`
+                        min-width: 175px;
+                        cursor: "pointer";
+                        border-radius: 1px;
+                      `}
+                      value={
+                        currentEmploymentStatusFilters.filter(
+                          (item) => item.value === employmentStatus
+                        )[0]
+                      }
+                      onChange={(e) => setEmploymentStatus(e.value)}
+                    />
+                  </div>
+                  <div
+                    className="mr-5"
+                    style={{
+                      textAlign: "center",
+                    }}
+                  >
+                    <label
+                      style={{
+                        color: "black",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      Joining by
+                    </label>
+                    <Select
+                      options={canJoinInFilters}
+                      className="font-size-4"
+                      // border={false}
+                      css={`
+                        min-width: 175px;
+                      `}
+                      value={
+                        canJoinInFilters.filter(
+                          (item) => item.value === joiningBy
+                        )[0]
+                      }
+                      onChange={(e) => setJoiningBy(e.value)}
+                    />
+                  </div>
+                  <div
+                    className="mr-5"
+                    style={{
+                      textAlign: "center",
+                    }}
+                  >
+                    <label
+                      style={{
+                        color: "black",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      Sort By
+                    </label>
+                    <Select
+                      options={sortTypes}
+                      className="font-size-4"
+                      // border={false}
+                      css={`
+                        min-width: 175px;
+                      `}
+                      value={
+                        sortTypes.filter((item) => item.value === sortType)[0]
+                      }
+                      onChange={(e) => setSortType(e.value)}
+                    />
+                  </div>
+                  <div
+                    className="mr-5"
+                    style={{
+                      textAlign: "center",
+                    }}
+                  >
+                    <label
+                      style={{
+                        color: "black",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      Filter by name and designation:
+                    </label>
+
+                    <input
+                      type="text"
+                      className="form-control h-px-48"
+                      id="namedash"
+                      placeholder="eg. Frontend Developer"
+                      value={searchString}
+                      onChange={(e) => setSearchString(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="row justify-content-center">
-              <table className="table table-striped">
-                <thead>
-                  <tr>
-                    <th
-                      scope="col"
-                      className="pl-0  border-0 font-size-4 font-weight-normal"
-                    >
-                      Name
-                    </th>
-                    <th
-                      scope="col"
-                      className="border-0 font-size-4 font-weight-normal"
-                    >
-                      Designation
-                    </th>
-                    <th
-                      scope="col"
-                      className="border-0 font-size-4 font-weight-normal"
-                    >
-                      Current employment status
-                    </th>
-                    <th
-                      scope="col"
-                      className="border-0 font-size-4 font-weight-normal"
-                    >
-                      Can join in
-                    </th>
-                    <th
-                      scope="col"
-                      className="border-0 font-size-4 font-weight-normal"
-                    >
-                      Skills
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {allCandidates && allCandidates?.length > 0 ? (
-                    allCandidates?.map((applicant, index) => (
-                      <tr
-                        className="border border-color-2"
-                        key={index}
-                        style={{
-                          minHeight: "1000px",
-                        }}
-                      >
-                        <th scope="row" className="pl-6 border-0 py-7 pr-0">
-                          <Link
-                            href={`/candidate-profile/${applicant.owner_pubkey}`}
-                          >
-                            <a
-                              className="media min-width-px-235 align-items-center"
-                              style={{
-                                cursor: "pointer",
-                              }}
-                            >
-                              <div className="circle-36 mr-6">
-                                <img
-                                  src={applicant?.image_uri}
-                                  alt=""
-                                  style={{
-                                    width: "40px",
-                                    height: "40px",
-                                    objectFit: "cover",
-                                    borderRadius: "50%",
-                                  }}
-                                />
-                              </div>
-                              <h4 className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                                {applicant?.name}
-                              </h4>
-                            </a>
-                          </Link>
-                        </th>
-                        <td className="table-y-middle py-7 min-width-px-235 pr-0">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            {applicant?.designation}
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-170 pr-0">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            {applicant?.current_employment_status?.toUpperCase()}
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-5 min-width-px-100 pr-0">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            {applicant?.can_join_in?.toUpperCase()}
-                          </h3>
-                        </td>
-                        <td className="table-y-middle py-7 min-width-px-170 pr-0">
-                          <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                            {applicant?.skills?.join(", ")}
-                          </h3>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    // <tr className="border border-color-2">
-                    //   <td className="table-y-middle py-7 min-width-px-235 pr-0">
-                    //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                    //   </td>
-                    //   <td className="table-y-full py-7 pr-0">
-                    //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                    //       No Applicants yet
-                    //     </h3>
-                    //   </td>
-                    //   <td className="table-y-middle py-7 pr-0">
-                    //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                    //   </td>
-                    //   <td className="table-y-middle py-7 pr-0">
-                    //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                    //   </td>
-                    //   <td className="table-y-middle py-7 pr-0">
-                    //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                    //   </td>
-                    //   <td className="table-y-middle py-7 pr-0">
-                    //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                    //   </td>
-                    // </tr>
-                    <div
-                      style={{
-                        textAlign: "center",
-                        padding: "50px 20px",
-                        fontSize: "20px",
-                        fontWeight: "normal",
-                        width: "225%",
-                        background: "#eee",
-                      }}
-                    >
-                      No applicants found
-                    </div>
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <AllCandidatesTab
+              allCandidates={allCandidates}
+              employmentStatus={employmentStatus}
+              joiningBy={joiningBy}
+              searchString={searchString}
+              sortType={sortType}
+            />
           </div>
         )}
       </div>

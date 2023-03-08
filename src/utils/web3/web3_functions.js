@@ -1781,7 +1781,7 @@ export const add_company_info = async (
   signTransaction
 ) => {
   try {
-    console.log(companyInfo, "companyInfo");
+    console.log(companyInfo, "companyInfo_onchain");
 
     // const companyInfo = {
     //   username: "user name", //32
@@ -1831,7 +1831,8 @@ export const add_company_info = async (
       connection,
       applicant_info_state_account[0]
     );
-    console.log("companyInfosOfUser => ", companyInfosOfUser);
+    console.log(companyInfosOfUser, "companyInfosOfUser => ");
+
     if (companyInfosOfUser.status && companyInfosOfUser.data.length > 0) {
       companyInfo.company_seq_number =
         "CP" + (companyInfosOfUser.data.length + 1);
@@ -2298,7 +2299,7 @@ export const add_jobpost_info = async (
       jobpost_info_account[0],
       connection
     );
-    console.log("jobPostInfoResult => ", jobPostInfoResult);
+    console.log(jobPostInfoResult, "---jobPostInfoResult---");
     return jobPostInfoResult;
   } catch (err) {
     console.log("err => ", err);
@@ -2749,10 +2750,9 @@ export const update_job_workflow_info = async (
   updateWorkflowInfo,
   jobInfoAccount,
   companyInfoAccount,
-  applicantInfoAccount,
+  applicantInfoAccount
 ) => {
   try {
-
     // console.log();
     // const updateWorkflowInfo = {
     //   archived: false, //1 => true or false
@@ -2763,13 +2763,15 @@ export const update_job_workflow_info = async (
     // const company_seq_number = "CP2";
     // const job_number = "JP2";
 
-    const applicant_info_state_account = applicantInfoAccount ? [new PublicKey(applicantInfoAccount)] : await PublicKey.findProgramAddress(
-      [
-        Buffer.from(APPLICANT_STATE_ACCOUNT_PREFIX),
-        new PublicKey(owner).toBuffer(),
-      ],
-      JobsOnChain_User_Info_ID
-    );
+    const applicant_info_state_account = applicantInfoAccount
+      ? [new PublicKey(applicantInfoAccount)]
+      : await PublicKey.findProgramAddress(
+          [
+            Buffer.from(APPLICANT_STATE_ACCOUNT_PREFIX),
+            new PublicKey(owner).toBuffer(),
+          ],
+          JobsOnChain_User_Info_ID
+        );
 
     const applicant_info_state_account_exists = await connection.getAccountInfo(
       applicant_info_state_account[0]
@@ -3781,7 +3783,7 @@ export const fetchAllWorkflowOfUsers = async (owner, connection) => {
       [WORKFLOW_STATUSES[1]]: [],
       [WORKFLOW_STATUSES[2]]: [],
       [WORKFLOW_STATUSES[3]]: [],
-      [WORKFLOW_STATUSES[4]]: [],
+      [WORKFLOW_STATUSES[4]]: []
     };
 
     const applicant_info_state_account = await PublicKey.findProgramAddress(
@@ -3818,10 +3820,8 @@ export const fetchAllWorkflowOfUsers = async (owner, connection) => {
             connection
           );
 
-          console.log(workflowInfo, "==>workflowInfo");
-
           if (workflowInfo.is_saved) {
-            allWorkflows[WORKFLOW_STATUSES_enum.SAVED].push({
+            allWorkflows["saved"].push({
               ...workflowInfo,
               pubkey: workflow.pubkey,
               companyInfo,

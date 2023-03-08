@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import PageWrapper from "../components/PageWrapper";
 import { Select } from "../components/Core";
 
-import SearchTab from "../sections/search/SearchTab";
+import SearchJobs from "../sections/search/SearchJobs";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useEffect } from "react";
@@ -14,6 +14,7 @@ import {
 } from "../utils/constants";
 import GlobalContext from "../context/GlobalContext";
 import { useConnection } from "@solana/wallet-adapter-react";
+import SEO from "@bradgarropy/next-seo";
 
 export default function SearchListTwo() {
   const [category, setCategory] = useState("All");
@@ -45,14 +46,32 @@ export default function SearchListTwo() {
   }, [query]);
 
   useEffect(() => {
-    if (allListedJobs && allListedJobs.length) return;
     (async () => {
       await fetchAndSetAllJobListings(connection);
     })();
-  }, [allListedJobs]);
+  }, []);
 
   return (
     <>
+      <SEO
+        description="Search for your dream job on OnChainCareer's secure and decentralized job marketplace. Our cutting-edge blockchain technology ensures reliable and transparent job solutions for job seekers, employers, and stakeholders. Find your next career opportunity today!"
+        keywords={[
+          "OnChainCareer",
+          "blockchain",
+          "decentralized",
+          "job marketplace",
+          "job platform",
+          "job search",
+          "job listings",
+          "job opportunities",
+          "job seekers",
+          "employers",
+          "secure",
+          "reliable",
+          "transparent",
+          "job solutions",
+        ]}
+      />
       <PageWrapper>
         <div className="bg-black-2 mt-15 mt-lg-22 pt-18 pt-lg-13 pb-13">
           <div className="container">
@@ -217,7 +236,7 @@ export default function SearchListTwo() {
 
         <div className="bg-default-1 pt-9 pb-13 pb-xl-30 pb-13 position-relative overflow-hidden">
           <div className="container">
-            <SearchTab
+            <SearchJobs
               category={category}
               country={country}
               jobTitle={jobTitle}

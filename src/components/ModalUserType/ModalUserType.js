@@ -29,6 +29,16 @@ const ModalUserType = (props) => {
       if (!publicKey) {
         return;
       }
+      if (
+        userType === "" ||
+        userType === undefined ||
+        userType === null ||
+        userType.length === 0
+      ) {
+        toast.error("Please select user type");
+        return;
+      }
+
       const applicantInfo = {
         username: publicKey.toString(),
         name: "",
@@ -68,9 +78,8 @@ const ModalUserType = (props) => {
         gContext.toggleUserTypeModal();
       }
     } catch (err) {
-      console.log(err.message, "err--")
+      console.log(err.message, "err--");
       toast.error(err.message);
-      gContext.toggleUserTypeModal();
     }
   };
 
@@ -81,6 +90,8 @@ const ModalUserType = (props) => {
       centered
       show={gContext.userTypeModalVisible}
       onHide={gContext.toggleUserTypeModal}
+      backdrop="static"
+      keyboard={false}
     >
       <Modal.Body className="p-0">
         <div
@@ -89,13 +100,13 @@ const ModalUserType = (props) => {
             padding: "20px",
           }}
         >
-          <h3
+          <h4
             style={{
               textAlign: "center",
             }}
           >
             Are you a recruiter ?
-          </h3>
+          </h4>
           <div
             style={{
               display: "grid",
@@ -118,12 +129,14 @@ const ModalUserType = (props) => {
                   onChange={(e) => setUserType("recruiter")}
                   style={{
                     marginRight: "10px",
+                    cursor: "pointer",
                   }}
                 />
                 <label
                   htmlFor="recruiter"
                   style={{
                     marginRight: "10px",
+                    cursor: "pointer",
                   }}
                 >
                   Yes
@@ -138,12 +151,14 @@ const ModalUserType = (props) => {
                   onChange={(e) => setUserType("applicant")}
                   style={{
                     marginRight: "10px",
+                    cursor: "pointer",
                   }}
                 />
                 <label
                   htmlFor="applicant"
                   style={{
                     marginRight: "10px",
+                    cursor: "pointer",
                   }}
                 >
                   No
@@ -152,7 +167,7 @@ const ModalUserType = (props) => {
             </div>
             {/* <button> */}
             <a
-              className="btn btn-green btn-h-40 text-white w-120 rounded-5 text-uppercase"
+              className="btn btn-green btn-h-40 text-white w-120 rounded-5 text-uppercase p-4"
               onClick={handleSubmitUserType}
             >
               Create Account

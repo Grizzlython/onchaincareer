@@ -1,4 +1,5 @@
 import React, { useContext, useEffect } from "react";
+import Link from "next/link";
 
 import GlobalContext from "../../context/GlobalContext";
 
@@ -33,16 +34,21 @@ const Brands = () => {
                   data-aos="fade-in"
                   data-aos-duration="800"
                 >
-                  <img
-                    src={company.logo_uri}
-                    alt=""
-                    style={{
-                      width: "100px",
-                      height: "100px",
-                      objectFit: "cover",
-                      borderRadius: "50%",
-                    }}
-                  />
+                  <Link
+                  href={`/company/${company.company_info_account?.toString()}`}
+                  >
+                    <img
+                      src={company.logo_uri}
+                      alt=""
+                      style={{
+                        width: "100px",
+                        height: "100px",
+                        objectFit: "cover",
+                        borderRadius: "50%",
+                        cursor: "pointer",
+                      }}
+                    />
+                  </Link>
                 </div>
               ))}
           </div>

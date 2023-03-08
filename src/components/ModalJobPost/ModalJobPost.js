@@ -10,12 +10,14 @@ import {
   defaultCategories,
   remoteJobTypes,
   jobTypes,
+  skillsJson,
 } from "../../staticData";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { BN } from "bn.js";
 import { toast } from "react-toastify";
 import { Stepper } from "react-form-stepper";
 import Loader from "../Loader";
+import { useRouter } from "next/router";
 
 const ModalStyled = styled(Modal)`
   /* &.modal {
@@ -33,7 +35,7 @@ const ModalJobPost = (props) => {
   const [minSalary, setMinSalary] = useState(0);
   const [maxSalary, setMaxSalary] = useState(0);
   const [experience, setExperience] = useState("");
-  const [skills, setSkills] = useState("");
+  const [skills, setSkills] = useState([]);
   const [qualification, setQualification] = useState("");
   const [description, setDescription] = useState("");
 
@@ -47,6 +49,8 @@ const ModalJobPost = (props) => {
 
   const { signTransaction, publicKey } = useWallet();
   const { connection } = useConnection();
+
+  const router = useRouter();
 
   const {
     jobDetails,
@@ -90,7 +94,7 @@ const ModalJobPost = (props) => {
     setMinSalary(jobDetails?.min_salary);
     setMaxSalary(jobDetails?.max_salary);
     setExperience(jobDetails?.experience_in_months);
-    setSkills(jobDetails?.skills?.join(","));
+    setSkills(jobDetails?.skills);
     setQualification(jobDetails?.qualification);
     const jobLocationType = remoteJobTypes.filter(
       (type) => type.value === jobDetails?.job_location_type
@@ -121,7 +125,7 @@ const ModalJobPost = (props) => {
         archived: archived,
         job_title: title, //128
         short_description: shortDescription, //256
-        category: categories, //32*4+10+10 //category is an array of job category like Frontend Developer
+        category: categories, //32*4+10+10 //category   is an array of job category like Frontend Developer
         job_type: jobType && jobType.value.length > 0 ? jobType.value : "", //16 full-time, part-time, contract, internship",
         currency_type:
           currencyType && currencyType.value.length > 0
@@ -131,7 +135,7 @@ const ModalJobPost = (props) => {
         min_salary: new BN(minSalary), //8 u64
         max_salary: new BN(maxSalary), //8 u64
         experience_in_months: new BN(experience), //8 u64
-        skills: skills && skills.length > 0 ? skills.split(",") : [], //64*10+10+10 // ReactJs, NodeJs, etc
+        skills: skills && skills.length > 0 ? skills : [], //64*10+10+10 // ReactJs, NodeJs, etc
         qualification: qualification, //512
         job_location_type:
           jobLocationType && jobLocationType.value.length > 0
@@ -215,6 +219,36 @@ const ModalJobPost = (props) => {
     gContext.toggleJobPostModal();
   };
 
+  const handleSkills = (e) => {
+    console.log(e, "value");
+    // map throough e and get the values and set it to skills
+    const selectedSkills = [];
+    e.map((item) => {
+      console.log(item.value, "value");
+      selectedSkills.push(item.value);
+    });
+    console.log(selectedSkills, "selectedSkills");
+    setSkills(selectedSkills);
+  };
+
+  const handleSetCategory = (e) => {
+    // limit to 5
+    if (e.length > 5) {
+      toast.error("You can select maximum 5 categories");
+      return;
+    }
+    setCategory(e);
+  };
+
+  const handleSetSkills = (e) => {
+    // limit to 10
+    if (e.length > 10) {
+      toast.error("You can select maximum 10 skills");
+      return;
+    }
+    handleSkills(e);
+  };
+
   return (
     <ModalStyled
       {...props}
@@ -229,6 +263,9 @@ const ModalJobPost = (props) => {
         // style={{
         //   backgroundColor: "#e5e5e5",
         // }}
+        style={{
+          minHeight: "70vh",
+        }}
       >
         <button
           type="button"
@@ -238,7 +275,16 @@ const ModalJobPost = (props) => {
           <i className="fas fa-times"></i>
         </button>
         {loading ? (
-          <Loader />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100vh",
+            }}
+          >
+            <Loader />
+          </div>
         ) : (
           <div className="container">
             <div className="mb-15 mb-lg-23">
@@ -288,12 +334,12 @@ const ModalJobPost = (props) => {
                                     </label>
                                     <Select
                                       options={defaultCategories}
-                                      className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
-                                      border={false}
+                                      className="basic-multi-select"
+                                      border={true}
                                       placeholder="Select Category"
                                       isMulti={true}
                                       value={category}
-                                      onChange={setCategory}
+                                      onChange={handleSetCategory}
                                     />
                                     <span className="h-100 w-px-50 pos-abs-tl d-flex align-items-center justify-content-center font-size-6"></span>
                                   </div>
@@ -313,7 +359,7 @@ const ModalJobPost = (props) => {
                                       placeholder="eg. Frontend Developer"
                                       value={title}
                                       onChange={(e) => setTitle(e.target.value)}
-                                      maxLength="32"
+                                      maxLength="64"
                                     />
                                   </div>
                                 </div>
@@ -328,8 +374,8 @@ const ModalJobPost = (props) => {
                                     </label>
                                     <Select
                                       options={remoteJobTypes}
-                                      className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
-                                      border={false}
+                                      className="basic-multi-select"
+                                      border={true}
                                       placeholder="Select job location type"
                                       value={jobLocationType}
                                       onChange={setJobLocationType}
@@ -348,8 +394,8 @@ const ModalJobPost = (props) => {
                                         </label>
                                         <Select
                                           options={countries}
-                                          className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
-                                          border={false}
+                                          className="basic-multi-select"
+                                          border={true}
                                           placeholder="Select country"
                                           value={country}
                                           onChange={setCountry}
@@ -389,8 +435,8 @@ const ModalJobPost = (props) => {
                                     </label>
                                     <Select
                                       options={defaultCurrencyTypes}
-                                      className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
-                                      border={false}
+                                      className="basic-multi-select"
+                                      border={true}
                                       placeholder="Select currency type"
                                       value={currencyType}
                                       onChange={setCurrencyType}
@@ -407,8 +453,8 @@ const ModalJobPost = (props) => {
                                     </label>
                                     <Select
                                       options={currencies}
-                                      className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
-                                      border={false}
+                                      className="basic-multi-select"
+                                      border={true}
                                       placeholder="Select currency"
                                       value={currency}
                                       onChange={setCurrency}
@@ -425,8 +471,8 @@ const ModalJobPost = (props) => {
                                     </label>
                                     <Select
                                       options={jobTypes}
-                                      className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
-                                      border={false}
+                                      className="basic-multi-select"
+                                      border={true}
                                       placeholder="Select Job Type"
                                       value={jobType}
                                       onChange={setJobType}
@@ -449,7 +495,7 @@ const ModalJobPost = (props) => {
                                       className="form-control h-px-48"
                                       id="salaryRange"
                                       placeholder="eg. 800"
-                                      maxLength={32}
+                                      maxLength={8}
                                       value={minSalary}
                                       onChange={(e) =>
                                         setMinSalary(e.target.value)
@@ -471,7 +517,7 @@ const ModalJobPost = (props) => {
                                       className="form-control h-px-48"
                                       id="salaryRange"
                                       placeholder="eg. 1000"
-                                      maxLength={32}
+                                      maxLength={8}
                                       value={maxSalary}
                                       onChange={(e) =>
                                         setMaxSalary(e.target.value)
@@ -493,7 +539,7 @@ const ModalJobPost = (props) => {
                                       className="form-control h-px-48"
                                       id="experience"
                                       placeholder="eg. 24"
-                                      maxLength={128}
+                                      maxLength={8}
                                       value={experience}
                                       onChange={(e) =>
                                         setExperience(e.target.value)
@@ -534,7 +580,17 @@ const ModalJobPost = (props) => {
                                     >
                                       Short Description
                                     </label>
-
+                                    <div
+                                      style={{
+                                        position: "absolute",
+                                        right: "20px",
+                                        top: "0",
+                                        color: "#000",
+                                      }}
+                                    >
+                                      <span>{shortDescription?.length}</span>/
+                                      <span>256</span>{" "}
+                                    </div>
                                     <textarea
                                       name="textarea"
                                       id="sdesc"
@@ -542,7 +598,7 @@ const ModalJobPost = (props) => {
                                       rows="4"
                                       className="border border-mercury text-gray w-100 pt-4 pl-6"
                                       placeholder="Describe about the job"
-                                      maxLength={2048}
+                                      maxLength={256}
                                       value={shortDescription}
                                       onChange={(e) =>
                                         setShortDescription(e.target.value)
@@ -559,16 +615,16 @@ const ModalJobPost = (props) => {
                                     >
                                       Skills (Comma separated)
                                     </label>
-                                    <input
-                                      type="text"
-                                      className="form-control"
-                                      id="formGroupExampleInput"
+                                    <Select
+                                      isMulti
+                                      onChange={handleSetSkills}
+                                      options={skillsJson}
+                                      value={skills.map((skill) => {
+                                        return { value: skill, label: skill };
+                                      })}
                                       placeholder="eg. Html, css, js"
-                                      maxLength={256}
-                                      value={skills}
-                                      onChange={(e) =>
-                                        setSkills(e.target.value)
-                                      }
+                                      className="basic-multi-select"
+                                      border={true}
                                     />
                                   </div>
                                   <div
@@ -603,14 +659,25 @@ const ModalJobPost = (props) => {
                                     >
                                       Job Description
                                     </label>
+                                    <div
+                                      style={{
+                                        position: "absolute",
+                                        right: "20px",
+                                        top: "0",
+                                        color: "#000",
+                                      }}
+                                    >
+                                      <span>{description.length}</span>/
+                                      <span>1024</span>{" "}
+                                    </div>
                                     <textarea
                                       name="textarea"
                                       id="aboutTextarea"
                                       cols="30"
                                       rows="7"
                                       className="border border-mercury text-gray w-100 pt-4 pl-6"
-                                      placeholder="Describe about the job"
-                                      maxLength={2048}
+                                      placeholder="Description about the job"
+                                      maxLength={1024}
                                       value={description}
                                       onChange={(e) =>
                                         setDescription(e.target.value)

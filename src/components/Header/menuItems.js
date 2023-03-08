@@ -5,11 +5,11 @@ export const menuItems = [
   },
   {
     name: "search-jobs",
-    label: "View jobs",
+    label: "Jobs",
   },
   {
     name: "all-companies",
-    label: "All companies",
+    label: "Companies",
   },
   // {
   //   name: "pages",
@@ -63,11 +63,11 @@ export const userMenuItems = [
   },
   {
     name: "search-jobs",
-    label: "View jobs",
+    label: "Jobs",
   },
   {
     name: "all-companies",
-    label: "All companies",
+    label: "Companies",
   },
   // { name: "pricing", label: "Pricing" },
   { name: "faq", label: "FAQ" },

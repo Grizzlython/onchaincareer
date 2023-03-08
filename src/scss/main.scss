@@ -249,3 +249,11 @@ input:checked + .slider:before {
 .list-item {
   font-size: 14px !important;
 }
+
+.profile-pic {
+  width: 150px !important;
+  height: 150px !important ;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+}

@@ -5,17 +5,12 @@ import { Select } from "../components/Core";
 import GlobalContext from "../context/GlobalContext";
 
 import imgP1 from "../assets/image/table-one-profile-image-1.png";
-import inProgress from "../assets/image/svg/in-progress.svg";
-import accept from "../assets/image/svg/accept.svg";
-import reject from "../assets/image/svg/reject.svg";
 import moment from "moment";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { WORKFLOW_STATUSES_enum } from "../utils/web3/struct_decoders/jobsonchain_constants_enum";
-import { BN } from "bn.js";
-import Tippy from "@tippyjs/react";
+import { changeStasusOptions, WORKFLOW_STATUSES_enum } from "../utils/web3/struct_decoders/jobsonchain_constants_enum";
 import Loader from "../components/Loader";
 import { PublicKey } from "@solana/web3.js";
 
@@ -23,12 +18,8 @@ export default function DashboardApplicants() {
   const router = useRouter();
   const gContext = useContext(GlobalContext);
 
-  const [appliedCandidates, setAppliedCandidates] = useState([]);
   const [filter, setFilter] = useState("");
   const [filteredApplicants, setFilteredApplicants] = useState([]);
-
-  const [offset, setOffset] = useState(0);
-  const [limit, setLimit] = useState(10);
 
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
@@ -48,23 +39,22 @@ export default function DashboardApplicants() {
   }, [publicKey]);
 
   useEffect(() => {
+    setFilteredApplicants([])
     if (allAppliedApplicants) {
-      setAppliedCandidates(
+      setFilteredApplicants(
         allAppliedApplicants[WORKFLOW_STATUSES_enum.ACCEPTED]
       );
     }
   }, [allAppliedApplicants]);
 
   const handleChangeApplicantStatus = async (
+    applicantInfoAccount,
     jobInfoAccount,
     companyInfoAccount,
     event
   ) => {
     try {
       const statusSelected = event.value;
-      console.log("job_number", jobInfoAccount);
-      console.log("companyInfoAccount", companyInfoAccount);
-      console.log("statusSelected", statusSelected);
       const companyStateAccount = new PublicKey(companyInfoAccount);
 
       const jobWorkflowInfo = {
@@ -78,7 +68,8 @@ export default function DashboardApplicants() {
         signTransaction,
         jobWorkflowInfo,
         jobInfoAccount,
-        companyStateAccount
+        companyStateAccount,
+        applicantInfoAccount
       );
     } catch (err) {
       console.log(err);
@@ -110,17 +101,6 @@ export default function DashboardApplicants() {
     }
   }, [filter]);
 
-  const [pages, setPages] = useState(0);
-  useEffect(() => {
-    if (allAppliedApplicants) {
-      setPages(
-        Math.ceil(
-          allAppliedApplicants[WORKFLOW_STATUSES_enum.ACCEPTED].length / 10
-        )
-      );
-    }
-  }, [allAppliedApplicants]);
-
   return (
     <>
       <PageWrapper
@@ -137,7 +117,7 @@ export default function DashboardApplicants() {
               <div className="row mb-11 align-items-center">
                 <div className="col-lg-6 mb-lg-0 mb-4">
                   <h3 className="font-size-6 mb-0">
-                    Accepted applicants list ({appliedCandidates?.length})
+                    Accepted applicants list ({filteredApplicants?.length})
                   </h3>
                 </div>
                 <div className="col-lg-6">
@@ -179,7 +159,7 @@ export default function DashboardApplicants() {
                 >
                   {loading ? (
                     <Loader />
-                  ) : (
+                  ) : (filteredApplicants?.length > 0 ? (
                     <table className="table table-striped">
                       <thead>
                         <tr
@@ -222,9 +202,7 @@ export default function DashboardApplicants() {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredApplicants?.length > 0 ? (
-                          filteredApplicants
-                            ?.slice(offset, limit)
+                        {filteredApplicants
                             ?.map((item, index) => (
                               <tr
                                 className="border-bottom"
@@ -278,31 +256,14 @@ export default function DashboardApplicants() {
                                 </td>
                                 <td className="table-y-middle py-5 min-width-px-100 pr-0 border-0">
                                   <Select
-                                    options={[
-                                      {
-                                        value: WORKFLOW_STATUSES_enum.APPLIED,
-                                        label: "APPLIED",
-                                      },
-                                      {
-                                        value:
-                                          WORKFLOW_STATUSES_enum.IN_PROGRESS,
-                                        label: "IN PROGRESS",
-                                      },
-                                      {
-                                        value: WORKFLOW_STATUSES_enum.ACCEPTED,
-                                        label: "ACCEPTED",
-                                      },
-                                      {
-                                        value: WORKFLOW_STATUSES_enum.REJECTED,
-                                        label: "REJECTED",
-                                      },
-                                    ]}
+                                    options={changeStasusOptions}
                                     value={{
                                       value: item?.status,
                                       label: item?.status?.toUpperCase(),
                                     }}
                                     onChange={(e) =>
                                       handleChangeApplicantStatus(
+                                        item.user_pubkey,
                                         item?.job_pubkey,
                                         item?.company_pubkey,
                                         e
@@ -346,84 +307,24 @@ export default function DashboardApplicants() {
                                 </td>
                               </tr>
                             ))
-                        ) : (
-                          // <tr className="border border-color-2">
-                          //   <td className="table-y-middle py-7 min-width-px-235 pr-0 border-0">
-                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                          //   </td>
-                          //   <td className="table-y-full py-7 pr-0 border-0">
-                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                          //       No Applicants yet
-                          //     </h3>
-                          //   </td>
-                          //   <td className="table-y-middle py-7 pr-0 border-0">
-                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                          //   </td>
-                          //   <td className="table-y-middle py-7 pr-0 border-0">
-                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                          //   </td>
-                          //   <td className="table-y-middle py-7 pr-0 border-0">
-                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                          //   </td>
-                          //   <td className="table-y-middle py-7 pr-0 border-0">
-                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                          //   </td>
-                          // </tr>
-                          <div
-                            style={{
-                              textAlign: "center",
-                              padding: "50px 20px",
-                              fontSize: "20px",
-                              fontWeight: "normal",
-                              width: "318.75%",
-                              background: "#eee",
-                            }}
-                          >
-                            No Applicants yet
-                          </div>
-                        )}
+                        }
                       </tbody>
-                    </table>
+                    </table>):(
+                      <div
+                      style={{
+                        textAlign: "center",
+                        padding: "50px 20px",
+                        fontSize: "20px",
+                        fontWeight: "normal",
+                        width: "100%",
+                        background: "#eee",
+                      }}
+                    >
+                      No Applicants found
+                    </div>
+                    )
                   )}
                 </div>
-                {appliedCandidates &&
-                  appliedCandidates?.length > 10 &&
-                  pages.map((page, index) => (
-                    <div className="pt-2">
-                      <nav aria-label="Page navigation example">
-                        <ul className="pagination pagination-hover-primary rounded-0 ml-n2">
-                          <li className="page-item rounded-0 flex-all-center">
-                            <a
-                              className="page-link rounded-0 border-0 px-3active"
-                              aria-label="Previous"
-                            >
-                              <i className="fas fa-chevron-left"></i>
-                            </a>
-                          </li>
-
-                          <li className="page-item" key={index}>
-                            <a
-                              className="page-link border-0 font-size-4 font-weight-semibold px-3"
-                              onClick={() =>
-                                setOffset(page * 10, (page + 1) * 10)
-                              }
-                            >
-                              {page + 1}
-                            </a>
-                          </li>
-
-                          <li className="page-item rounded-0 flex-all-center">
-                            <a
-                              className="page-link rounded-0 border-0 px-3"
-                              aria-label="Next"
-                            >
-                              <i className="fas fa-chevron-right"></i>
-                            </a>
-                          </li>
-                        </ul>
-                      </nav>
-                    </div>
-                  ))}
               </div>
             </div>
           </div>

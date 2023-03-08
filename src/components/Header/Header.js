@@ -108,7 +108,6 @@ const Header = () => {
       (async () => {
         toast.success("👍 Wallet Connected");
         const userExistsRes = await check_if_user_exists(publicKey, connection);
-
         if (!userExistsRes.status) {
           await gContext.toggleUserTypeModal();
         }
@@ -347,9 +346,9 @@ const Header = () => {
                       <a className="dropdown-item py-2 font-size-3 font-weight-semibold line-height-1p2 text-uppercase">
                         👋 Welcome {gContext.user?.user_type?.toUpperCase()}
                         {gContext.user &&
-                          gContext.user?.username.slice(0, 5) +
+                          publicKey && publicKey.toString().slice(0, 5) +
                             "..." +
-                            gContext.user?.username.slice(-5)}
+                            publicKey && publicKey.toString().slice(-5)}
                       </a>
 
                       {/* <Link href="/#">

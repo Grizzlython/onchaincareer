@@ -33,10 +33,11 @@ const getCustomStyles = (theme, accentColor, bg, border, indicator) => {
           : state.menuIsOpen || state.isFocused
           ? `1px solid ${theme.colors[accentColor]} !important`
           : `1px solid ${theme.colors.border} !important`,
-        borderRadius: 10,
+        borderRadius: 5,
         padding: "0.25rem 1rem",
         width: "100%",
-        height: "45px",
+        height: "auto",
+        minHeight: "50px",
         outline: "none",
         boxShadow: "none",
         textAlign: "left",

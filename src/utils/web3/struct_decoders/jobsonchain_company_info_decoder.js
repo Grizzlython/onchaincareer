@@ -1,51 +1,21 @@
 import * as borsh from "@project-serum/borsh";
 export const CompanyInfoState_SIZE =
-  1 +
-  1 +
-  32 +
-  8 +
-  8 +
-  32 +
-  64 +
-  128 +
-  64 +
-  8 +
-  8 +
-  32 +
-  32 +
-  8 +
-  128 +
-  128 +
-  16 +
-  32 +
-  512 +
-  1024 +
-  128 +
-  128 +
-  128 +
-  128 +
-  128 +
-  16 +
-  8 +
-  8 +
-  8;
+1+1+32+8+8+64+72+64+8+32+32+8+72+4+8+64+356+64+64+64+64+64+16+8+8+8;
+
 export class CompanyInfoState {
   is_initialized; //1
   archived; //1
   user_info_state_account_pubkey; //32
   created_at; //8
   updated_at; //8
-  username; //32
   name; //64
-  logo_uri; //128
+  logo_uri; //72
   domain; //64
   company_type; //8 "product, service, both"
-  company_size; //8 "small, medium, large"
   company_stage; //32
   funding_amount; //8
   funding_currency; //8
-  image_uri; //128
-  cover_image_uri; //128
+  cover_image_uri; //72
   founded_in; //8
   employee_size; //8
   address; //512
@@ -53,7 +23,7 @@ export class CompanyInfoState {
   website; //128
   linkedin; //128 //"string - max 32 characters",
   twitter; //128 "string - max 32 characters",
-  facebook; //128
+  youtube; //128
   instagram; //128
   subscription_plan; //16 "paynuse, sixmonths, yearly, forever" //default is paynuse
   subscription_purchased_on; //8 unix timestamp of the date on which the subscription was purchased
@@ -66,16 +36,13 @@ export class CompanyInfoState {
     this.user_info_state_account_pubkey = data.user_info_state_account_pubkey;
     this.created_at = data.created_at;
     this.updated_at = data.updated_at;
-    this.username = data.username;
     this.name = data.name;
     this.logo_uri = data.logo_uri;
     this.domain = data.domain;
     this.company_type = data.company_type;
-    this.company_size = data.company_size;
     this.company_stage = data.company_stage;
     this.funding_amount = data.funding_amount;
     this.funding_currency = data.funding_currency;
-    this.image_uri = data.image_uri;
     this.cover_image_uri = data.cover_image_uri;
     this.founded_in = data.founded_in;
     this.employee_size = data.employee_size;
@@ -84,7 +51,7 @@ export class CompanyInfoState {
     this.website = data.website;
     this.linkedin = data.linkedin;
     this.twitter = data.twitter;
-    this.facebook = data.facebook;
+    this.youtube = data.youtube;
     this.instagram = data.instagram;
     this.subscription_plan = data.subscription_plan;
     this.subscription_purchased_on = data.subscription_purchased_on;
@@ -98,16 +65,13 @@ export class CompanyInfoState {
     borsh.publicKey("user_info_state_account_pubkey"),
     borsh.u64("created_at"),
     borsh.u64("updated_at"),
-    borsh.str("username"),
     borsh.str("name"),
     borsh.str("logo_uri"),
     borsh.str("domain"),
     borsh.str("company_type"),
-    borsh.str("company_size"),
     borsh.str("company_stage"),
     borsh.str("funding_amount"),
     borsh.str("funding_currency"),
-    borsh.str("image_uri"),
     borsh.str("cover_image_uri"),
     borsh.str("founded_in"),
     borsh.str("employee_size"),
@@ -116,7 +80,7 @@ export class CompanyInfoState {
     borsh.str("website"),
     borsh.str("linkedin"),
     borsh.str("twitter"),
-    borsh.str("facebook"),
+    borsh.str("youtube"),
     borsh.str("instagram"),
     borsh.str("subscription_plan"),
     borsh.u64("subscription_purchased_on"),
@@ -140,16 +104,13 @@ export class CompanyInfoState {
 
   static serializeSaveCompanyInfoInstruction(updatedObj /*Buffer*/) {
     const saveAccountInstructionSchema = borsh.struct([
-      borsh.str("username"),
       borsh.str("name"),
       borsh.str("logo_uri"),
       borsh.str("domain"),
       borsh.str("company_type"),
-      borsh.str("company_size"),
       borsh.str("company_stage"),
       borsh.str("funding_amount"),
       borsh.str("funding_currency"),
-      borsh.str("image_uri"),
       borsh.str("cover_image_uri"),
       borsh.str("founded_in"),
       borsh.str("employee_size"),
@@ -158,7 +119,7 @@ export class CompanyInfoState {
       borsh.str("website"),
       borsh.str("linkedin"),
       borsh.str("twitter"),
-      borsh.str("facebook"),
+      borsh.str("youtube"),
       borsh.str("instagram"),
       borsh.str("company_seq_number"),
     ]);
@@ -174,16 +135,13 @@ export class CompanyInfoState {
   static serializeUpdateCompanyInfoInstruction(updatedObj /*Buffer*/) {
     const updateAccountInstructionSchema = borsh.struct([
       borsh.bool("archived"),
-      borsh.str("username"),
       borsh.str("name"),
       borsh.str("logo_uri"),
       borsh.str("domain"),
       borsh.str("company_type"),
-      borsh.str("company_size"),
       borsh.str("company_stage"),
       borsh.str("funding_amount"),
       borsh.str("funding_currency"),
-      borsh.str("image_uri"),
       borsh.str("cover_image_uri"),
       borsh.str("founded_in"),
       borsh.str("employee_size"),
@@ -192,7 +150,7 @@ export class CompanyInfoState {
       borsh.str("website"),
       borsh.str("linkedin"),
       borsh.str("twitter"),
-      borsh.str("facebook"),
+      borsh.str("youtube"),
       borsh.str("instagram"),
       borsh.str("company_seq_number"),
     ]);

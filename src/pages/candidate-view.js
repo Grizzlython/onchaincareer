@@ -21,7 +21,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useRouter } from "next/router";
 import { WORKFLOW_STATUSES } from "../utils/web3/struct_decoders/jobsonchain_constants_enum";
 import { check_if_user_exists } from "../utils/web3/web3_functions";
-import { userTypeEnum } from "../utils/constants";
+import { EXPLORER_ADDRESS_URL, EXPLORER_CLUSTER, userTypeEnum } from "../utils/constants";
 import Loader from "../components/Loader";
 
 export default function CandidateProfileTwo() {
@@ -278,13 +278,13 @@ export default function CandidateProfileTwo() {
                                               </a>
                                             </Link>
                                             <a
-                                              className="btn btn-outline-gray text-black text-uppercase btn-medium rounded-3 ml-3"
-                                              href={`https://explorer.solana.com/address/${job?.job_pubkey?.toString()}?cluster=devnet`}
-                                              target="_blank"
-                                            >
-                                              <i className="fa fa-globe mr-3"></i>
-                                              View on chain
-                                            </a>
+                                  className="btn btn-outline-green text-uppercase btn-medium rounded-3 ml-2"
+                                  href={`${EXPLORER_ADDRESS_URL}${job?.pubkey?.toString()}${EXPLORER_CLUSTER}`}
+                                  target="_blank"
+                                >
+                                  <i className="fa fa-globe mr-3"></i>
+                                  View on chain
+                                </a>
                                           </div>
                                         </div>
                                       )

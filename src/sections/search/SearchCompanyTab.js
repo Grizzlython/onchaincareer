@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Tab, Nav } from "react-bootstrap";
 import Link from "next/link";
 
-import imgF from "../../assets/image/svg/icon-fire-rounded.svg";
 import iconL from "../../assets/image/svg/icon-loaction-pin-black.svg";
 import iconS from "../../assets/image/svg/icon-suitecase.svg";
 import iconC from "../../assets/image/svg/icon-clock.svg";
@@ -24,14 +23,14 @@ const SearchCompanyTab = (props) => {
   const [offset, setOffset] = useState(0);
 
   useEffect(async () => {
-    if (props.employeeSize && props.employeeSize !== "all") {
+    if (props.employeeSize && props.employeeSize !== "Any") {
       filters.employeeSize = props.employeeSize;
       filters.employeeSizeRegex = new RegExp(filters.employeeSize);
     } else {
       filters.employeeSize = null;
       filters.employeeSizeRegex = null;
     }
-    if (props.companyType && props.companyType !== "all") {
+    if (props.companyType && props.companyType !== "All") {
       filters.companyType = props.companyType;
       filters.companyTypeRegex = new RegExp(filters.companyType, "i");
     } else {
@@ -47,14 +46,14 @@ const SearchCompanyTab = (props) => {
       filters.companyNameRegex = null;
     }
 
-    if (props.country && props.country !== "any") {
-      filters.country = props.country;
-      filters.countryRegex = new RegExp(filters.country);
-    } else {
-      filters.country = null;
-      filters.countryRegex = null;
-    }
-    if (props.sortType && props.sortType !== "any") {
+    // if (props.country && props.country !== "any") {
+    //   filters.country = props.country;
+    //   filters.countryRegex = new RegExp(filters.country);
+    // } else {
+    //   filters.country = null;
+    //   filters.countryRegex = null;
+    // }
+    if (props.sortType && props.sortType !== "Any") {
       filters.sortType = props.sortType;
     } else {
       filters.sortType = null;
@@ -69,15 +68,6 @@ const SearchCompanyTab = (props) => {
       if (filters.employeeSizeRegex) {
         conditions += `filters.employeeSizeRegex && filters.employeeSizeRegex.test(company.employee_size)`;
         firstConditionAdded = true;
-      }
-
-      if (filters.countryRegex) {
-        if (firstConditionAdded) {
-          conditions += ` && `;
-        } else {
-          firstConditionAdded = true;
-        }
-        conditions += `filters.countryRegex && filters.countryRegex.test(job.parsedInfo.country)`;
       }
 
       if (filters.companyNameRegex) {
@@ -103,18 +93,17 @@ const SearchCompanyTab = (props) => {
       }
 
       const filteredCompanies = allListedCompanies.filter((company) => {
-        console.log("company.title ", conditions);
         return eval(conditions);
       });
 
       if (filters.sortType && filteredCompanies && filteredCompanies.length) {
-        if (filters.sortType === "latest") {
+        if (filters.sortType === "Latest") {
           filteredCompanies.sort((a, b) =>
-            moment(b.created_at).diff(moment(a.created_at))
+            moment(b.created_at.toNumber()).diff(moment(a.created_at.toNumber()))
           );
-        } else if (filters.sortType === "oldest") {
+        } else if (filters.sortType === "Oldest") {
           filteredCompanies.sort((a, b) =>
-            moment(a.created_at).diff(moment(b.created_at))
+            moment(a.created_at.toNumber()).diff(moment(b.created_at.toNumber()))
           );
         }
       }
@@ -141,7 +130,6 @@ const SearchCompanyTab = (props) => {
                     id="search-nav-tab"
                   >
                     {filteredCompanies
-                      ?.slice(offset, limit)
                       ?.map((company, index) => (
                         <Nav.Link
                           className="mb-8 p-0 w-100"
@@ -152,7 +140,7 @@ const SearchCompanyTab = (props) => {
                           {/* <!-- Single Featured Job --> */}
                           <div className="pt-9 px-xl-9 px-lg-7 px-7 pb-7 light-mode-texts bg-white rounded hover-shadow-3 hover-border-green">
                             <div className="row">
-                              <div className="col-md-6">
+                              <div className="col-md-8">
                                 <div className="media align-items-center">
                                   <div className="square-72 d-block mr-8">
                                     <img
@@ -172,20 +160,26 @@ const SearchCompanyTab = (props) => {
                                     </h3>
                                     <span className="font-size-3 text-default-color line-height-2 d-block">
                                       Company domain:
+                                      <span className="ml-1 font-weight-semibold">
                                       {company?.domain?.toUpperCase()}
+
+                                      </span>
                                     </span>
                                   </div>
                                 </div>
                               </div>
-                              <div className="col-md-6 text-right pt-7 pt-md-5">
+                              <div className="col-md-4 text-right pt-7 pt-md-5">
                                 <div className="media justify-content-md-end">
-                                  <div className="image mr-5 mt-2">
+                                  {/* <div className="image mr-5 mt-2">
                                     <img src={imgF.src} alt="" />
-                                  </div>
+                                  </div> */}
                                   <div>
-                                    <p className="font-weight-bold font-size-7 text-hit-gray mb-0">
+                                    <p className="font-size-4 text-hit-gray mb-0">
+                                      <i className="fa mr-4 text-gray font-size-3 fa-user-tie" style={{
+                                        transform: "translateY(-1px)"
+                                      }}></i>
                                       <span className="text-black-2">
-                                        Employee size: {company?.employee_size}
+                                        Size: <span className="font-weight-bold">{company?.employee_size}</span> 
                                       </span>
                                     </p>
                                   </div>
@@ -208,9 +202,11 @@ const SearchCompanyTab = (props) => {
                                   )}
                                 </ul>
                               </div> */}
-                              <div className="col-md-12">
-                                <ul className="d-flex list-unstyled mr-n3 flex-wrap mr-n8 justify-content-md-end">
-                                  <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
+                              <div className="col-md-12 mt-4">
+                                <ul className="d-flex list-unstyled" style={{
+                                  justifyContent: "space-between"
+                                }}>
+                                  <li className="mt-2 font-size-small text-black-2 d-flex">
                                     <span
                                       className="mr-4"
                                       css={`
@@ -219,11 +215,11 @@ const SearchCompanyTab = (props) => {
                                     >
                                       <img src={iconL.src} alt="" />
                                     </span>
-                                    <span className="font-weight-semibold">
+                                    <span className="font-weight-normal">
                                       {company?.address}
                                     </span>
                                   </li>
-                                  <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
+                                  <li className="mt-2 font-size-small text-black-2 d-flex">
                                     <span
                                       className="mr-4"
                                       css={`
@@ -232,14 +228,11 @@ const SearchCompanyTab = (props) => {
                                     >
                                       <img src={iconS.src} alt="" />
                                     </span>
-                                    <span className="font-weight-semibold">
+                                    <span className="font-weight-normal">
                                       {company?.company_type}
                                     </span>
                                   </li>
-                                  <br />
-                                </ul>
-                                <ul className="d-flex list-unstyled mr-n3 flex-wrap mr-n8 justify-content-md-end">
-                                  <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
+                                  <li className="mt-2 font-size-small text-black-2 d-flex">
                                     <span
                                       className="mr-4"
                                       css={`
@@ -248,14 +241,15 @@ const SearchCompanyTab = (props) => {
                                     >
                                       <img src={iconC.src} alt="" />
                                     </span>
-                                    <span className="font-weight-semibold">
-                                      Created at:
+                                    <span className="font-weight-normal">
+                                      Created on:
                                       {moment(
                                         new Date(company?.created_at.toNumber())
                                       ).fromNow()}
                                     </span>
                                   </li>
                                 </ul>
+                                
                               </div>
                             </div>
 
@@ -273,7 +267,7 @@ const SearchCompanyTab = (props) => {
                                 </a>
                               </Link>
                               <a
-                                className="btn btn-outline-gray text-black text-uppercase btn-medium rounded-3 ml-3"
+                                className="btn btn-outline-green text-uppercase btn-medium rounded-3 ml-3"
                                 href={`https://explorer.solana.com/address/${company?.company_info_account?.toString()}?cluster=devnet`}
                                 target="_blank"
                               >
@@ -289,7 +283,7 @@ const SearchCompanyTab = (props) => {
                 ) : (
                   <ErrorPage />
                 )}
-                {filteredCompanies?.length > limit && (
+                {/* {filteredCompanies?.length > limit && (
                   <div className="text-center pt-5 pt-lg-13">
                     <a
                       className="text-green font-weight-bold text-uppercase font-size-3 d-flex align-items-center justify-content-center"
@@ -304,7 +298,7 @@ const SearchCompanyTab = (props) => {
                       <i className="fas fa-sort-down ml-3 mt-n2 font-size-4"></i>
                     </a>
                   </div>
-                )}
+                )} */}
               </div>
               {/* <!-- form end --> */}
             </div>

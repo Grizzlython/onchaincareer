@@ -25,7 +25,7 @@ const Footer = () => {
                 {/* <!-- cta-content start --> */}
                 <div className="pb-xl-0 pb-9 text-xl-left text-center">
                   <h2 className="text-white font-size-8 mb-4">
-                    World's first fully decentralized job board
+                    World's first fully decentralized Job Portal
                   </h2>
                 </div>
                 {/* <!-- cta-content end --> */}
@@ -68,21 +68,21 @@ const Footer = () => {
                     Follow us on:
                   </li>
                   <li className="d-flex flex-column justify-content-center px-3 mr-3">
-                    <Link href="/#">
+                    <Link href="https://instagram.com/onchaincareer">
                       <a className="hover-color-primary heading-default-color">
-                        <i className="fab fa-facebook-f font-size-3 pt-2"></i>
+                        <i className="fab fa-instagram font-size-3 pt-2"></i>
                       </a>
                     </Link>
                   </li>
                   <li className="d-flex flex-column justify-content-center px-3 mr-3">
-                    <Link href="/#">
+                    <Link href="https://twitter.com/onchaincareer">
                       <a className="hover-color-primary heading-default-color">
                         <i className="fab fa-twitter font-size-3 pt-2"></i>
                       </a>
                     </Link>
                   </li>
                   <li className="d-flex flex-column justify-content-center px-3 mr-3">
-                    <Link href="/#">
+                    <Link href="https://www.linkedin.com/company/onchaincareer">
                       <a className="hover-color-primary heading-default-color">
                         <i className="fab fa-linkedin-in font-size-3 pt-2"></i>
                       </a>

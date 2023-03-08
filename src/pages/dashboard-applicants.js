@@ -10,7 +10,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { WORKFLOW_STATUSES_enum } from "../utils/web3/struct_decoders/jobsonchain_constants_enum";
+import { changeStasusOptions, WORKFLOW_STATUSES_enum } from "../utils/web3/struct_decoders/jobsonchain_constants_enum";
 import Loader from "../components/Loader";
 import { PublicKey } from "@solana/web3.js";
 
@@ -21,7 +21,6 @@ export default function DashboardApplicants() {
   const [appliedCandidates, setAppliedCandidates] = useState([]);
   const [filter, setFilter] = useState("");
   const [filteredApplicants, setFilteredApplicants] = useState([]);
-  
 
   const [offset, setOffset] = useState(0);
 
@@ -43,7 +42,10 @@ export default function DashboardApplicants() {
   }, [publicKey]);
 
   useEffect(() => {
-    console.log("allAppliedApplicants in dashboard-applicants", allAppliedApplicants)
+    console.log(
+      "allAppliedApplicants in dashboard-applicants",
+      allAppliedApplicants
+    );
     if (allAppliedApplicants) {
       setAppliedCandidates(
         allAppliedApplicants[WORKFLOW_STATUSES_enum.APPLIED]
@@ -111,7 +113,7 @@ export default function DashboardApplicants() {
   useEffect(() => {
     if (allAppliedApplicants) {
       setFilteredApplicants(
-          allAppliedApplicants[WORKFLOW_STATUSES_enum.APPLIED]
+        allAppliedApplicants[WORKFLOW_STATUSES_enum.APPLIED]
       );
     }
   }, [allAppliedApplicants]);
@@ -174,7 +176,7 @@ export default function DashboardApplicants() {
                 >
                   {loading ? (
                     <Loader />
-                  ) : (
+                  ) : (filteredApplicants?.length > 0 ? (
                     <table className="table table-striped">
                       <thead>
                         <tr
@@ -217,219 +219,128 @@ export default function DashboardApplicants() {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredApplicants?.length > 0 ? (
-                          filteredApplicants
-                            ?.map((item, index) => (
-                              <tr
-                                className="border-bottom"
-                                key={index}
+                        {filteredApplicants?.map((item, index) => (
+                            <tr
+                              className="border-bottom"
+                              key={index}
+                              style={{
+                                border: "0px !important",
+                              }}
+                            >
+                              <th
+                                scope="row"
+                                className="pl-6 border-0 py-7 pr-0 border-0 selectedTableRow"
+                              >
+                                <a
+                                  className="media min-width-px-235 align-items-center"
+                                  onClick={() => viewCandidateProfile(item)}
+                                >
+                                  <div className="circle-36 mr-6">
+                                    <img
+                                      src={
+                                        item?.applicantInfo?.image_uri &&
+                                        item?.applicantInfo?.image_uri?.length >
+                                          0
+                                          ? item?.applicantInfo?.image_uri
+                                          : imgP1.src
+                                      }
+                                      alt=""
+                                      style={{
+                                        height: "40px",
+                                        width: "40px",
+                                        objectFit: "cover",
+                                        borderRadius: "50%",
+                                      }}
+                                    />
+                                  </div>
+                                  <h4 className="font-size-4 mb-0 font-weight-semibold text-black-2">
+                                    {item?.applicantInfo?.name}
+                                  </h4>
+                                </a>
+                              </th>
+                              <td className="table-y-middle py-7 min-width-px-235 pr-0 border-0">
+                                <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                                  {item?.jobInfo?.job_title}
+                                </h3>
+                              </td>
+                              <td className="table-y-middle py-7 min-width-px-170 pr-0 border-0">
+                                <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
+                                  {moment(
+                                    new Date(Number(item?.job_applied_at))
+                                  ).format("DD MMM YYYY")}
+                                </h3>
+                              </td>
+                              <td className="table-y-middle py-5 min-width-px-100 pr-0 border-0">
+                               
+                                <Select
+                                  options={changeStasusOptions}
+                                  value={{
+                                    value: item?.status,
+                                    label: item?.status?.toUpperCase(),
+                                  }}
+                                  onChange={(e) =>
+                                    handleChangeApplicantStatus(
+                                      item.user_pubkey,
+                                      item?.job_pubkey,
+                                      item?.company_pubkey,
+                                      e
+                                    )
+                                  }
+                                />
+                              </td>
+                              <td
+                                className="table-y-middle py-7 min-width-px-170 pl-10 border-0 selectedTableRow"
                                 style={{
-                                  border: "0px !important",
+                                  paddingLeft: "20px !important",
+                                  cursor: "pointer",
                                 }}
                               >
-                                <th
-                                  scope="row"
-                                  className="pl-6 border-0 py-7 pr-0 border-0 selectedTableRow"
-                                >
+                                <div className="">
                                   <a
-                                    className="media min-width-px-235 align-items-center"
+                                    className="font-size-4 font-weight-semi-bold text-black-2 text-capitalize"
                                     onClick={() => viewCandidateProfile(item)}
                                   >
-                                    <div className="circle-36 mr-6">
-                                      <img
-                                        src={
-                                          item?.applicantInfo?.image_uri &&
-                                          item?.applicantInfo?.image_uri
-                                            ?.length > 0
-                                            ? item?.applicantInfo?.image_uri
-                                            : imgP1.src
-                                        }
-                                        alt=""
-                                        style={{
-                                          height: "40px",
-                                          width: "40px",
-                                          objectFit: "cover",
-                                          borderRadius: "50%",
-                                        }}
-                                      />
-                                    </div>
-                                    <h4 className="font-size-4 mb-0 font-weight-semibold text-black-2">
-                                      {item?.applicantInfo?.name}
-                                    </h4>
+                                    View Applicant
                                   </a>
-                                </th>
-                                <td className="table-y-middle py-7 min-width-px-235 pr-0 border-0">
-                                  <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                                    {item?.jobInfo?.job_title}
-                                  </h3>
-                                </td>
-                                <td className="table-y-middle py-7 min-width-px-170 pr-0 border-0">
-                                  <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                                    {moment(
-                                      new Date(Number(item?.job_applied_at))
-                                    ).format("DD MMM YYYY")}
-                                  </h3>
-                                </td>
-                                <td className="table-y-middle py-5 min-width-px-100 pr-0 border-0">
-                                  {/* <div
-                                  style={{
-                                    display: "flex",
-                                  }}
-                                >
-                                  <Tippy content="In Progress">
-                                    <i
-                                      className="fa fa-spinner"
-                                      aria-hidden="true"
-                                      style={{
-                                        color: "blue",
-                                        cursor: "pointer",
-                                        marginRight: "10px",
-                                        fontSize: "32px",
-                                      }}
-                                      onClick={() =>
-                                        handleChangeApplicantStatus(
-                                          item?.jobInfo?.job_number,
-                                          item?.company_pubkey,
-                                          WORKFLOW_STATUSES_enum.IN_PROGRESS
-                                        )
-                                      }
-                                    />
-                                  </Tippy>
-                                  <Tippy content="Accept">
-                                    <i
-                                      className="fa fa-check-circle"
-                                      aria-hidden="true"
-                                      style={{
-                                        color: "green",
-                                        cursor: "pointer",
-                                        marginRight: "10px",
-                                        fontSize: "32px",
-                                      }}
-                                      onClick={() => alert("accept")}
-                                    />
-                                  </Tippy>
-                                  <Tippy content="Reject">
-                                    <i
-                                      className="fa fa-times-circle"
-                                      aria-hidden="true"
-                                      style={{
-                                        color: "red",
-                                        cursor: "pointer",
-                                        fontSize: "32px",
-                                      }}
-                                      onClick={() => alert("reject")}
-                                    />
-                                  </Tippy>
-                                  
-                                </div> */}
-                                  <Select
-                                    options={[
-                                      {
-                                        value: WORKFLOW_STATUSES_enum.APPLIED,
-                                        label: "APPLIED",
-                                      },
-                                      {
-                                        value:
-                                          WORKFLOW_STATUSES_enum.IN_PROGRESS,
-                                        label: "IN PROGRESS",
-                                      },
-                                      {
-                                        value: WORKFLOW_STATUSES_enum.ACCEPTED,
-                                        label: "ACCEPTED",
-                                      },
-                                      {
-                                        value: WORKFLOW_STATUSES_enum.REJECTED,
-                                        label: "REJECTED",
-                                      },
-                                    ]}
-                                    value={{
-                                      value: item?.status,
-                                      label: item?.status?.toUpperCase(),
-                                    }}
-                                    onChange={(e) =>
-                                      handleChangeApplicantStatus(
-                                        item.user_pubkey,
-                                        item?.job_pubkey,
-                                        item?.company_pubkey,
-                                        e
-                                      )
-                                    }
-                                  />
-                                </td>
-                                <td
-                                  className="table-y-middle py-7 min-width-px-170 pl-10 border-0 selectedTableRow"
-                                  style={{
-                                    paddingLeft: "20px !important",
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  <div className="">
-                                    <a
-                                      className="font-size-4 font-weight-semi-bold text-black-2 text-capitalize"
-                                      onClick={() => viewCandidateProfile(item)}
-                                    >
-                                      View Applicant
+                                </div>
+                              </td>
+                              <td
+                                className="table-y-middle py-7 min-width-px-110 border-0 selectedTableRow"
+                                style={{
+                                  paddingRight: "10px !important",
+                                  cursor: "pointer",
+                                  minWidth: "140px !important",
+                                }}
+                              >
+                                <div>
+                                  <Link
+                                    href={`/job-details/${item?.job_pubkey.toString()}`}
+                                  >
+                                    <a className="font-size-4 font-weight-semi-bold text-green text-capitalize">
+                                      View Job Post
                                     </a>
-                                  </div>
-                                </td>
-                                <td
-                                  className="table-y-middle py-7 min-width-px-110 border-0 selectedTableRow"
-                                  style={{
-                                    paddingRight: "10px !important",
-                                    cursor: "pointer",
-                                    minWidth: "140px !important",
-                                  }}
-                                >
-                                  <div>
-                                    <Link
-                                      href={`/job-details/${item?.job_pubkey.toString()}`}
-                                    >
-                                      <a className="font-size-4 font-weight-semi-bold text-green text-capitalize">
-                                        View Job Post
-                                      </a>
-                                    </Link>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))
-                        ) : (
-                          // <tr className="border border-color-2">
-                          //   <td className="table-y-middle py-7 min-width-px-235 pr-0 border-0">
-                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                          //   </td>
-                          //   <td className="table-y-full py-7 pr-0 border-0">
-                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0">
-                          //       No Applicants yet
-                          //     </h3>
-                          //   </td>
-                          //   <td className="table-y-middle py-7 pr-0 border-0">
-                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                          //   </td>
-                          //   <td className="table-y-middle py-7 pr-0 border-0">
-                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                          //   </td>
-                          //   <td className="table-y-middle py-7 pr-0 border-0">
-                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                          //   </td>
-                          //   <td className="table-y-middle py-7 pr-0 border-0">
-                          //     <h3 className="font-size-4 font-weight-normal text-black-2 mb-0"></h3>
-                          //   </td>
-                          // </tr>
-                          <div
-                            style={{
-                              textAlign: "center",
-                              padding: "50px 20px",
-                              fontSize: "20px",
-                              fontWeight: "normal",
-                              width: "315%",
-                              background: "#eee",
-                            }}
-                          >
-                            No Applicants yet
-                          </div>
-                        )}
+                                  </Link>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        }
                       </tbody>
-                    </table>
+                    </table>):
+                       (
+                        <div
+                          style={{
+                            textAlign: "center",
+                            padding: "50px 20px",
+                            fontSize: "20px",
+                            fontWeight: "normal",
+                            width: "100%",
+                            background: "#eee",
+                          }}
+                        >
+                          No applicants found
+                        </div>
+                    )
                   )}
                 </div>
                 {appliedCandidates &&

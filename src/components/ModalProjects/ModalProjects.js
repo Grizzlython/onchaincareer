@@ -9,7 +9,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import Loader from "../Loader";
 
 const projectSchema = {
-  archived: "",
+  archived: false,
   project_name: "",
   project_description: "",
   project_image_uris: [],
@@ -17,8 +17,7 @@ const projectSchema = {
   project_skills: [],
   project_start_date: "",
   project_end_date: "",
-  project_status: "",
-  project_number: "",
+  project_status: "status",
 };
 
 const ModalStyled = styled(Modal)`
@@ -66,10 +65,30 @@ const ModalProjects = (props) => {
         (project) => project.project_number === currentProjectNumber
       );
       if (fitleredProject && fitleredProject.length > 0) {
-        setCandidateProject({ ...fitleredProject[0] });
+        const tempProjects = { ...fitleredProject[0] };
+        if (tempProjects.project_start_date) {
+          tempProjects.project_start_date = new Date(
+            parseInt(tempProjects.project_start_date)
+          )
+            .toISOString()
+            .slice(0, 10);
+        }
+        if (tempProjects.project_end_date) {
+          tempProjects.project_end_date = new Date(
+            parseInt(tempProjects.project_end_date)
+          )
+            .toISOString()
+            .slice(0, 10);
+        }
+
+        setCandidateProject({ ...tempProjects });
       }
     }
   }, [currentProjectNumber]);
+
+  const resetForm = () => {
+    setCandidateProject({ ...projectSchema });
+  };
 
   const handleOrUpdateCandidateProject = async () => {
     try {
@@ -78,17 +97,12 @@ const ModalProjects = (props) => {
         return;
       }
       const projectInfo = { ...candidateProject };
-      console.log(projectInfo, "projectInfo in handleOrUpdateCandidateProject");
       if (projectInfo.project_start_date) {
         projectInfo.project_start_date = new Date(
           projectInfo.project_start_date
         )
           .getTime()
           .toString();
-        console.log(
-          projectInfo.project_start_date,
-          "projectInfo.project_start_date"
-        );
       }
       if (projectInfo.project_end_date) {
         projectInfo.project_end_date = new Date(projectInfo.project_end_date)
@@ -97,7 +111,7 @@ const ModalProjects = (props) => {
       }
 
       const notDefined = Object.keys(projectInfo).filter(
-        (key) => projectInfo[key] === undefined
+        (key) =>  projectInfo[key] === undefined
       );
 
       if (notDefined && notDefined.length > 0) {
@@ -106,7 +120,7 @@ const ModalProjects = (props) => {
       }
 
       let notFilled = Object.keys(projectInfo).filter(
-        (key) => projectInfo[key] === ""
+        (key) => key !== "project_link" && projectInfo[key] === ""
       );
 
       if (notFilled && notFilled.length > 0) {
@@ -122,6 +136,7 @@ const ModalProjects = (props) => {
           connection,
           signTransaction
         );
+        resetForm();
       } else {
         await gContext.addProject(
           publicKey,
@@ -129,6 +144,7 @@ const ModalProjects = (props) => {
           connection,
           signTransaction
         );
+        resetForm();
       }
       handleClose();
     } catch (error) {
@@ -158,7 +174,16 @@ const ModalProjects = (props) => {
         >
           <i className="fas fa-times"></i>
         </button>
-        <div className="mt-12" id="dashboard-body">
+        <div
+          className="mt-12"
+          id="dashboard-body"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+          }}
+        >
           {loading ? (
             <Loader />
           ) : (
@@ -328,7 +353,7 @@ const ModalProjects = (props) => {
                               </div>
                             </>
                           )}
-                          <pre>{JSON.stringify(candidateProject)}</pre>
+
                           <div className="row">
                             <div className="col-md-12">
                               <input

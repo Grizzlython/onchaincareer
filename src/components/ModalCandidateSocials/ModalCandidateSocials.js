@@ -2,30 +2,12 @@ import React, { useContext, useState } from "react";
 import styled from "styled-components";
 import { Modal } from "react-bootstrap";
 import GlobalContext from "../../context/GlobalContext";
-import { Select } from "../Core";
-
 import { useEffect } from "react";
 import { toast } from "react-toastify";
-import { useRouter } from "next/router";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { getContactInfoByUserAccount } from "../../utils/web3/web3_functions";
 import { userTypeEnum } from "../../utils/constants";
 import Loader from "../Loader";
 
-const currentEmploymentStatus = [
-  { value: "employed", label: "Employed" },
-  { value: "unemployed", label: "Unemployed" },
-  { value: "self-Employed", label: "Self-Employed" },
-  { value: "student", label: "Student" },
-];
-
-const canJoinIn = [
-  { value: "immediately", label: "Immediately" },
-  { value: "within 1 month", label: "1 Month" },
-  { value: "within 2 months", label: "2 Months" },
-  { value: "within 3 months", label: "3 Months" },
-  { value: "later", label: "More than 3 months" },
-];
 
 const ModalStyled = styled(Modal)`
   /* &.modal {
@@ -95,21 +77,21 @@ const ModalCandidateSocials = (props) => {
       }
 
       let notFilledFields = "";
-      if (!email) {
-        notFilledFields = "Email";
-      }
-      if (!phone) {
-        notFilledFields += "Phone,";
-      }
-      if (!resume) {
-        notFilledFields += "Resume Link,";
-      }
-      if (!github) {
-        notFilledFields += "Github handle,";
-      }
-      if (!linkedin) {
-        notFilledFields += "Linkedin handle";
-      }
+      // if (!email) {
+      //   notFilledFields = "Email";
+      // }
+      // if (!phone) {
+      //   notFilledFields += "Phone,";
+      // }
+      // if (!resume) {
+      //   notFilledFields += "Resume Link,";
+      // }
+      // if (!github) {
+      //   notFilledFields += "Github handle,";
+      // }
+      // if (!linkedin) {
+      //   notFilledFields += "Linkedin handle";
+      // }
 
       //regex for email
       const emailRegex =
@@ -160,11 +142,11 @@ const ModalCandidateSocials = (props) => {
         );
       }
 
-      toast.success(
-        `Candidate socials ${
-          showUpdateButton ? "updated" : "added"
-        } successfully`
-      );
+      // toast.success(
+      //   `Candidate socials ${
+      //     showUpdateButton ? "updated" : "added"
+      //   } successfully`
+      // );
 
       handleClose();
     } catch (err) {
@@ -195,7 +177,12 @@ const ModalCandidateSocials = (props) => {
         >
           <i className="fas fa-times"></i>
         </button>
-        <div className="mt-12" id="dashboard-body">
+        <div className="mt-12" id="dashboard-body" style={{
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}>
           {loading ? (
             <Loader />
           ) : (
@@ -367,7 +354,7 @@ const ModalCandidateSocials = (props) => {
                             <div className="col-lg-6">
                               <div className="form-group">
                                 <label
-                                  htmlFor="behance"
+                                  htmlFor="facebook"
                                   className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
                                 >
                                   Facebook handle
@@ -375,9 +362,9 @@ const ModalCandidateSocials = (props) => {
                                 <input
                                   type="text"
                                   className="form-control h-px-48"
-                                  id="behance"
+                                  id="facebook"
                                   placeholder="eg. https://facebook.com"
-                                  value={behance}
+                                  value={facebook}
                                   onChange={(e) => setFacebook(e.target.value)}
                                 />
                               </div>
@@ -385,7 +372,7 @@ const ModalCandidateSocials = (props) => {
                             <div className="col-lg-6">
                               <div className="form-group">
                                 <label
-                                  htmlFor="behance"
+                                  htmlFor="twitch"
                                   className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
                                 >
                                   Twitch
@@ -393,9 +380,9 @@ const ModalCandidateSocials = (props) => {
                                 <input
                                   type="text"
                                   className="form-control h-px-48"
-                                  id="behance"
+                                  id="twitch"
                                   placeholder="eg. https://www.twitch.tv/"
-                                  value={behance}
+                                  value={twitch}
                                   onChange={(e) => setTwitch(e.target.value)}
                                 />
                               </div>
@@ -403,7 +390,7 @@ const ModalCandidateSocials = (props) => {
                             <div className="col-lg-6">
                               <div className="form-group">
                                 <label
-                                  htmlFor="behance"
+                                  htmlFor="solgames"
                                   className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
                                 >
                                   Solgames handle
@@ -411,9 +398,9 @@ const ModalCandidateSocials = (props) => {
                                 <input
                                   type="text"
                                   className="form-control h-px-48"
-                                  id="behance"
+                                  id="solgames"
                                   placeholder="eg. https://solgames.fun"
-                                  value={behance}
+                                  value={solgames}
                                   onChange={(e) => setSolgames(e.target.value)}
                                 />
                               </div>
@@ -431,7 +418,7 @@ const ModalCandidateSocials = (props) => {
                                   className="form-control h-px-48"
                                   id="behance"
                                   placeholder="eg. https://www.instagram.com/"
-                                  value={behance}
+                                  value={instagram}
                                   onChange={(e) => setInstagram(e.target.value)}
                                 />
                               </div>

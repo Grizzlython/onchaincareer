@@ -6,7 +6,7 @@ import { Select } from "../Core";
 
 import { useEffect } from "react";
 import { toast } from "react-toastify";
-import { useRouter } from "next/router";
+import Router, { useRouter } from "next/router";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {
   check_if_user_exists,
@@ -19,6 +19,8 @@ import {
 } from "../../utils/bundlr-uploader";
 import filereaderStream from "filereader-stream";
 import { userTypeEnum } from "../../utils/constants";
+import Loader from "../Loader";
+import { skillsJson } from "../../staticData";
 
 const currentEmploymentStatusOptions = [
   { value: "employed", label: "Employed" },
@@ -44,6 +46,7 @@ const ModalStyled = styled(Modal)`
 const ModalRecruiterProfile = (props) => {
   const gContext = useContext(GlobalContext);
   const userInfo = gContext.user;
+  const { loading } = gContext;
 
   const defaultEmpStatus = currentEmploymentStatusOptions[0];
   const defaultCanJoinIn = canJoinInOptions[0];
@@ -51,7 +54,7 @@ const ModalRecruiterProfile = (props) => {
   const [name, setName] = useState("");
   const [designation, setDesignation] = useState("");
   const [location, setLocation] = useState("");
-  const [skills, setSkills] = useState("");
+  const [skills, setSkills] = useState([]);
   const [currentEmploymentStatusState, setCurrentEmploymentStatusState] =
     useState(defaultEmpStatus);
   const [canJoinInState, setCanJoinInState] = useState(0);
@@ -112,6 +115,8 @@ const ModalRecruiterProfile = (props) => {
     }
   };
 
+  const router = useRouter();
+
   const updateRecruiterInfo = async (e) => {
     try {
       if (!publicKey) {
@@ -153,7 +158,7 @@ const ModalRecruiterProfile = (props) => {
         address: location,
         image_uri: image && image.length > 0 ? image : "",
         bio: about,
-        skills: skills && skills.length > 0 ? skills.split(",") : [],
+        skills: skills && skills.length > 0 ? skills : [],
         designation: designation,
         current_employment_status: "",
         can_join_in: "",
@@ -213,6 +218,7 @@ const ModalRecruiterProfile = (props) => {
           gContext.setRecruiterUser(userExistsRes.data);
         }
         gContext.toggleRecruiterProfileModal();
+        router.push("/dashboard-main");
       } else {
         toast.error("Applicant info not updated");
         gContext.toggleRecruiterProfileModal();
@@ -223,16 +229,13 @@ const ModalRecruiterProfile = (props) => {
     }
   };
 
-  const handleSkills = (e) => {
-    setSkills(e.target.value);
-  };
-
   useEffect(() => {
     if (userInfo) {
+      console.log(userInfo, "userInfo");
       setName(userInfo.name);
       setDesignation(userInfo.designation);
       setLocation(userInfo.address);
-      setSkills(userInfo.skills ? userInfo.skills.join(",") : "");
+      setSkills(userInfo.skills ? userInfo.skills : []);
       setAbout(userInfo.bio);
 
       setImage(userInfo.image_uri);
@@ -243,6 +246,18 @@ const ModalRecruiterProfile = (props) => {
 
   const handleClose = () => {
     gContext.toggleRecruiterProfileModal();
+  };
+
+  const handleSkills = (e) => {
+    console.log(e, "value");
+    // map throough e and get the values and set it to skills
+    const selectedSkills = [];
+    e.map((item) => {
+      console.log(item.value, "value");
+      selectedSkills.push(item.value);
+    });
+    console.log(selectedSkills, "selectedSkills");
+    setSkills(selectedSkills);
   };
 
   return (
@@ -268,83 +283,29 @@ const ModalRecruiterProfile = (props) => {
           <i className="fas fa-times"></i>
         </button>
         <div className="mt-12" id="dashboard-body">
-          <div className="container">
-            <div className="mb-12 mb-lg-23">
-              <div className="row">
-                <div className="col-xxxl-9 px-lg-13 px-6">
-                  <h5 className="font-size-6 font-weight-semibold mb-11">
-                    Complete recruiter profile
-                  </h5>
-                  <div
-                    className="contact-form bg-white shadow-8 rounded-4 pl-sm-10 pl-4 pr-sm-11 pr-4 pt-15 pb-13"
-                    style={{
-                      border: "1px solid #e5e5e5",
-                    }}
-                  >
-                    {image && image.length > 0 && !editImage ? (
-                      <>
-                        <div className="upload-file mb-16 text-center">
-                          <img
-                            src={image}
-                            alt=""
-                            className="img-fluid rounded-circle"
-                            style={{
-                              width: "100px",
-                              height: "100px",
-                              objectFit: "cover",
-                              borderRadius: "50%",
-                            }}
-                          />
-                          <br />
-                          <button
-                            onClick={() => setEditImage(true)}
-                            className="mt-4"
-                          >
-                            Edit image
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <div className="upload-file mb-16 text-center">
-                          <div
-                            id="userActions"
-                            className="square-144 m-auto px-6 mb-7"
-                          >
-                            <label
-                              htmlFor="fileUpload"
-                              className="mb-0 font-size-4 text-smoke"
-                            >
-                              Browse or Drag and Drop your image
-                            </label>
-                            <input
-                              type="file"
-                              id="fileUpload"
-                              className="sr-only"
-                              onChange={(e) => handleUpload(e)}
-                              accept="image/*"
-                            />
-                          </div>
-                          {editImage && (
-                            <button
-                              onClick={() => setEditImage(false)}
-                              className="mt-4"
-                            >
-                              Cancel edit
-                            </button>
-                          )}
-                        </div>
-                        {preview && (
-                          <div className="ml-10">
-                            <p>Image preview</p>
+          {loading ? (
+            <Loader />
+          ) : (
+            <div className="container">
+              <div className="mb-12 mb-lg-23">
+                <div className="row">
+                  <div className="col-xxxl-9 px-lg-13 px-6">
+                    <h5 className="font-size-6 font-weight-semibold mb-11">
+                      Complete recruiter profile
+                    </h5>
+                    <div
+                      className="contact-form bg-white shadow-8 rounded-4 pl-sm-10 pl-4 pr-sm-11 pr-4 pt-15 pb-13"
+                      style={{
+                        border: "1px solid #e5e5e5",
+                      }}
+                    >
+                      {image && image.length > 0 && !editImage ? (
+                        <>
+                          <div className="upload-file mb-16 text-center">
                             <img
-                              src={preview}
+                              src={image}
                               alt=""
+                              className="img-fluid rounded-circle"
                               style={{
                                 width: "100px",
                                 height: "100px",
@@ -352,132 +313,204 @@ const ModalRecruiterProfile = (props) => {
                                 borderRadius: "50%",
                               }}
                             />
+                            <br />
+                            <button
+                              onClick={() => setEditImage(true)}
+                              className="mt-4"
+                            >
+                              Edit image
+                            </button>
                           </div>
-                        )}
-                      </div>
-                    )}
-
-                    <form action="/">
-                      <fieldset>
-                        <div className="row mb-xl-1 mb-9">
-                          <div className="col-lg-6">
-                            <div className="form-group">
+                        </>
+                      ) : (
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <div className="upload-file mb-16 text-center">
+                            <div
+                              id="userActions"
+                              className="square-144 m-auto px-6 mb-7"
+                            >
                               <label
-                                htmlFor="namedash"
-                                className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                htmlFor="fileUpload"
+                                className="mb-0 font-size-4 text-smoke"
                               >
-                                Name
+                                Browse or Drag and Drop your image
                               </label>
                               <input
-                                type="text"
-                                className="form-control h-px-48"
-                                id="namedash"
-                                placeholder="eg. John Doe"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                maxLength="32"
+                                type="file"
+                                id="fileUpload"
+                                className="sr-only"
+                                onChange={(e) => handleUpload(e)}
+                                accept="image/*"
                               />
                             </div>
-                          </div>
-                          <div className="col-lg-6">
-                            <div className="form-group">
-                              <label
-                                htmlFor="domain"
-                                className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                            {editImage && (
+                              <button
+                                onClick={() => setEditImage(false)}
+                                className="mt-4"
                               >
-                                Designation
-                              </label>
-                              <input
-                                type="text"
-                                className="form-control h-px-48"
-                                id="domain"
-                                placeholder="eg. Product Manager"
-                                value={designation}
-                                onChange={(e) => setDesignation(e.target.value)}
-                                maxLength="32"
+                                Cancel edit
+                              </button>
+                            )}
+                          </div>
+                          {preview && (
+                            <div className="ml-10">
+                              <p>Image preview</p>
+                              <img
+                                src={preview}
+                                alt=""
+                                style={{
+                                  width: "100px",
+                                  height: "100px",
+                                  objectFit: "cover",
+                                  borderRadius: "50%",
+                                }}
                               />
                             </div>
-                          </div>
-                          <div className="col-lg-6">
-                            <div className="form-group">
-                              <label
-                                htmlFor="location"
-                                className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                              >
-                                Address
-                              </label>
-
-                              <input
-                                type="text"
-                                className="form-control h-px-48"
-                                id="location"
-                                placeholder="eg. New York, USA"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                maxLength="32"
-                              />
-                            </div>
-                          </div>
-                          <div className="col-lg-6">
-                            <div className="form-group position-relative">
-                              <label
-                                htmlFor="address"
-                                className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                              >
-                                Skills (Min 3 Skills, Comma separated)
-                              </label>
-                              <input
-                                type="text"
-                                className="form-control h-px-48"
-                                id="address"
-                                placeholder="eg. HTML, CSS, Javascript"
-                                value={skills}
-                                onChange={(e) => handleSkills(e)}
-                                maxLength="32"
-                              />
-                              <span className="h-100 w-px-50 pos-abs-tl d-flex align-items-center justify-content-center font-size-6"></span>
-                            </div>
-                          </div>
+                          )}
                         </div>
+                      )}
 
-                        <div className="row">
-                          <div className="col-md-12">
-                            <div className="form-group">
-                              <label
-                                htmlFor="aboutTextarea"
-                                className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
-                              >
-                                About me
-                              </label>
-                              <textarea
-                                name="textarea"
-                                id="aboutTextarea"
-                                cols="30"
-                                rows="7"
-                                className="border border-mercury text-gray w-100 pt-4 pl-6"
-                                placeholder="Describe about the company what make it unique"
-                                value={about}
-                                onChange={(e) => setAbout(e.target.value)}
-                                maxLength="512"
-                              ></textarea>
+                      <form action="/">
+                        <fieldset>
+                          <div className="row mb-xl-1 mb-9">
+                            <div className="col-lg-6">
+                              <div className="form-group">
+                                <label
+                                  htmlFor="namedash"
+                                  className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                >
+                                  Name
+                                </label>
+                                <input
+                                  type="text"
+                                  className="form-control h-px-48"
+                                  id="namedash"
+                                  placeholder="eg. John Doe"
+                                  value={name}
+                                  onChange={(e) => setName(e.target.value)}
+                                  maxLength="32"
+                                />
+                              </div>
+                            </div>
+                            <div className="col-lg-6">
+                              <div className="form-group">
+                                <label
+                                  htmlFor="domain"
+                                  className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                >
+                                  Designation
+                                </label>
+                                <input
+                                  type="text"
+                                  className="form-control h-px-48"
+                                  id="domain"
+                                  placeholder="eg. Product Manager"
+                                  value={designation}
+                                  onChange={(e) =>
+                                    setDesignation(e.target.value)
+                                  }
+                                  maxLength="32"
+                                />
+                              </div>
+                            </div>
+                            <div className="col-lg-6">
+                              <div className="form-group">
+                                <label
+                                  htmlFor="location"
+                                  className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                >
+                                  Address
+                                </label>
+
+                                <input
+                                  type="text"
+                                  className="form-control h-px-48"
+                                  id="location"
+                                  placeholder="eg. New York, USA"
+                                  value={location}
+                                  onChange={(e) => setLocation(e.target.value)}
+                                  maxLength="32"
+                                />
+                              </div>
+                            </div>
+                            <div className="col-lg-6">
+                              <div className="form-group position-relative">
+                                <label
+                                  htmlFor="address"
+                                  className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                >
+                                  Skills (Max 10)
+                                </label>
+                                <Select
+                                  isMulti
+                                  onChange={handleSkills}
+                                  options={skillsJson}
+                                  value={skills.map((skill) => {
+                                    return { value: skill, label: skill };
+                                  })}
+                                  placeholder="eg. Html, css, js"
+                                  className="basic-multi-select"
+                                  border={true}
+                                />
+                                <span className="h-100 w-px-50 pos-abs-tl d-flex align-items-center justify-content-center font-size-6"></span>
+                              </div>
                             </div>
                           </div>
-                          <div className="col-md-12">
-                            <input
-                              type="button"
-                              value={`Submit info`}
-                              className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
-                              onClick={updateRecruiterInfo}
-                            />
+
+                          <div className="row">
+                            <div className="col-md-12">
+                              <div className="form-group">
+                                <label
+                                  htmlFor="aboutTextarea"
+                                  className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                >
+                                  About me
+                                </label>
+                                <div
+                                  style={{
+                                    position: "absolute",
+                                    right: "20px",
+                                    top: "0",
+                                    color: "#000",
+                                  }}
+                                >
+                                  <span>{about?.length}</span>/<span>512</span>{" "}
+                                </div>
+                                <textarea
+                                  name="textarea"
+                                  id="aboutTextarea"
+                                  cols="30"
+                                  rows="7"
+                                  className="border border-mercury text-gray w-100 pt-4 pl-6"
+                                  placeholder="Describe about the company what make it unique"
+                                  value={about}
+                                  onChange={(e) => setAbout(e.target.value)}
+                                  maxLength="512"
+                                ></textarea>
+                              </div>
+                            </div>
+                            <div className="col-md-12">
+                              <input
+                                type="button"
+                                value={`Submit info`}
+                                className="btn btn-green btn-h-60 text-white min-width-px-210 rounded-5 text-uppercase"
+                                onClick={updateRecruiterInfo}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </fieldset>
-                    </form>
+                        </fieldset>
+                      </form>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </Modal.Body>
     </ModalStyled>

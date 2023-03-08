@@ -24,17 +24,18 @@ export default function CandidateProfile() {
     getCandidateProfileByUsername,
     fetchAndSetWorkExperience,
     fetchAndSetProjects,
+    fetchAndSetEducation,
     loading,
   } = gContext;
   const { connection } = useConnection();
   const [candidateProfile, setCandidateProfile] = React.useState({});
 
   // useEffect(() => {
-    // if (!publicKey) return;
-    // const applicantStateAccount = new PublicKey(userName);
-    // gContext.getCandidateProfileByUsername(applicantStateAccount, connection);
-    // gContext.fetchAndSetWorkExperience(applicantStateAccount, connection);
-    // gContext.fetchAndSetProjects(applicantStateAccount, connection);
+  // if (!publicKey) return;
+  // const applicantStateAccount = new PublicKey(userName);
+  // gContext.getCandidateProfileByUsername(applicantStateAccount, connection);
+  // gContext.fetchAndSetWorkExperience(applicantStateAccount, connection);
+  // gContext.fetchAndSetProjects(applicantStateAccount, connection);
   // }, [userName]);
 
   // const handleSocials = () => {
@@ -51,21 +52,21 @@ export default function CandidateProfile() {
     const applicantStateAccount = new PublicKey(
       workflowSelectedToView.user_pubkey
     );
-    getCandidateProfileByUsername(applicantStateAccount, connection);
-    fetchAndSetWorkExperience(applicantStateAccount, connection);
-    fetchAndSetProjects(applicantStateAccount, connection);
+    (async () => {
+      await getCandidateProfileByUsername(applicantStateAccount, connection);
+      await fetchAndSetWorkExperience(applicantStateAccount, connection);
+      await fetchAndSetProjects(applicantStateAccount, connection);
+      await fetchAndSetEducation(applicantStateAccount, connection);
+    })();
   }, [workflowSelectedToView, userName]);
 
   return (
     <>
       <PageWrapper headerConfig={{ button: "profile" }}>
-        
         <div className="bg-default-2 pt-22 pt-lg-25 pb-13 pb-xxl-32">
-          
           {loading ? (
             <Loader />
           ) : (
-            
             <div className="container">
               <div className="row">
                 <div className="col-12 col-xxl-3 col-lg-4 col-md-5 mb-11 mb-lg-0">
@@ -104,7 +105,6 @@ export default function CandidateProfile() {
               <div className="row">
                 {/* <!-- Left Sidebar Start --> */}
                 <div className="col-12 col-xxl-3 col-lg-4 col-md-5 mb-11 mb-lg-0">
-                  
                   <ProfileSidebar workflow={workflowSelectedToView} />
                 </div>
                 {/* <!-- Left Sidebar End --> */}
@@ -144,6 +144,14 @@ export default function CandidateProfile() {
                             className="text-uppercase font-size-3 font-weight-bold text-default-color py-3 px-0"
                           >
                             Projects
+                          </Nav.Link>
+                        </li>
+                        <li className="tab-menu-items nav-item pr-12">
+                          <Nav.Link
+                            eventKey="four"
+                            className="text-uppercase font-size-3 font-weight-bold text-default-color py-3 px-0"
+                          >
+                            Education
                           </Nav.Link>
                         </li>
 
@@ -309,78 +317,98 @@ export default function CandidateProfile() {
                             )}
                           </div>
                         </Tab.Pane>
+                        <Tab.Pane eventKey="four">
+                          <div className="border-top p-5 pl-xs-12 pt-7 pb-5">
+                            {gContext.educations?.length === 0 ? (
+                              <>
+                                <p>No Education found</p>
+                                {/* <Button
+                                onClick={() => {
+                                  gContext.toggleProjectsModal();
+                                }}
+                                width="80px"
+                                height="50px"
+                              >
+                                Add project
+                              </Button> */}
+                              </>
+                            ) : (
+                              gContext.educations?.map((education, index) => (
+                                <div
+                                  className="w-100"
+                                  key={index}
+                                  style={{
+                                    borderBottom: "0.5px solid #dddddd",
+                                  }}
+                                >
+                                  <div className="d-flex align-items-center pr-11 mb-9 flex-wrap flex-sm-nowrap">
+                                    {/* <div className="square-72 d-block mr-8 mb-7 mb-sm-0">
+                                <img src={imgB1.src} alt="" />
+                              </div> */}
+                                    <div className="w-100 mt-n2">
+                                      <h3 className="mb-0">
+                                        <a className="font-size-6 text-black-2 font-weight-semibold">
+                                          {education.school_name}
+                                        </a>
+                                      </h3>
+                                      <Link href={"#"}>
+                                        <a className="font-size-3 text-blue">
+                                          Certificates:
+                                          {education.certificate_uris &&
+                                            education.certificate_uris.length >
+                                              0 &&
+                                            education.certificate_uris.map(
+                                              (certificate_uri, index) => (
+                                                <a
+                                                  href={
+                                                    certificate_uri
+                                                      ? certificate_uri
+                                                      : "#"
+                                                  }
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="font-size-3 text-blue"
+                                                >
+                                                  {" "}
+                                                  <i className="fa fa-link mr-2"></i>
+                                                  {certificate_uri}
+                                                </a>
+                                              )
+                                            )}
+                                        </a>
+                                      </Link>
+                                      <br />
+                                      {/* <a className="font-size-4 text-default-color line-height-2">
+                                      {education.activities.join(", ")}
+                                    </a> */}
+                                      <a className="font-size-4 text-default-color line-height-2">
+                                        {education.description}
+                                      </a>
 
-                        {/* <Tab.Pane eventKey="four">
-                        
-                        <div className="pr-xl-11 p-5 pl-xs-12 pt-9 pb-11">
-                          <form action="/">
-                            <div className="row">
-                              <div className="col-12 mb-7">
-                                <label
-                                  htmlFor="name3"
-                                  className="font-size-4 font-weight-semibold text-black-2 mb-5 line-height-reset"
-                                >
-                                  Your Name
-                                </label>
-                                <input
-                                  id="name3"
-                                  type="text"
-                                  className="form-control"
-                                  placeholder="Jhon Doe"
-                                />
-                              </div>
-                              <div className="col-lg-6 mb-7">
-                                <label
-                                  htmlFor="email3"
-                                  className="font-size-4 font-weight-semibold text-black-2 mb-5 line-height-reset"
-                                >
-                                  E-mail
-                                </label>
-                                <input
-                                  id="email3"
-                                  type="email"
-                                  className="form-control"
-                                  placeholder="example@gmail.com"
-                                />
-                              </div>
-                              <div className="col-lg-6 mb-7">
-                                <label
-                                  htmlFor="subject3"
-                                  className="font-size-4 font-weight-semibold text-black-2 mb-5 line-height-reset"
-                                >
-                                  Subject
-                                </label>
-                                <input
-                                  id="subject3"
-                                  type="text"
-                                  className="form-control"
-                                  placeholder="Special contract"
-                                />
-                              </div>
-                              <div className="col-lg-12 mb-7">
-                                <label
-                                  htmlFor="message3"
-                                  className="font-size-4 font-weight-semibold text-black-2 mb-5 line-height-reset"
-                                >
-                                  Message
-                                </label>
-                                <textarea
-                                  name="message"
-                                  id="message3"
-                                  placeholder="Type your message"
-                                  className="form-control h-px-144"
-                                ></textarea>
-                              </div>
-                              <div className="col-lg-12 pt-4">
-                                <button className="btn btn-primary text-uppercase w-100 h-px-48">
-                                  Send Now
-                                </button>
-                              </div>
-                            </div>
-                          </form>
-                        </div>
-                        
-                      </Tab.Pane> */}
+                                      <div className="d-flex align-items-center justify-content-md-between flex-wrap">
+                                        <a className="font-size-4 text-gray mr-5">
+                                          {`${
+                                            education.start_date
+                                              ? moment(
+                                                  +education.start_date
+                                                ).format("DD MMM YYYY")
+                                              : "Present"
+                                          } - ${
+                                            education.end_date
+                                              ? moment(
+                                                  +education.end_date
+                                                ).format("DD MMM YYYY")
+                                              : "Present"
+                                          }`}
+                                        </a>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </Tab.Pane>
                       </Tab.Content>
                       {/* <!-- Tab Content End --> */}
                       {/* <!-- Tab Section End --> */}

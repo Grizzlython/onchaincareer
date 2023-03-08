@@ -8,7 +8,7 @@ export default function ErrorPage() {
   return (
     <>
       <PageWrapper>
-        <div className="header pt-11 pos-abs-tl w-100">
+        <div className="header pos-abs-tl w-100">
           <div className="container">
             <div className="row">
               <div className="col-12 text-center">
@@ -21,15 +21,17 @@ export default function ErrorPage() {
             </div>
           </div>
         </div>
-        <div className="404-page bg-default min-h-100vh flex-all-center pt-lg-15 pt-xxl-17 pt-27 pb-lg-0 pb-18">
+        <div className="404-page bg-default flex-all-center" style={{
+          height: "60vh",
+        }}>
           <div className="container">
             <div className="row justify-content-center">
-              <div className="col-lg-7 px-lg-9">
+              <div className="col-lg-7">
                 {/* <!-- card start --> */}
                 <div
                   className="card-404 text-center"
-                  data-aos="zoom-in"
-                  data-aos-duration="1000"
+                  // data-aos="zoom-in"
+                  // data-aos-duration="1000"
                 >
                   {/* <!-- card image start --> */}
                   <img src={imgError.src} alt="" className="w-100 px-9" />

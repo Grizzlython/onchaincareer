@@ -1,47 +1,27 @@
 import React, { useContext } from "react";
+import SEO from "@bradgarropy/next-seo";
 import PageWrapper from "../components/PageWrapper";
 import { Select } from "../components/Core";
 
-import SearchTab from "../sections/search/SearchTab";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useEffect } from "react";
-import { countries } from "../staticData";
-import { categoryOptions, sortTypes } from "../utils/constants";
+import { companyTypes, defaultEmployees, sortTypes } from "../utils/constants";
 import GlobalContext from "../context/GlobalContext";
 import SearchCompanyTab from "../sections/search/SearchCompanyTab";
-
-const defaultExpLevels = [
-  { value: "entry", label: "Entry" },
-  { value: "jn", label: "Junior" },
-  { value: "mid", label: "Mid Level" },
-  { value: "sr", label: "Sinior" },
-];
-
-const defaultCompanyTypes = [
-  { value: "all", label: "All Types" },
-  { value: "Product-based", label: "Product based" },
-  { value: "Service-based", label: "Service based" },
-];
-
-const defaultEmployees = [
-  { value: "all", label: "All Types" },
-  { value: "10-50", label: "10-50" },
-  { value: "50-100", label: "50-100" },
-  { value: "100-500", label: "100-500" },
-  { value: "500+", label: "500+" },
-];
+import { useConnection } from "@solana/wallet-adapter-react";
 
 export default function SearchListTwo() {
-  const [employeeSize, setEmployeeSize] = useState("all");
-  const [country, setCountry] = useState("any");
-  const [companyType, setCompanyType] = useState("all");
+  const [employeeSize, setEmployeeSize] = useState("Any");
+  const [country, setCountry] = useState("Any");
+  const [companyType, setCompanyType] = useState("All");
   const [companyName, setCompanyName] = useState("");
-  const [sortType, setSortType] = useState("any");
+  const [sortType, setSortType] = useState("Any");
+  const { connection } = useConnection();
 
   const gContext = useContext(GlobalContext);
 
-  const { allListedCompanies } = gContext;
+  const { allListedCompanies, fetchAndSetAllListedCompanies } = gContext;
 
   const { query } = useRouter();
   useEffect(() => {
@@ -58,8 +38,33 @@ export default function SearchListTwo() {
       setCompanyName(query.companyName);
     }
   }, [query]);
+
+  useEffect(() => {
+    (async () => {
+      await fetchAndSetAllListedCompanies(connection);
+    })();
+  }, []);
   return (
     <>
+      <SEO
+        description="Search for your dream job on OnChainCareer's secure and decentralized job marketplace. Our cutting-edge blockchain technology ensures reliable and transparent job solutions for job seekers, employers, and stakeholders. Find your next career opportunity today!"
+        keywords={[
+          "OnChainCareer",
+          "blockchain",
+          "decentralized",
+          "job marketplace",
+          "job platform",
+          "job search",
+          "job listings",
+          "job opportunities",
+          "job seekers",
+          "employers",
+          "secure",
+          "reliable",
+          "transparent",
+          "job solutions",
+        ]}
+      />
       <PageWrapper>
         <div className="bg-black-2 mt-15 mt-lg-22 pt-18 pt-lg-13 pb-13">
           <div className="container">
@@ -85,7 +90,7 @@ export default function SearchListTwo() {
                         className="form-control focus-reset pl-13"
                         type="text"
                         id="keyword"
-                        placeholder="Search company"
+                        placeholder="Search company by name"
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
                       />
@@ -144,8 +149,7 @@ export default function SearchListTwo() {
                       Company Type
                     </label>
                     <Select
-                      options={defaultCompanyTypes}
-                      className="font-size-4"
+                      options={companyTypes}
                       // border={false}
                       css={`
                         min-width: 175px;
@@ -153,11 +157,13 @@ export default function SearchListTwo() {
                         border-radius: 1px;
                       `}
                       value={
-                        defaultCompanyTypes.filter(
+                        companyTypes.filter(
                           (item) => item.value === companyType
                         )[0]
                       }
                       onChange={(e) => setCompanyType(e.value)}
+                      className="basic-multi-select"
+                      border={true}
                     />
                   </div>
                   <div
@@ -176,8 +182,8 @@ export default function SearchListTwo() {
                     </label>
                     <Select
                       options={defaultEmployees}
-                      className="font-size-4"
-                      // border={false}
+                      className="basic-multi-select"
+                      border={true}
                       css={`
                         min-width: 175px;
                       `}
@@ -205,8 +211,8 @@ export default function SearchListTwo() {
                     </label>
                     <Select
                       options={sortTypes}
-                      className="font-size-4"
-                      // border={false}
+                      className="basic-multi-select"
+                      border={true}
                       css={`
                         min-width: 175px;
                       `}

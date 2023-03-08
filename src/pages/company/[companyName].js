@@ -23,6 +23,7 @@ import { useConnection } from "@solana/wallet-adapter-react";
 
 import moment from "moment";
 import Loader from "../../components/Loader";
+import { EXPLORER_ADDRESS_URL, EXPLORER_CLUSTER } from "../../utils/constants";
 
 export default function Company() {
   const router = useRouter();
@@ -195,22 +196,20 @@ export default function Company() {
                                       employees
                                     </h5>
                                   </div>
-                                  <div className="mb-8">
-                                    <p className="font-size-4">Est. Since</p>
-                                    <h5 className="font-size-4 font-weight-semibold text-black-2">
-                                      {selectedCompanyInfo?.founded_in}
-                                    </h5>
-                                  </div>
-                                </div>
-                                {/* <!-- Single Widgets End --> */}
-                                {/* <!-- Single Widgets Start --> */}
-                                <div className="col-12 col-lg-4 col-md-4 col-xs-6">
+
                                   <div className="mb-8">
                                     <p className="font-size-4">
-                                      Type of corporation
+                                      Funding Amount
                                     </p>
                                     <h5 className="font-size-4 font-weight-semibold text-black-2">
-                                      {selectedCompanyInfo?.company_type}
+                                      <span className="text-primary mr-2">
+                                        {selectedCompanyInfo?.funding_currency}
+                                      </span>
+                                      {selectedCompanyInfo?.funding_amount &&
+                                      selectedCompanyInfo?.funding_amount
+                                        .length > 0
+                                        ? selectedCompanyInfo?.funding_amount
+                                        : "N/A"}
                                     </h5>
                                   </div>
                                   <div className="mb-8">
@@ -261,9 +260,44 @@ export default function Company() {
                                 {/* <!-- Single Widgets Start --> */}
                                 <div className="col-12 col-lg-4 col-md-4 col-xs-6">
                                   <div className="mb-8">
+                                    <p className="font-size-4">Company Type</p>
+                                    <h5 className="font-size-4 font-weight-semibold text-black-2">
+                                      {selectedCompanyInfo?.company_type}
+                                    </h5>
+                                  </div>
+                                  <div className="mb-8">
+                                    <p className="font-size-4">Website</p>
+                                    <h5 className="font-size-4 font-weight-semibold text-black-2">
+                                      <a
+                                        href={
+                                          selectedCompanyInfo?.website &&
+                                          selectedCompanyInfo?.website.length >
+                                            0
+                                            ? selectedCompanyInfo?.website
+                                            : "#"
+                                        }
+                                      >
+                                        {selectedCompanyInfo?.website &&
+                                        selectedCompanyInfo?.website.length > 0
+                                          ? selectedCompanyInfo?.website
+                                          : "NA"}
+                                      </a>
+                                    </h5>
+                                  </div>
+                                </div>
+                                {/* <!-- Single Widgets End --> */}
+                                {/* <!-- Single Widgets Start --> */}
+                                <div className="col-12 col-lg-4 col-md-4 col-xs-6">
+                                  <div className="mb-8">
                                     <p className="font-size-4">Location</p>
                                     <h5 className="font-size-4 font-weight-semibold text-black-2">
                                       {selectedCompanyInfo?.address}
+                                    </h5>
+                                  </div>
+                                  <div className="mb-8">
+                                    <p className="font-size-4">Est. Since</p>
+                                    <h5 className="font-size-4 font-weight-semibold text-black-2">
+                                      {selectedCompanyInfo?.founded_in}
                                     </h5>
                                   </div>
                                 </div>
@@ -282,162 +316,178 @@ export default function Company() {
                               {/* <!-- Excerpt End --> */}
                             </Tab.Pane>
                             <Tab.Pane eventKey="jobs">
-                              {companyPostedJobs?.map((job, index) => (
-                                <div
-                                  className="pt-9 px-xl-9 px-lg-7 px-7 pb-7 light-mode-texts bg-white rounded hover-shadow-3 hover-border-green mt-4"
-                                  style={{
-                                    border: "1px solid #e5e5e5",
-                                  }}
-                                >
-                                  <div className="row">
-                                    <div className="col-md-6">
-                                      <div className="media align-items-center">
-                                        <div className="square-72 d-block mr-8">
-                                          <img
-                                            src={
-                                              job?.parsedInfo?.company_info
-                                                ?.logo_uri || job.logo
-                                            }
-                                            alt=""
-                                            style={{
-                                              width: "75px",
-                                              height: "75px",
-                                              objectFit: "cover",
-                                              borderRadius: "50%",
-                                            }}
-                                          />
-                                        </div>
-                                        <div>
-                                          <h3 className="mb-0 font-size-6 heading-default-color">
-                                            {job?.jobTitle}
-                                          </h3>
-                                          <span className="font-size-3 text-default-color line-height-2 d-block">
-                                            {job?.parsedInfo?.company_info?.name?.toUpperCase()}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div className="col-md-6 text-right pt-7 pt-md-5">
-                                      <div className="media justify-content-md-end">
-                                        <div className="image mr-5 mt-2">
-                                          <img src={imgF.src} alt="" />
-                                        </div>
-                                        <p className="font-weight-bold font-size-7 text-hit-gray mb-0">
-                                          <span className="text-primary mr-2">
-                                            {job?.parsedInfo?.currency}{" "}
-                                          </span>
-                                          <span className="text-black-2">
-                                            {` ${Number(
-                                              job?.parsedInfo?.min_salary
-                                            )} -
-                                    ${Number(job?.parsedInfo?.max_salary)}`}
-                                          </span>
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="row pt-8">
-                                    <div className="col-md-7">
-                                      <ul className="d-flex list-unstyled mr-n3 flex-wrap">
-                                        {job?.parsedInfo?.skills.map(
-                                          (skill, index) => (
-                                            <li key={index}>
-                                              <span className="bg-regent-opacity-15 min-width-px-96 mr-3 text-center rounded-3 px-6 py-1 font-size-3 text-black-2 mt-2 d-inline-block">
-                                                {skill}
-                                              </span>
-                                            </li>
-                                          )
-                                        )}
-                                      </ul>
-                                    </div>
-                                    <div className="col-md-5">
-                                      <ul className="d-flex list-unstyled mr-n3 flex-wrap mr-n8 justify-content-md-end">
-                                        <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
-                                          <span
-                                            className="mr-4"
-                                            css={`
-                                              margin-top: -2px;
-                                            `}
-                                          >
-                                            <img src={iconL.src} alt="" />
-                                          </span>
-                                          <span className="font-weight-semibold">
-                                            {job?.parsedInfo
-                                              ?.job_location_type === "remote"
-                                              ? "Remote"
-                                              : `${job?.parsedInfo?.city}, ${job?.parsedInfo?.country}`}
-                                          </span>
-                                        </li>
-                                        <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
-                                          <span
-                                            className="mr-4"
-                                            css={`
-                                              margin-top: -2px;
-                                            `}
-                                          >
-                                            <img src={iconS.src} alt="" />
-                                          </span>
-                                          <span className="font-weight-semibold">
-                                            {job?.parsedInfo?.job_type}
-                                          </span>
-                                        </li>
-                                        <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
-                                          <span
-                                            className="mr-4"
-                                            css={`
-                                              margin-top: -2px;
-                                            `}
-                                          >
-                                            <img src={iconC.src} alt="" />
-                                          </span>
-                                          <span className="font-weight-semibold">
-                                            {
-                                              // convert created at date to days ago
-                                              moment(new Date()).fromNow()
-                                            }
-                                          </span>
-                                        </li>
-                                      </ul>
-                                      <ul className="d-flex list-unstyled mr-n3 flex-wrap mr-n8 justify-content-md-end">
-                                        <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
-                                          <span className="mr-4">
-                                            Categories:
-                                          </span>
-                                          <span className="font-weight-semibold">
-                                            {job?.parsedInfo?.category.join(
-                                              ","
-                                            )}
-                                          </span>
-                                        </li>
-                                      </ul>
-                                    </div>
-                                  </div>
-
+                              {companyPostedJobs &&
+                              companyPostedJobs.length > 0 ? (
+                                companyPostedJobs?.map((job, index) => (
                                   <div
-                                    className="card-btn-group mt-3"
+                                    className="pt-9 px-xl-9 px-lg-7 px-7 pb-7 light-mode-texts bg-white rounded hover-shadow-3 hover-border-green mt-4"
                                     style={{
-                                      display: "flex",
+                                      border: "1px solid #e5e5e5",
                                     }}
                                   >
-                                    <Link
-                                      href={`/job-details/${job?.pubkey?.toString()}`}
+                                    <div className="row">
+                                      <div className="col-md-6">
+                                        <div className="media align-items-center">
+                                          <div className="square-72 d-block mr-8">
+                                            <img
+                                              src={
+                                                job?.parsedInfo?.company_info
+                                                  ?.logo_uri || job.logo
+                                              }
+                                              alt=""
+                                              style={{
+                                                width: "75px",
+                                                height: "75px",
+                                                objectFit: "cover",
+                                                borderRadius: "50%",
+                                              }}
+                                            />
+                                          </div>
+                                          <div>
+                                            <h3 className="mb-0 font-size-6 heading-default-color">
+                                              {job?.jobTitle}
+                                            </h3>
+                                            <span className="font-size-3 text-default-color line-height-2 d-block">
+                                              {job?.parsedInfo?.company_info?.name?.toUpperCase()}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="col-md-6 text-right pt-7 pt-md-5">
+                                        <div className="media justify-content-md-end">
+                                          {/* <div className="image mr-5 mt-2">
+                                          <img src={imgF.src} alt="" />
+                                        </div> */}
+                                          <p className="font-weight-bold font-size-7 text-hit-gray mb-0">
+                                            <span className="text-primary mr-2">
+                                              {job?.parsedInfo?.currency}{" "}
+                                            </span>
+                                            <span className="text-black-2">
+                                              {` ${Number(
+                                                job?.parsedInfo?.min_salary
+                                              )} -
+                                    ${Number(job?.parsedInfo?.max_salary)}`}
+                                            </span>
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div className="row pt-8">
+                                      <div className="col-md-7">
+                                        <ul className="d-flex list-unstyled mr-n3 flex-wrap">
+                                          {job?.parsedInfo?.skills.map(
+                                            (skill, index) => (
+                                              <li key={index}>
+                                                <span className="bg-regent-opacity-15 min-width-px-96 mr-3 text-center rounded-3 px-6 py-1 font-size-3 text-black-2 mt-2 d-inline-block">
+                                                  {skill}
+                                                </span>
+                                              </li>
+                                            )
+                                          )}
+                                        </ul>
+                                      </div>
+                                      <div className="col-md-5">
+                                        <ul className="d-flex list-unstyled mr-n3 flex-wrap mr-n8 justify-content-md-end">
+                                          <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
+                                            <span
+                                              className="mr-4"
+                                              css={`
+                                                margin-top: -2px;
+                                              `}
+                                            >
+                                              <img src={iconL.src} alt="" />
+                                            </span>
+                                            <span className="font-weight-semibold">
+                                              {job?.parsedInfo
+                                                ?.job_location_type === "remote"
+                                                ? "Remote"
+                                                : `${job?.parsedInfo?.city}, ${job?.parsedInfo?.country}`}
+                                            </span>
+                                          </li>
+                                          <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
+                                            <span
+                                              className="mr-4"
+                                              css={`
+                                                margin-top: -2px;
+                                              `}
+                                            >
+                                              <img src={iconS.src} alt="" />
+                                            </span>
+                                            <span className="font-weight-semibold">
+                                              {job?.parsedInfo?.job_type}
+                                            </span>
+                                          </li>
+                                          <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
+                                            <span
+                                              className="mr-4"
+                                              css={`
+                                                margin-top: -2px;
+                                              `}
+                                            >
+                                              <img src={iconC.src} alt="" />
+                                            </span>
+                                            <span className="font-weight-semibold">
+                                              {moment(
+                                                new Date(
+                                                  job?.parsedInfo?.created_at.toNumber()
+                                                )
+                                              ).fromNow()}
+                                            </span>
+                                          </li>
+                                        </ul>
+                                        <ul className="d-flex list-unstyled mr-n3 flex-wrap mr-n8 justify-content-md-end">
+                                          <li className="mt-2 mr-8 font-size-small text-black-2 d-flex">
+                                            <span className="mr-4">
+                                              Categories:
+                                            </span>
+                                            <span className="font-weight-semibold">
+                                              {job?.parsedInfo?.category.join(
+                                                ","
+                                              )}
+                                            </span>
+                                          </li>
+                                        </ul>
+                                      </div>
+                                    </div>
+
+                                    <div
+                                      className="card-btn-group mt-3"
+                                      style={{
+                                        display: "flex",
+                                      }}
                                     >
-                                      <a className="btn btn-green text-uppercase btn-medium rounded-3">
-                                        View Job
+                                      <Link
+                                        href={`/job-details/${job?.pubkey?.toString()}`}
+                                      >
+                                        <a className="btn btn-green text-uppercase btn-medium rounded-3">
+                                          View Job
+                                        </a>
+                                      </Link>
+                                      <a
+                                        className="btn btn-outline-green text-uppercase btn-medium rounded-3 ml-3"
+                                        href={`${EXPLORER_ADDRESS_URL}${job?.pubkey?.toString()}${EXPLORER_CLUSTER}`}
+                                        target="_blank"
+                                      >
+                                        <i className="fa fa-globe mr-3"></i>
+                                        View on chain
                                       </a>
-                                    </Link>
-                                    <a
-                                      className="btn btn-outline-gray  text-uppercase btn-medium rounded-3 ml-3"
-                                      href={`https://explorer.solana.com/address/${job?.pubkey?.toString()}?cluster=devnet`}
-                                      target="_blank"
-                                    >
-                                      <i className="fa fa-globe mr-3"></i>
-                                      View on chain
-                                    </a>
+                                    </div>
                                   </div>
+                                ))
+                              ) : (
+                                <div className="text-center">
+                                  <h3
+                                    className="font-size-5 mb-0 text-default-color "
+                                    style={{
+                                      fontWeight: "400",
+                                    }}
+                                  >
+                                    Company hasn't <strong>posted</strong> any
+                                    jobs yet
+                                  </h3>
                                 </div>
-                              ))}
+                              )}
                             </Tab.Pane>
                           </Tab.Content>
                           {/* <!-- Tab Content End --> */}
@@ -454,6 +504,11 @@ export default function Company() {
                         </h4>
                         <ul className="list-unstyled">
                           {allListedCompanies &&
+                          allListedCompanies.filter(
+                            (company) =>
+                              company?.company_info_account?.toString() !==
+                              companyName
+                          ).length > 0 ? (
                             // filter out the current job company
                             allListedCompanies
                               .slice(0, 5)
@@ -498,7 +553,20 @@ export default function Company() {
                                     </a>
                                   </Link>
                                 </li>
-                              ))}
+                              ))
+                          ) : (
+                            <div className="">
+                              <h3
+                                className="font-size-4 mb-0 text-default-color mt-2"
+                                style={{
+                                  fontWeight: "400",
+                                }}
+                              >
+                                Hang on!!! More <strong>companies</strong>{" "}
+                                coming soon...
+                              </h3>
+                            </div>
+                          )}
                         </ul>
                       </div>
                     </div>
@@ -507,7 +575,17 @@ export default function Company() {
                 )}
               {!selectedCompanyInfo ||
                 (!Object.keys(selectedCompanyInfo).length && (
-                  <div className="row">No company info found</div>
+                  <div className="row">
+                    <div
+                      className="col-12"
+                      style={{
+                        textAlign: "center",
+                        fontSize: "24px",
+                      }}
+                    >
+                      No <strong>Company Info</strong> found
+                    </div>
+                  </div>
                 ))}
             </div>
           )}

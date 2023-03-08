@@ -31,6 +31,7 @@ import ModalUserType from "../ModalUserType/ModalUserType";
 import ModalEducation from "../ModalEducation";
 import ModalCompaniesSlider from "../ModalCompaniesSlider";
 import ModalRecruiterProfile from "../ModalRecruiterProfile";
+import imgFavicon from "../../assets/image/favicon.png";
 
 const Loader = styled.div`
   position: fixed;
@@ -102,7 +103,7 @@ const Layout = ({ children, pageContext }) => {
           <GlobalStyle />
           <Head>
             <title>OnChainCareer</title>
-            {/* <link rel="icon" type="image/png" href={imgFavicon} /> */}
+            <link rel="icon" type="image/png" href={imgFavicon.src} />
           </Head>
           <Loader id="loading" className={visibleLoader ? "" : "inActive"}>
             <div className="load-circle">
@@ -138,7 +139,7 @@ const Layout = ({ children, pageContext }) => {
           <GlobalStyle />
           <Head>
             <title>OnChainCareer</title>
-            {/* <link rel="icon" type="image/png" href={imgFavicon} /> */}
+            <link rel="icon" type="image/png" href={imgFavicon.src} />
           </Head>
           <Loader id="loading" className={visibleLoader ? "" : "inActive"}>
             <div className="load-circle">
@@ -180,7 +181,7 @@ const Layout = ({ children, pageContext }) => {
           <GlobalStyle />
           <Head>
             <title>OnChainCareer</title>
-            {/* <link rel="icon" type="image/png" href={imgFavicon} /> */}
+            <link rel="icon" type="image/png" href={imgFavicon.src} />
           </Head>
           <Loader id="loading" className={visibleLoader ? "" : "inActive"} />
           <div className="site-wrapper overflow-hidden" ref={eleRef}>

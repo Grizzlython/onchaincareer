@@ -165,6 +165,10 @@ export const checkForBalance = async (bundlr, size) => {
       error: null
     }
   }
+  return {
+    status: true,
+    error: null
+  }
 
   }catch(err){
     console.log(err,' err in checkForBalance')

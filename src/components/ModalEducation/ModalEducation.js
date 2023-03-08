@@ -38,6 +38,8 @@ const ModalEducation = (props) => {
   const { loading } = gContext;
 
   const [candidateEducation, setCandidateEducation] = useState(educationSchema);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
 
   // const handleToggleofArchive = async (e, index) => {
   //   e.preventDefault();
@@ -63,6 +65,7 @@ const ModalEducation = (props) => {
     }
     const candidateEducationCopy = { ...candidateEducation };
     candidateEducationCopy[key] = value;
+    console.log(candidateEducationCopy, "candidateEducationCopy");
     setCandidateEducation({ ...candidateEducationCopy });
   };
 
@@ -79,8 +82,23 @@ const ModalEducation = (props) => {
         (edu) => edu.education_number === currentEducationNumber
       );
       if (filteredEducation && filteredEducation.length > 0) {
-        setCandidateEducation({ ...filteredEducation[0] });
+        const tempEducation = { ...filteredEducation[0] };
+        if (tempEducation.start_date) {
+          tempEducation.start_date = new Date(
+            parseInt(tempEducation.start_date)
+          )
+            .toISOString()
+            .slice(0, 10);
+        }
+        if (tempEducation.end_date) {
+          tempEducation.end_date = new Date(parseInt(tempEducation.end_date))
+            .toISOString()
+            .slice(0, 10);
+        }
+
+        setCandidateEducation({ ...tempEducation });
       }
+      console.log(filteredEducation, "filteredEducation");
     }
   }, [currentEducationNumber]);
 
@@ -92,13 +110,12 @@ const ModalEducation = (props) => {
       }
       const educationInfo = { ...candidateEducation };
 
-      if (educationInfo.start_date) {
+      if (educationInfo.start_date && educationInfo.start_date !== "NaN") {
         educationInfo.start_date = new Date(educationInfo.start_date)
           .getTime()
           .toString();
-        console.log(educationInfo.start_date, "educationInfo.start_date");
       }
-      if (educationInfo.end_date) {
+      if (educationInfo.end_date && educationInfo.end_date !== "NaN") {
         educationInfo.end_date = new Date(educationInfo.end_date)
           .getTime()
           .toString();
@@ -165,7 +182,7 @@ const ModalEducation = (props) => {
     }
   };
 
-  // console.log(candidateEducation, "candidateEducation");
+  console.log(eductions, "candidateEducation");
 
   return (
     <ModalStyled
@@ -175,12 +192,13 @@ const ModalEducation = (props) => {
       show={gContext.educationModalVisible}
       onHide={gContext.toggleEducationModal}
       backdrop="static"
+      scrollable={true}
     >
       <Modal.Body
         className="p-0"
-        // style={{
-        //   backgroundColor: "#e5e5e5",
-        // }}
+        style={{
+          marginTop: "100px",
+        }}
       >
         <button
           type="button"
@@ -189,7 +207,16 @@ const ModalEducation = (props) => {
         >
           <i className="fas fa-times"></i>
         </button>
-        <div className="mt-12" id="dashboard-body">
+        <div
+          className="mt-12"
+          id="dashboard-body"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+          }}
+        >
           {loading ? (
             <Loader />
           ) : (
@@ -289,15 +316,7 @@ const ModalEducation = (props) => {
                                       className="form-control h-px-48"
                                       id="sDate"
                                       placeholder="eg. School start date"
-                                      value={
-                                        candidateEducation.start_date
-                                        // &&
-                                        // new Date(
-                                        //   Number(candidateEducation.start_date)
-                                        // )
-                                        //   .toISOString()
-                                        //   .slice(0, 10)
-                                      }
+                                      value={candidateEducation.start_date}
                                       onChange={(e) =>
                                         handleEducation(e, "start_date")
                                       }
@@ -318,15 +337,7 @@ const ModalEducation = (props) => {
                                       className="form-control h-px-48"
                                       id="eDate"
                                       placeholder="eg. School end date"
-                                      value={
-                                        candidateEducation.end_date
-                                        // &&
-                                        // new Date(
-                                        //   Number(candidateEducation.end_date)
-                                        // )
-                                        //   .toISOString()
-                                        //   .slice(0, 10)
-                                      }
+                                      value={candidateEducation.end_date}
                                       onChange={(e) =>
                                         handleEducation(e, "end_date")
                                       }
@@ -426,6 +437,8 @@ const ModalEducation = (props) => {
                                       onChange={(e) =>
                                         handleEducation(e, "is_college")
                                       }
+                                      className="basic-multi-select"
+                                      border={true}
                                     />
                                   </div>
                                 </div>
@@ -459,6 +472,8 @@ const ModalEducation = (props) => {
                                       onChange={(e) =>
                                         handleEducation(e, "is_studying")
                                       }
+                                      className="basic-multi-select"
+                                      border={true}
                                     />
                                   </div>
                                 </div>
@@ -468,7 +483,7 @@ const ModalEducation = (props) => {
                                       htmlFor="weDescription"
                                       className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
                                     >
-                                      Certificate urls
+                                      Certificate URLs
                                     </label>
                                     <input
                                       type="text"
@@ -519,7 +534,7 @@ const ModalEducation = (props) => {
                             </a> */}
                             </>
                           )}
-                          <pre>{JSON.stringify(candidateEducation)}</pre>
+
                           <div className="row">
                             <div className="col-md-12">
                               <input

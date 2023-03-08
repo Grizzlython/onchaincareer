@@ -4,6 +4,7 @@ import imgF1 from "../../assets/image/l1/png/feature-brand-1.png";
 
 import GlobalContext from "../../context/GlobalContext";
 import Loader from "../../components/Loader";
+import { EXPLORER_ADDRESS_URL, EXPLORER_CLUSTER } from "../../utils/constants";
 
 const FeaturedJobs = () => {
   const gContext = useContext(GlobalContext);
@@ -112,7 +113,10 @@ const FeaturedJobs = () => {
                         <li>
                           {/* <Link href="/#"> */}
                           <a className="bg-regent-opacity-15 text-eastern font-size-3 rounded-3">
-                            <i className="fa fa-rupee-sign mr-2 font-weight-bold"></i>{" "}
+                            {/* <i className="fa fa-rupee-sign mr-2 font-weight-bold"></i>{" "} */}
+                            <span className="text-primary mr-2">
+                              {jobListing.parsedInfo?.currency}{" "}
+                            </span>
                             {Number(jobListing.parsedInfo.min_salary) +
                               " -" +
                               Number(jobListing.parsedInfo.max_salary)}
@@ -144,13 +148,13 @@ const FeaturedJobs = () => {
                           </a>
                         </Link>
                         <a
-                          className="btn btn-outline-gray text-black text-uppercase btn-medium rounded-3 ml-3"
-                          href={`https://explorer.solana.com/address/${jobListing?.pubkey?.toString()}?cluster=devnet`}
-                          target="_blank"
-                        >
-                          <i className="fa fa-globe mr-3"></i>
-                          View on chain
-                        </a>
+                                      className="btn btn-outline-green text-uppercase btn-medium rounded-3 ml-3"
+                                      href={`${EXPLORER_ADDRESS_URL}${jobListing?.pubkey?.toString()}${EXPLORER_CLUSTER}`}
+                                      target="_blank"
+                                    >
+                                      <i className="fa fa-globe mr-3"></i>
+                                      View on chain
+                                    </a>
                       </div>
                     </div>
 

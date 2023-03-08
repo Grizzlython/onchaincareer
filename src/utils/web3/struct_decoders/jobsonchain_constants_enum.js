@@ -1,11 +1,12 @@
 export const WORKFLOW_STATUSES_enum = {
+    SAVED: "saved",
     APPLIED: "applied",
     IN_PROGRESS: "in_progress",
     ACCEPTED: "accepted",
     REJECTED: "rejected",
     WITHDRAW: "withdraw"
 }
-export const WORKFLOW_STATUSES = [WORKFLOW_STATUSES_enum.APPLIED, WORKFLOW_STATUSES_enum.IN_PROGRESS, WORKFLOW_STATUSES_enum.ACCEPTED, WORKFLOW_STATUSES_enum.REJECTED, WORKFLOW_STATUSES_enum.WITHDRAW]
+export const WORKFLOW_STATUSES = [WORKFLOW_STATUSES_enum.SAVED, WORKFLOW_STATUSES_enum.APPLIED, WORKFLOW_STATUSES_enum.IN_PROGRESS, WORKFLOW_STATUSES_enum.ACCEPTED, WORKFLOW_STATUSES_enum.REJECTED, WORKFLOW_STATUSES_enum.WITHDRAW]
 //saved => when candidate saves the job
 //applied => when candidate applies for the job
 //in_progress => when company move the job to in_progress
@@ -87,3 +88,23 @@ export const SOLANA_USDC_MINT_KEY_LOCALHOST = "DxHG5wMJoecJDpiDJte622mdfV9BFwiaC
 //sixmonths => 6 months
 //yearly => 1 year
 //forever => forever (lifetime) use
+
+export const changeStasusOptions = [
+    {
+      value: WORKFLOW_STATUSES_enum.APPLIED,
+      label: "APPLIED",
+    },
+    {
+      value:
+        WORKFLOW_STATUSES_enum.IN_PROGRESS,
+      label: "IN PROGRESS",
+    },
+    {
+      value: WORKFLOW_STATUSES_enum.ACCEPTED,
+      label: "ACCEPTED",
+    },
+    {
+      value: WORKFLOW_STATUSES_enum.REJECTED,
+      label: "REJECTED",
+    },
+  ]

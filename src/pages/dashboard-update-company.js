@@ -5,6 +5,7 @@ import { Select } from "../components/Core";
 import GlobalContext from "../context/GlobalContext";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useRouter } from "next/router";
+import SEO from "@bradgarropy/next-seo";
 import {
   checkForBalance,
   initiateBundlr,
@@ -13,6 +14,7 @@ import {
 import fileReaderStream from "filereader-stream";
 import Loader from "../components/Loader";
 import { toast } from "react-toastify";
+import { currencies } from "../staticData";
 
 const defaultTypes = [
   { value: "Product-based", label: "Product based" },
@@ -32,21 +34,21 @@ export default function UpdateCompany() {
   const [name, setName] = useState("");
   const [logoUri, setLogoUri] = useState("");
   const [domain, setDomain] = useState("");
-  const [companyType, setCompanyType] = useState("");
+  const [companyType, setCompanyType] = useState(null);
   const [companySize, setCompanySize] = useState(""); //"small, medium, large"
   const [companyStage, setCompanyStage] = useState("");
-  const [fundingAmount, setFundingAmount] = useState("0");
+  const [fundingAmount, setFundingAmount] = useState("");
   const [fundingCurrency, setFundingCurrency] = useState("");
   const [imageUri, setImageUri] = useState("");
   const [coverImageUri, setCoverImageUri] = useState("");
   const [foundedIn, setFoundedIn] = useState("");
-  const [employeeSize, setEmployeeSize] = useState("");
+  const [employeeSize, setEmployeeSize] = useState(null);
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [website, setWebsite] = useState("");
   const [linkedinHandle, setLinkedinHandle] = useState("");
   const [twitterHandle, setTwitterHandle] = useState("");
-  const [facebookHandle, setFacebookHandle] = useState("");
+  const [youtubeHandle, setYoutubeHandle] = useState("");
   const [instagramHandle, setInstagramHandle] = useState("");
   const [archived, setArchived] = useState(false);
   const handleChange = (e) => {
@@ -91,9 +93,12 @@ export default function UpdateCompany() {
     setWebsite(company.website);
     setLinkedinHandle(company.linkedin);
     setTwitterHandle(company.twitter);
-    setFacebookHandle(company.facebook);
+    setYoutubeHandle(company.youtube);
     setInstagramHandle(company.instagram);
     setArchived(company.archived);
+    setDomain(company.domain);
+    setFundingCurrency(company.funding_currency);
+    setFundingAmount(company.funding_amount);
   }, [selectedCompanyInfo]);
 
   const [selectedFile, setSelectedFile] = useState(null);
@@ -181,28 +186,32 @@ export default function UpdateCompany() {
       }
 
       const companyInfo = {
-        username: publicKey.toString(), //32
+        archived: archived,
         name: name, //64
         logo_uri: logoUri, //128
         domain: domain, //64
-        company_type: companyType && companyType.value, //8 "product, service, both"
-        company_size: companySize, //8 "small, medium, large"
+        company_type: companyType
+          ? companyType.value.length > 0
+            ? companyType.value
+            : ""
+          : "", //8 "product, service, both"
         company_stage: companyStage, //32
         funding_amount: fundingAmount, //8
         funding_currency: fundingCurrency, //8
-        image_uri: imageUri, //128
         cover_image_uri: coverImageUri, //128
         founded_in: foundedIn, //8
-        employee_size: employeeSize.value, //8
+        employee_size:
+          employeeSize && employeeSize.value.length > 0
+            ? employeeSize.value
+            : "", //8
         address: location, //512
         description: description, // 1024
         website: website, //128
         linkedin: linkedinHandle, //128
         twitter: twitterHandle, //128
-        facebook: facebookHandle, //128
+        youtube: youtubeHandle, //128
         instagram: instagramHandle, //128
         company_seq_number: selectedCompanyInfo?.company_seq_number,
-        archived: archived,
       };
 
       console.log(companyInfo, "companyInfo in react");
@@ -276,6 +285,25 @@ export default function UpdateCompany() {
   const [editCover, setEditCover] = useState(false);
   return (
     <>
+      <SEO
+        description="Search for your dream job on OnChainCareer's secure and decentralized job marketplace. Our cutting-edge blockchain technology ensures reliable and transparent job solutions for job seekers, employers, and stakeholders. Find your next career opportunity today!"
+        keywords={[
+          "OnChainCareer",
+          "blockchain",
+          "decentralized",
+          "job marketplace",
+          "job platform",
+          "job search",
+          "job listings",
+          "job opportunities",
+          "job seekers",
+          "employers",
+          "secure",
+          "reliable",
+          "transparent",
+          "job solutions",
+        ]}
+      />
       <PageWrapper
         headerConfig={{
           button: "profile",
@@ -488,7 +516,7 @@ export default function UpdateCompany() {
                                     placeholder="eg. Apple"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    maxLength={32}
+                                    maxLength={64}
                                   />
                                 </div>
                               </div>
@@ -507,7 +535,7 @@ export default function UpdateCompany() {
                                     placeholder="eg. Social Media, E-commerce"
                                     value={domain}
                                     onChange={(e) => setDomain(e.target.value)}
-                                    maxLength={32}
+                                    maxLength={64}
                                   />
                                 </div>
                               </div>
@@ -522,8 +550,8 @@ export default function UpdateCompany() {
 
                                   <Select
                                     options={defaultTypes}
-                                    className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
-                                    border={false}
+                                    className="basic-multi-select"
+                                    border={true}
                                     value={companyType}
                                     onChange={setCompanyType}
                                   />
@@ -563,8 +591,8 @@ export default function UpdateCompany() {
                                   </label>
                                   <Select
                                     options={defaultEmployees}
-                                    className="form-control pl-0 arrow-3 w-100 font-size-4 d-flex align-items-center w-100 "
-                                    border={false}
+                                    className="basic-multi-select"
+                                    border={true}
                                     value={employeeSize}
                                     onChange={setEmployeeSize}
                                   />
@@ -587,7 +615,52 @@ export default function UpdateCompany() {
                                     onChange={(e) =>
                                       setLocation(e.target.value)
                                     }
-                                    maxLength={32}
+                                    maxLength={64}
+                                  />
+                                  <span className="h-100 w-px-50 pos-abs-tl d-flex align-items-center justify-content-center font-size-6"></span>
+                                </div>
+                              </div>
+                              <div className="col-lg-6">
+                                <div className="form-group position-relative">
+                                  <label
+                                    htmlFor="address"
+                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                  >
+                                    Funding Currency
+                                  </label>
+                                  <Select
+                                    options={currencies}
+                                    className="basic-multi-select"
+                                    border={true}
+                                    value={{
+                                      value: fundingCurrency,
+                                      label: fundingCurrency,
+                                    }}
+                                    onChange={(e) =>
+                                      setFundingCurrency(e.value)
+                                    }
+                                  />
+                                  <span className="h-100 w-px-50 pos-abs-tl d-flex align-items-center justify-content-center font-size-6"></span>
+                                </div>
+                              </div>
+                              <div className="col-lg-6">
+                                <div className="form-group position-relative">
+                                  <label
+                                    htmlFor="address"
+                                    className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
+                                  >
+                                    Funding Amount
+                                  </label>
+                                  <input
+                                    type="text"
+                                    className="form-control h-px-48"
+                                    id="address"
+                                    placeholder="eg. London, UK"
+                                    value={fundingAmount}
+                                    onChange={(e) =>
+                                      setFundingAmount(e.target.value)
+                                    }
+                                    maxLength={8}
                                   />
                                   <span className="h-100 w-px-50 pos-abs-tl d-flex align-items-center justify-content-center font-size-6"></span>
                                 </div>
@@ -609,7 +682,7 @@ export default function UpdateCompany() {
                                     onChange={(e) =>
                                       setLinkedinHandle(e.target.value)
                                     }
-                                    maxLength={32}
+                                    maxLength={64}
                                   />
                                 </div>
                               </div>
@@ -630,7 +703,7 @@ export default function UpdateCompany() {
                                     onChange={(e) =>
                                       setTwitterHandle(e.target.value)
                                     }
-                                    maxLength={32}
+                                    maxLength={64}
                                   />
                                 </div>
                               </div>
@@ -640,18 +713,18 @@ export default function UpdateCompany() {
                                     htmlFor="twitter"
                                     className="d-block text-black-2 font-size-4 font-weight-semibold mb-4"
                                   >
-                                    Facebook handle
+                                    Youtube handle
                                   </label>
                                   <input
                                     type="text"
                                     className="form-control h-px-48"
                                     id="twitter"
                                     placeholder="company link"
-                                    value={facebookHandle}
+                                    value={youtubeHandle}
                                     onChange={(e) =>
-                                      setFacebookHandle(e.target.value)
+                                      setYoutubeHandle(e.target.value)
                                     }
-                                    maxLength={32}
+                                    maxLength={64}
                                   />
                                 </div>
                               </div>
@@ -672,7 +745,7 @@ export default function UpdateCompany() {
                                     onChange={(e) =>
                                       setInstagramHandle(e.target.value)
                                     }
-                                    maxLength={32}
+                                    maxLength={64}
                                   />
                                 </div>
                               </div>
@@ -686,6 +759,17 @@ export default function UpdateCompany() {
                                   >
                                     About Comapny
                                   </label>
+                                  <div
+                                    style={{
+                                      position: "absolute",
+                                      right: "20px",
+                                      top: "0",
+                                      color: "#000",
+                                    }}
+                                  >
+                                    <span>{description?.length}</span>/
+                                    <span>356</span>{" "}
+                                  </div>
                                   <textarea
                                     name="textarea"
                                     id="aboutTextarea"
@@ -697,7 +781,7 @@ export default function UpdateCompany() {
                                     onChange={(e) =>
                                       setDescription(e.target.value)
                                     }
-                                    maxLength={512}
+                                    maxLength={356}
                                   ></textarea>
                                 </div>
                               </div>
@@ -716,7 +800,7 @@ export default function UpdateCompany() {
                                     placeholder="https://www.example.com"
                                     value={website}
                                     onChange={(e) => setWebsite(e.target.value)}
-                                    maxLength={32}
+                                    maxLength={64}
                                   />
                                 </div>
                                 <div
