@@ -66,19 +66,6 @@ export default function AddCompany() {
     return () => URL.revokeObjectURL(objectUrl);
   }, [selectedFile]);
 
-  useEffect(() => {
-    if (!selectedCover) {
-      setCoverPreview(undefined);
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(selectedCover);
-    setCoverPreview(objectUrl);
-
-    // free memory when ever this component is unmounted
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [selectedCover]);
-
   // useEffect(() => {
   //   if (!setUpdatedCover) {
   //     setCoverPreview(undefined);
@@ -115,13 +102,6 @@ export default function AddCompany() {
       e.preventDefault();
       const file = e.target.files[0];
 
-      // if file size greater than 512kb
-
-      if (file.size > 512000) {
-        toast.error("File size should be less than 512kb");
-        return;
-      }
-
       // const formData = new FormData();
 
       // formData.append("file", file);
@@ -138,19 +118,7 @@ export default function AddCompany() {
   const handleCoverUpload = (e) => {
     try {
       e.preventDefault();
-      console.log(e, "e");
       const file = e.target.files[0];
-      console.log(file.size, "file");
-
-      // convert file.size to mb
-      const fileSize = file.size / 1000000;
-      console.log(fileSize, "fileSize");
-
-      // if file size greater than 1mb
-      if (file.size > 1000000) {
-        toast.error("File size should be less than 1mb");
-        return;
-      }
 
       // const formData = new FormData();
 
@@ -163,7 +131,7 @@ export default function AddCompany() {
 
       console.log(file, "cover imagefile");
       setUpdatedCover(file);
-      onSelectCover(e);
+      onSelectFile(e);
       return;
     } catch (error) {
       console.log(error, "image upload error");
@@ -400,6 +368,31 @@ export default function AddCompany() {
                             />
                           </div>
                           <p>Upload cover</p>
+                        </div>
+                        <div
+                          className="upload-
+                        file mb-16 text-center ml-4"
+                        >
+                          <div
+                            id="userActions"
+                            className="square-144 m-auto px-6 mb-7"
+                          >
+                            <label
+                              htmlFor="coverUpload"
+                              className="mb-0 font-size-4 text-smoke"
+                            >
+                              {updatedCover
+                                ? updatedCover.name
+                                : "Browse or Drag and Drop your cover image here"}
+                            </label>
+                            <input
+                              type="file"
+                              id="coverUpload"
+                              className="sr-only"
+                              onChange={(e) => handleCoverUpload(e)}
+                              accept="image/*"
+                            />
+                          </div>
                         </div>
                         {preview && (
                           <div className="ml-10">

@@ -7,7 +7,11 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { useEffect } from "react";
 import { countries } from "../staticData";
-import { categoryOptions, defaultJobTypes, sortTypes } from "../utils/constants";
+import {
+  categoryOptions,
+  defaultJobTypes,
+  sortTypes,
+} from "../utils/constants";
 import GlobalContext from "../context/GlobalContext";
 import { useConnection } from "@solana/wallet-adapter-react";
 
@@ -41,13 +45,13 @@ export default function SearchListTwo() {
   }, [query]);
 
   useEffect(() => {
-    if(allListedJobs && allListedJobs.length) return;
+    if (allListedJobs && allListedJobs.length) return;
     (async () => {
       await fetchAndSetAllJobListings(connection);
-    })()
+    })();
   }, [allListedJobs]);
 
-    return (
+  return (
     <>
       <PageWrapper>
         <div className="bg-black-2 mt-15 mt-lg-22 pt-18 pt-lg-13 pb-13">
